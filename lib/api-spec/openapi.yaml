@@ -1,15 +1,33 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Concepful API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: onboarding
+    description: Prospect onboarding
+  - name: companies
+    description: Company management
+  - name: plans
+    description: Plan selections
+  - name: requests
+    description: Work requests
+  - name: work
+    description: Completed work
+  - name: brand
+    description: Brand profile management
+  - name: ai-profiles
+    description: AI model collaboration
+  - name: brand-check
+    description: Brand compliance check
+  - name: admin
+    description: Admin operations
+
 paths:
   /healthz:
     get:
@@ -24,6 +42,490 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /onboarding:
+    post:
+      operationId: submitOnboarding
+      tags: [onboarding]
+      summary: Submit onboarding form
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingInput"
+      responses:
+        "201":
+          description: Onboarding submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingResult"
+    get:
+      operationId: listOnboardings
+      tags: [onboarding]
+      summary: List all onboarding submissions (admin)
+      responses:
+        "200":
+          description: List of onboarding submissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OnboardingSubmission"
+
+  /onboarding/{id}:
+    get:
+      operationId: getOnboarding
+      tags: [onboarding]
+      summary: Get onboarding submission
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Onboarding submission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingSubmission"
+        "404":
+          description: Not found
+
+  /companies:
+    get:
+      operationId: listCompanies
+      tags: [companies]
+      summary: List all companies
+      responses:
+        "200":
+          description: List of companies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Company"
+
+  /companies/{id}:
+    get:
+      operationId: getCompany
+      tags: [companies]
+      summary: Get company by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Company
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Company"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateCompany
+      tags: [companies]
+      summary: Update company
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompanyUpdate"
+      responses:
+        "200":
+          description: Updated company
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Company"
+
+  /plans:
+    get:
+      operationId: listPlanSelections
+      tags: [plans]
+      summary: List all plan selections
+      responses:
+        "200":
+          description: List of plan selections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlanSelection"
+    post:
+      operationId: createPlanSelection
+      tags: [plans]
+      summary: Create a plan selection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanSelectionInput"
+      responses:
+        "201":
+          description: Created plan selection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanSelection"
+
+  /plans/{id}:
+    get:
+      operationId: getPlanSelection
+      tags: [plans]
+      summary: Get plan selection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Plan selection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanSelection"
+    patch:
+      operationId: updatePlanSelection
+      tags: [plans]
+      summary: Update plan selection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanSelectionUpdate"
+      responses:
+        "200":
+          description: Updated plan selection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanSelection"
+
+  /requests:
+    get:
+      operationId: listWorkRequests
+      tags: [requests]
+      summary: List work requests
+      parameters:
+        - name: companyId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of work requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkRequest"
+    post:
+      operationId: createWorkRequest
+      tags: [requests]
+      summary: Create a work request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkRequestInput"
+      responses:
+        "201":
+          description: Created work request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkRequest"
+
+  /requests/{id}:
+    get:
+      operationId: getWorkRequest
+      tags: [requests]
+      summary: Get work request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Work request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkRequest"
+    patch:
+      operationId: updateWorkRequest
+      tags: [requests]
+      summary: Update work request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkRequestUpdate"
+      responses:
+        "200":
+          description: Updated work request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkRequest"
+
+  /work:
+    get:
+      operationId: listCompletedWork
+      tags: [work]
+      summary: List completed work items
+      parameters:
+        - name: companyId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of completed work
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CompletedWork"
+    post:
+      operationId: createCompletedWork
+      tags: [work]
+      summary: Mark work as completed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompletedWorkInput"
+      responses:
+        "201":
+          description: Created completed work
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompletedWork"
+
+  /work/{id}:
+    patch:
+      operationId: updateCompletedWork
+      tags: [work]
+      summary: Update completed work
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompletedWorkUpdate"
+      responses:
+        "200":
+          description: Updated completed work
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompletedWork"
+
+  /brand/{companyId}:
+    get:
+      operationId: getBrandProfile
+      tags: [brand]
+      summary: Get brand profile for a company
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Brand profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrandProfile"
+        "404":
+          description: Not found
+    put:
+      operationId: upsertBrandProfile
+      tags: [brand]
+      summary: Create or update brand profile
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrandProfileInput"
+      responses:
+        "200":
+          description: Brand profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrandProfile"
+
+  /ai-profiles/{companyId}:
+    get:
+      operationId: getAiProfile
+      tags: [ai-profiles]
+      summary: Get AI model profile for a company
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: AI model profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiModelProfile"
+        "404":
+          description: Not found
+    put:
+      operationId: upsertAiProfile
+      tags: [ai-profiles]
+      summary: Create or update AI model profile
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiModelProfileInput"
+      responses:
+        "200":
+          description: AI model profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiModelProfile"
+
+  /brand-check:
+    post:
+      operationId: runBrandCheck
+      tags: [brand-check]
+      summary: Run a brand compliance check
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrandCheckInput"
+      responses:
+        "200":
+          description: Brand check result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrandCheck"
+    get:
+      operationId: listBrandChecks
+      tags: [brand-check]
+      summary: List brand check history for a company
+      parameters:
+        - name: companyId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Brand check history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BrandCheck"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get admin dashboard stats
+      responses:
+        "200":
+          description: Admin stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/mrr:
+    get:
+      operationId: getAdminMrr
+      tags: [admin]
+      summary: Get MRR breakdown by tier
+      responses:
+        "200":
+          description: MRR data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MrrBreakdown"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +536,328 @@ components:
       required:
         - status
 
+    OnboardingInput:
+      type: object
+      required:
+        - company
+        - contact
+        - plan
+        - goals
+      properties:
+        company:
+          type: object
+          required: [name, website, industry, size]
+          properties:
+            name: { type: string }
+            website: { type: string }
+            industry: { type: string }
+            size: { type: string }
+            revenueRange: { type: string }
+        contact:
+          type: object
+          required: [name, email]
+          properties:
+            name: { type: string }
+            email: { type: string }
+            phone: { type: string }
+        plan:
+          type: object
+          required: [tier, billingCycle]
+          properties:
+            tier: { type: string, enum: [signal, pulse, cortex] }
+            billingCycle: { type: string, enum: [monthly, annual] }
+            addOns: { type: array, items: { type: string } }
+            aiOpsLevel: { type: string, enum: [none, basic, advanced, embedded] }
+            estimatedMonthlyTotal: { type: number }
+            estimatedAnnualTotal: { type: number }
+        goals:
+          type: object
+          properties:
+            improvements: { type: array, items: { type: string } }
+            painPoints: { type: string }
+            firstPriorities: { type: array, items: { type: string } }
+            competitors: { type: array, items: { type: string } }
+        brand:
+          type: object
+          properties:
+            colors: { type: array, items: { type: string } }
+            fonts: { type: array, items: { type: string } }
+            toneWords: { type: array, items: { type: string } }
+        aiSetup:
+          type: object
+          properties:
+            providers: { type: array, items: { type: string } }
+            consentAiWorkflows: { type: boolean }
+            consentBrandMemory: { type: boolean }
+
+    OnboardingResult:
+      type: object
+      required: [id, companyId]
+      properties:
+        id: { type: integer }
+        companyId: { type: integer }
+        message: { type: string }
+
+    OnboardingSubmission:
+      type: object
+      required: [id, companyId, companyName, tier, billingCycle, estimatedMonthlyTotal, createdAt]
+      properties:
+        id: { type: integer }
+        companyId: { type: integer }
+        companyName: { type: string }
+        contactName: { type: string }
+        contactEmail: { type: string }
+        tier: { type: string }
+        billingCycle: { type: string }
+        addOns: { type: array, items: { type: string } }
+        aiOpsLevel: { type: string }
+        estimatedMonthlyTotal: { type: number }
+        estimatedAnnualTotal: { type: number }
+        status: { type: string }
+        createdAt: { type: string }
+
+    Company:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        website: { type: ["string", "null"] }
+        industry: { type: ["string", "null"] }
+        size: { type: ["string", "null"] }
+        revenueRange: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    CompanyUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        website: { type: string }
+        industry: { type: string }
+        size: { type: string }
+        revenueRange: { type: string }
+
+    PlanSelection:
+      type: object
+      required: [id, companyId, tier, billingCycle, basePrice]
+      properties:
+        id: { type: integer }
+        companyId: { type: integer }
+        tier: { type: string }
+        billingCycle: { type: string }
+        basePrice: { type: number }
+        discount: { type: number }
+        addOns: { type: array, items: { type: string } }
+        aiOpsLevel: { type: string }
+        estimatedMonthlyTotal: { type: number }
+        estimatedAnnualTotal: { type: number }
+        createdAt: { type: string }
+
+    PlanSelectionInput:
+      type: object
+      required: [companyId, tier, billingCycle, basePrice]
+      properties:
+        companyId: { type: integer }
+        tier: { type: string, enum: [signal, pulse, cortex] }
+        billingCycle: { type: string, enum: [monthly, annual] }
+        basePrice: { type: number }
+        discount: { type: number }
+        addOns: { type: array, items: { type: string } }
+        aiOpsLevel: { type: string, enum: [none, basic, advanced, embedded] }
+        estimatedMonthlyTotal: { type: number }
+        estimatedAnnualTotal: { type: number }
+
+    PlanSelectionUpdate:
+      type: object
+      properties:
+        tier: { type: string, enum: [signal, pulse, cortex] }
+        billingCycle: { type: string, enum: [monthly, annual] }
+        basePrice: { type: number }
+        discount: { type: number }
+        addOns: { type: array, items: { type: string } }
+        aiOpsLevel: { type: string }
+        estimatedMonthlyTotal: { type: number }
+        estimatedAnnualTotal: { type: number }
+
+    WorkRequest:
+      type: object
+      required: [id, companyId, title, type, status, priority, createdAt]
+      properties:
+        id: { type: integer }
+        companyId: { type: integer }
+        title: { type: string }
+        type: { type: string }
+        goal: { type: ["string", "null"] }
+        priority: { type: string }
+        status: { type: string }
+        deadline: { type: ["string", "null"] }
+        description: { type: ["string", "null"] }
+        referenceLinks: { type: array, items: { type: string } }
+        notes: { type: ["string", "null"] }
+        assignedTo: { type: ["string", "null"] }
+        nextAction: { type: ["string", "null"] }
+        createdAt: { type: string }
+        completedAt: { type: ["string", "null"] }
+
+    WorkRequestInput:
+      type: object
+      required: [companyId, title, type, priority]
+      properties:
+        companyId: { type: integer }
+        title: { type: string }
+        type: { type: string }
+        goal: { type: string }
+        priority: { type: string, enum: [low, medium, high, urgent] }
+        deadline: { type: string }
+        description: { type: string }
+        referenceLinks: { type: array, items: { type: string } }
+        notes: { type: string }
+
+    WorkRequestUpdate:
+      type: object
+      properties:
+        title: { type: string }
+        status: { type: string, enum: [pending, in_review, in_progress, revision, delivered, completed] }
+        priority: { type: string, enum: [low, medium, high, urgent] }
+        assignedTo: { type: string }
+        nextAction: { type: string }
+        notes: { type: string }
+        deadline: { type: string }
+
+    CompletedWork:
+      type: object
+      required: [id, companyId, title, category, completedAt]
+      properties:
+        id: { type: integer }
+        companyId: { type: integer }
+        title: { type: string }
+        category: { type: string }
+        notes: { type: ["string", "null"] }
+        approved: { type: boolean }
+        completedAt: { type: string }
+
+    CompletedWorkInput:
+      type: object
+      required: [companyId, title, category]
+      properties:
+        companyId: { type: integer }
+        title: { type: string }
+        category: { type: string }
+        notes: { type: string }
+        approved: { type: boolean }
+
+    CompletedWorkUpdate:
+      type: object
+      properties:
+        notes: { type: string }
+        approved: { type: boolean }
+
+    BrandProfile:
+      type: object
+      required: [id, companyId]
+      properties:
+        id: { type: integer }
+        companyId: { type: integer }
+        colors: { type: array, items: { type: string } }
+        fonts: { type: array, items: { type: string } }
+        toneWords: { type: array, items: { type: string } }
+        visualReferences: { type: array, items: { type: string } }
+        approvedAssets: { type: array, items: { type: string } }
+        bannedWords: { type: array, items: { type: string } }
+        requiredDisclaimers: { type: array, items: { type: string } }
+        audienceNotes: { type: ["string", "null"] }
+        competitorNotes: { type: ["string", "null"] }
+        updatedAt: { type: string }
+
+    BrandProfileInput:
+      type: object
+      properties:
+        colors: { type: array, items: { type: string } }
+        fonts: { type: array, items: { type: string } }
+        toneWords: { type: array, items: { type: string } }
+        visualReferences: { type: array, items: { type: string } }
+        approvedAssets: { type: array, items: { type: string } }
+        bannedWords: { type: array, items: { type: string } }
+        requiredDisclaimers: { type: array, items: { type: string } }
+        audienceNotes: { type: string }
+        competitorNotes: { type: string }
+
+    AiModelProfile:
+      type: object
+      required: [id, companyId]
+      properties:
+        id: { type: integer }
+        companyId: { type: integer }
+        providers: { type: array, items: { type: string } }
+        modelName: { type: ["string", "null"] }
+        useCases: { type: array, items: { type: string } }
+        usageNotes: { type: ["string", "null"] }
+        consentAiWorkflows: { type: boolean }
+        consentBrandMemory: { type: boolean }
+        updatedAt: { type: string }
+
+    AiModelProfileInput:
+      type: object
+      properties:
+        providers: { type: array, items: { type: string } }
+        modelName: { type: string }
+        useCases: { type: array, items: { type: string } }
+        usageNotes: { type: string }
+        consentAiWorkflows: { type: boolean }
+        consentBrandMemory: { type: boolean }
+
+    BrandCheckInput:
+      type: object
+      required: [companyId, inputText]
+      properties:
+        companyId: { type: integer }
+        inputText: { type: string }
+        inputType: { type: string, enum: [text, url, description] }
+
+    BrandCheck:
+      type: object
+      required: [id, companyId, alignmentScore, toneScore, colorScore, messagingScore, createdAt]
+      properties:
+        id: { type: integer }
+        companyId: { type: integer }
+        inputText: { type: string }
+        inputType: { type: string }
+        alignmentScore: { type: number }
+        toneScore: { type: number }
+        colorScore: { type: number }
+        messagingScore: { type: number }
+        typographyScore: { type: number }
+        recommendations: { type: array, items: { type: string } }
+        createdAt: { type: string }
+
+    AdminStats:
+      type: object
+      required: [totalLeads, activeClients, totalMrr, openRequests]
+      properties:
+        totalLeads: { type: integer }
+        activeClients: { type: integer }
+        totalMrr: { type: number }
+        openRequests: { type: integer }
+        signalClients: { type: integer }
+        pulseClients: { type: integer }
+        cortexClients: { type: integer }
+        completedWorkThisMonth: { type: integer }
+        recentOnboardings:
+          type: array
+          items:
+            $ref: "#/components/schemas/OnboardingSubmission"
+
+    MrrBreakdown:
+      type: object
+      required: [total, byTier]
+      properties:
+        total: { type: number }
+        byTier:
+          type: array
+          items:
+            type: object
+            required: [tier, clients, mrr]
+            properties:
+              tier: { type: string }
+              clients: { type: integer }
+              mrr: { type: number }
