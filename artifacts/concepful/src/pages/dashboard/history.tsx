@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { useListCompletedWork, useUpdateCompletedWork, getListCompletedWorkQueryKey } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2, Clock, BarChart2, TrendingUp, Eye, MousePointer, Mail, ArrowUpRight, LayoutGrid, List, Upload, PlusCircle } from "lucide-react";
+import { ArtworkThumbnail } from "@/components/ArtworkThumbnail";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "grid" | "list";
@@ -297,23 +298,26 @@ export default function History() {
                   <Card
                     className={cn(
                       "flex flex-col overflow-hidden transition-shadow hover:shadow-lg",
-                      view === "list" ? "flex-row" : ""
+                      view === "list" ? "flex-row items-center" : ""
                     )}
                     data-testid={`collateral-item-${item.id}`}
                   >
-                    {/* Color band based on category */}
-                    {view === "grid" && (
-                      <div className={cn(
-                        "h-1.5 w-full",
-                        item.category === "social" || item.category === "Social" ? "bg-primary" :
-                        item.category === "email" || item.category === "Email" ? "bg-blue-500" :
-                        item.category === "strategy" || item.category === "Strategy" ? "bg-accent" :
-                        item.category === "campaign" || item.category === "Campaign" ? "bg-amber-400" :
-                        "bg-secondary"
-                      )} />
+                    {/* Artwork thumbnail */}
+                    {view === "grid" ? (
+                      <ArtworkThumbnail
+                        category={item.category}
+                        title={item.title}
+                        className="h-28 w-full rounded-none"
+                      />
+                    ) : (
+                      <ArtworkThumbnail
+                        category={item.category}
+                        title={item.title}
+                        className="h-16 w-16 shrink-0 rounded-none"
+                      />
                     )}
 
-                    <CardHeader className={cn("pb-3", view === "list" ? "flex-1" : "")}>
+                    <CardHeader className={cn("pb-3", view === "list" ? "flex-1 py-3" : "")}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-base leading-tight line-clamp-2">{item.title}</h3>

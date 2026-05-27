@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { SiteLayout } from "@/components/layout/site-layout";
+import { FloatingPricingWidget } from "@/components/FloatingPricingWidget";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
@@ -570,22 +571,7 @@ export default function Landing() {
 
       </div>
 
-      {/* Mobile sticky bottom bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-        <div className="bg-background/90 backdrop-blur-xl border-t border-border/60 px-5 py-4 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-xs text-muted-foreground">{TIERS[tier].name} — {billing}</p>
-            <p className="text-xl font-bold tracking-tight">{fmt(displayPrice)}<span className="text-xs text-muted-foreground font-normal ml-1">/mo</span></p>
-          </div>
-          <Button
-            data-testid="get-started-btn"
-            onClick={() => setLocation("/pricing")}
-            className="shrink-0 font-semibold px-6"
-          >
-            Let's Get Started
-          </Button>
-        </div>
-      </div>
+      <FloatingPricingWidget />
     </SiteLayout>
   );
 }
