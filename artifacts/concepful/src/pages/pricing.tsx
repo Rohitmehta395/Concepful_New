@@ -126,11 +126,11 @@ export default function PricingBreakdown() {
                   )}
                 </div>
 
-                <Button size="lg" className="w-full text-lg h-14" onClick={() => setLocation('/onboarding')}>
-                  Begin Onboarding
+                <Button size="lg" className="w-full text-lg h-14" onClick={() => setLocation('/checkout')}>
+                  Proceed to Payment
                 </Button>
                 <p className="text-center text-xs text-muted-foreground mt-4">
-                  No payment required to submit onboarding.
+                  Secured by Stripe · Cancel anytime
                 </p>
               </CardContent>
             </Card>

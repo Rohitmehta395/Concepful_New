@@ -6,6 +6,8 @@ import NotFound from "@/pages/not-found";
 
 import Landing from "@/pages/landing";
 import PricingBreakdown from "@/pages/pricing";
+import Checkout from "@/pages/checkout";
+import ThankYou from "@/pages/thank-you";
 import Onboarding from "@/pages/onboarding";
 import DashboardOverview from "@/pages/dashboard/index";
 import Requests from "@/pages/dashboard/requests";
@@ -23,6 +25,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/pricing" component={PricingBreakdown} />
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/thank-you" component={ThankYou} />
       <Route path="/onboarding" component={Onboarding} />
       
       <Route path="/dashboard" component={DashboardOverview} />

@@ -9,6 +9,7 @@ import brandRouter from "./brand";
 import aiProfilesRouter from "./aiProfiles";
 import brandCheckRouter from "./brandCheck";
 import adminRouter from "./admin";
+import stripeRouter from "./stripe";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(brandRouter);
 router.use(aiProfilesRouter);
 router.use(brandCheckRouter);
 router.use(adminRouter);
+router.use(stripeRouter);
 
 export default router;
