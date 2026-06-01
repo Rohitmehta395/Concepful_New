@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { CheckCircle, ArrowRight, Sparkles, Calendar, Users, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePricingStore } from "@/hooks/use-pricing-store";
+import { useAuthState } from "@/hooks/use-auth-state";
 import { TIERS } from "@/lib/pricing";
 
 const onboardingSteps = [
@@ -32,8 +33,14 @@ const onboardingSteps = [
 export default function ThankYou() {
   const [, setLocation] = useLocation();
   const { tier } = usePricingStore();
+  const { login } = useAuthState();
   const t = TIERS[tier];
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    login("test@concepful.com", tier);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;

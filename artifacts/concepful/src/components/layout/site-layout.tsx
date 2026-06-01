@@ -1,9 +1,10 @@
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { useAuthState } from "@/hooks/use-auth-state";
+import { LayoutDashboard } from "lucide-react";
 
 export function SiteLayout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
-  const isOnboarding = location.startsWith("/dashboard") || location.startsWith("/onboarding");
+  const { isLoggedIn, session } = useAuthState();
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background selection:bg-primary/20 selection:text-primary">
@@ -13,9 +14,15 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
           <nav className="flex items-center gap-5 text-sm font-medium">
             <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors hidden sm:block">Plans</Link>
             <Link href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors hidden sm:block">Breakdown</Link>
-            {isOnboarding ? (
-              <Link href="/dashboard" className="text-primary hover:text-primary/80 transition-colors font-semibold">
-                Client Portal
+
+            {isLoggedIn ? (
+              <Link href="/dashboard">
+                <Button size="sm" variant="outline" className="h-8 px-4 text-sm font-semibold gap-2 border-primary/30 text-primary hover:bg-primary/5 hover:text-primary">
+                  <LayoutDashboard className="h-3.5 w-3.5" />
+                  {session?.plan
+                    ? `${session.plan.charAt(0).toUpperCase() + session.plan.slice(1)} Portal`
+                    : "My Portal"}
+                </Button>
               </Link>
             ) : (
               <Link href="/checkout">
