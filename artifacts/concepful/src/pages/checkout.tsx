@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
+import { ArrowRight } from "lucide-react";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -32,14 +33,22 @@ const fmt = (v: number) =>
 const TEST_EMAIL = "test@concepful.com";
 const TEST_PHONE = "+1 (555) 000-0000";
 
-function TestModeBanner() {
+function TestModeBanner({ onSkip }: { onSkip: () => void }) {
   return (
     <div className="mb-6 rounded-xl border border-amber-400/40 bg-amber-400/8 p-4">
       <div className="flex items-start gap-3">
         <FlaskConical className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-        <div className="space-y-2 text-sm">
-          <p className="font-semibold text-amber-700 dark:text-amber-400">UX Test Mode — Stripe sandbox active</p>
-          <p className="text-muted-foreground text-xs">Use the test card below to complete the purchase flow:</p>
+        <div className="space-y-2 text-sm flex-1">
+          <div className="flex items-start justify-between gap-4">
+            <p className="font-semibold text-amber-700 dark:text-amber-400">UX Test Mode — Stripe sandbox active</p>
+            <button
+              onClick={onSkip}
+              className="shrink-0 inline-flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Complete Test Purchase <ArrowRight className="h-3 w-3" />
+            </button>
+          </div>
+          <p className="text-muted-foreground text-xs">Or use the test card below to go through the full Stripe form:</p>
           <div className="grid grid-cols-3 gap-2 mt-1">
             {[
               { label: "Card number", value: "4242 4242 4242 4242" },
@@ -334,7 +343,7 @@ export default function Checkout() {
           <ArrowLeft className="h-4 w-4" /> Back to pricing
         </button>
 
-        <TestModeBanner />
+        <TestModeBanner onSkip={() => setLocation("/thank-you")} />
 
         <div className="mb-10">
           <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight">
