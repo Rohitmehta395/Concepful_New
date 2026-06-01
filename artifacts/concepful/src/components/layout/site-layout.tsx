@@ -1,15 +1,29 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
 
 export function SiteLayout({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
+  const isOnboarding = location.startsWith("/dashboard") || location.startsWith("/onboarding");
+
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background selection:bg-primary/20 selection:text-primary">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="font-serif text-xl font-bold tracking-tight">Concepful</Link>
-          <nav className="flex items-center gap-6 text-sm font-medium">
-            <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">Plans</Link>
-            <Link href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Breakdown</Link>
-            <Link href="/dashboard" className="text-primary hover:text-primary/80 transition-colors font-semibold">Client Portal</Link>
+          <nav className="flex items-center gap-5 text-sm font-medium">
+            <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors hidden sm:block">Plans</Link>
+            <Link href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors hidden sm:block">Breakdown</Link>
+            {isOnboarding ? (
+              <Link href="/dashboard" className="text-primary hover:text-primary/80 transition-colors font-semibold">
+                Client Portal
+              </Link>
+            ) : (
+              <Link href="/checkout">
+                <Button size="sm" className="h-8 px-4 text-sm font-semibold">
+                  Get Started
+                </Button>
+              </Link>
+            )}
           </nav>
         </div>
       </header>

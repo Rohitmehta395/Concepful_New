@@ -7,7 +7,7 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { ArrowLeft, Lock, Shield } from "lucide-react";
+import { ArrowLeft, Lock, Shield, FlaskConical, CreditCard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,38 @@ const fmt = (v: number) =>
     currency: "USD",
     maximumFractionDigits: 0,
   }).format(v);
+
+const TEST_EMAIL = "test@concepful.com";
+const TEST_PHONE = "+1 (555) 000-0000";
+
+function TestModeBanner() {
+  return (
+    <div className="mb-6 rounded-xl border border-amber-400/40 bg-amber-400/8 p-4">
+      <div className="flex items-start gap-3">
+        <FlaskConical className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+        <div className="space-y-2 text-sm">
+          <p className="font-semibold text-amber-700 dark:text-amber-400">UX Test Mode — Stripe sandbox active</p>
+          <p className="text-muted-foreground text-xs">Use the test card below to complete the purchase flow:</p>
+          <div className="grid grid-cols-3 gap-2 mt-1">
+            {[
+              { label: "Card number", value: "4242 4242 4242 4242" },
+              { label: "Expiry", value: "12 / 34" },
+              { label: "CVC", value: "123" },
+            ].map(({ label, value }) => (
+              <div key={label} className="bg-background rounded-lg border px-3 py-2">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{label}</p>
+                <p className="font-mono font-semibold text-sm text-foreground">{value}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Name, ZIP, and email can be anything. No real charge will occur.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function OrderSummary() {
   const { tier, billing, addOns, aiOpsLevel } = usePricingStore();
@@ -195,7 +227,10 @@ function PaymentForm({ clientSecret, onSuccess, email, phone }: PaymentFormProps
             Processing…
           </span>
         ) : (
-          "Complete Purchase"
+          <span className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Complete Purchase
+          </span>
         )}
       </Button>
 
@@ -211,10 +246,10 @@ export default function Checkout() {
   const [, setLocation] = useLocation();
   const { tier, billing, addOns, aiOpsLevel } = usePricingStore();
 
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [emailTouched, setEmailTouched] = useState(false);
-  const [emailValid, setEmailValid] = useState(false);
+  const [email, setEmail] = useState(TEST_EMAIL);
+  const [phone, setPhone] = useState(TEST_PHONE);
+  const [emailTouched, setEmailTouched] = useState(true);
+  const [emailValid, setEmailValid] = useState(true);
 
   const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -256,9 +291,13 @@ export default function Checkout() {
     }
   }, [emailValid, intentCreated, tier, billing, addOns, aiOpsLevel, email]);
 
+  useEffect(() => {
+    initializePayment();
+  }, [initializePayment]);
+
   const handleEmailBlur = () => {
     setEmailTouched(true);
-    if (emailValid) initializePayment();
+    if (emailValid && !intentCreated) initializePayment();
   };
 
   const appearance = {
@@ -295,6 +334,8 @@ export default function Checkout() {
           <ArrowLeft className="h-4 w-4" /> Back to pricing
         </button>
 
+        <TestModeBanner />
+
         <div className="mb-10">
           <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight">
             Complete your purchase
@@ -320,7 +361,7 @@ export default function Checkout() {
                     type="email"
                     placeholder="you@company.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => { setEmail(e.target.value); setIntentCreated(false); }}
                     onBlur={handleEmailBlur}
                     className="h-11"
                     autoComplete="email"

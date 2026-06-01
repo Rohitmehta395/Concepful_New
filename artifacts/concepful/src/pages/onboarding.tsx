@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Eye, EyeOff, User } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -14,12 +14,28 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { AiOpsKey, TierKey, usePricingStore } from "@/hooks/use-pricing-store";
 import { calcMonthlyTotal, calcAnnualTotal, TIERS, MONTHLY_ADDONS, AI_OPS } from "@/lib/pricing";
 import { useSubmitOnboarding } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+
+const TOTAL_STEPS = 6;
 
 const formSchema = z.object({
+  account: z.object({
+    username: z
+      .string()
+      .min(3, "Username must be at least 3 characters")
+      .max(30, "Username must be 30 characters or less")
+      .regex(/^[a-zA-Z0-9_-]+$/, "Only letters, numbers, underscores, and hyphens"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  }).refine((d) => d.password === d.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  }),
   company: z.object({
     name: z.string().min(2),
     website: z.string().url(),
@@ -52,16 +68,72 @@ const formSchema = z.object({
   }),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
+function PasswordStrength({ password }: { password: string }) {
+  const checks = [
+    { label: "8+ characters", ok: password.length >= 8 },
+    { label: "Uppercase letter", ok: /[A-Z]/.test(password) },
+    { label: "Number", ok: /\d/.test(password) },
+    { label: "Special character", ok: /[^a-zA-Z0-9]/.test(password) },
+  ];
+  const score = checks.filter((c) => c.ok).length;
+  const colors = ["bg-destructive", "bg-orange-500", "bg-amber-500", "bg-emerald-500", "bg-emerald-500"];
+  const labels = ["", "Weak", "Fair", "Good", "Strong"];
+
+  if (!password) return null;
+
+  return (
+    <div className="mt-2 space-y-2">
+      <div className="flex gap-1.5">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className={cn("h-1.5 flex-1 rounded-full transition-all duration-300", i <= score ? colors[score] : "bg-border")}
+          />
+        ))}
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="flex gap-3">
+          {checks.map(({ label, ok }) => (
+            <span key={label} className={cn("text-[10px] flex items-center gap-1", ok ? "text-emerald-600" : "text-muted-foreground")}>
+              <Check className={cn("h-2.5 w-2.5", ok ? "opacity-100" : "opacity-30")} />
+              {label}
+            </span>
+          ))}
+        </div>
+        {score > 0 && (
+          <span className={cn("text-xs font-medium", score >= 3 ? "text-emerald-600" : "text-muted-foreground")}>
+            {labels[score]}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const STEP_LABELS = [
+  "Create Account",
+  "Your Company",
+  "Goals",
+  "Brand",
+  "AI Setup",
+  "Review",
+];
+
 export default function Onboarding() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { tier, billing, addOns, aiOpsLevel } = usePricingStore();
   const submitOnboarding = useSubmitOnboarding();
   const [step, setStep] = useState(1);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      account: { username: "", password: "", confirmPassword: "" },
       company: { name: "", website: "", industry: "", size: "", revenueRange: "" },
       contact: { name: "", email: "", phone: "" },
       goals: { improvements: [], painPoints: "", firstPriorities: [] },
@@ -70,84 +142,99 @@ export default function Onboarding() {
     },
   });
 
-  const nextStep = async () => {
-    const fieldsByStep = [
-      [],
-      ["company.name", "company.website", "company.industry", "company.size", "company.revenueRange", "contact.name", "contact.email"],
-      ["goals.improvements", "goals.painPoints", "goals.firstPriorities"],
-      ["brand.colors", "brand.fonts", "brand.toneWords", "brand.competitors"],
-      ["aiSetup.providers", "aiSetup.modelName", "aiSetup.usageNotes", "aiSetup.consentBrandMemory", "aiSetup.consentAiWorkflows"],
-    ];
+  const fieldsByStep: Record<number, (keyof FormValues | string)[]> = {
+    1: ["account.username", "account.password", "account.confirmPassword"],
+    2: ["company.name", "company.website", "company.industry", "company.size", "company.revenueRange", "contact.name", "contact.email"],
+    3: ["goals.improvements", "goals.painPoints", "goals.firstPriorities"],
+    4: ["brand.colors", "brand.fonts", "brand.toneWords", "brand.competitors"],
+    5: ["aiSetup.providers", "aiSetup.modelName", "aiSetup.usageNotes", "aiSetup.consentBrandMemory", "aiSetup.consentAiWorkflows"],
+    6: [],
+  };
 
+  const nextStep = async () => {
     const currentFields = fieldsByStep[step] as any;
     const isValid = await form.trigger(currentFields);
-    
     if (isValid) {
-      setStep(s => Math.min(s + 1, 5));
+      setStep((s) => Math.min(s + 1, TOTAL_STEPS));
       window.scrollTo(0, 0);
     }
   };
 
   const prevStep = () => {
-    setStep(s => Math.max(s - 1, 1));
+    setStep((s) => Math.max(s - 1, 1));
     window.scrollTo(0, 0);
   };
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = (values: FormValues) => {
     const monthlyTotal = calcMonthlyTotal(tier, addOns, aiOpsLevel);
     const annualTotal = calcAnnualTotal(tier, monthlyTotal, billing);
 
-    submitOnboarding.mutate({
-      data: {
-        company: values.company,
-        contact: values.contact,
-        plan: {
-          tier: tier as any,
-          billingCycle: billing as any,
-          addOns,
-          aiOpsLevel: aiOpsLevel as any,
-          estimatedMonthlyTotal: monthlyTotal,
-          estimatedAnnualTotal: annualTotal,
+    submitOnboarding.mutate(
+      {
+        data: {
+          company: values.company,
+          contact: values.contact,
+          plan: {
+            tier: tier as any,
+            billingCycle: billing as any,
+            addOns,
+            aiOpsLevel: aiOpsLevel as any,
+            estimatedMonthlyTotal: monthlyTotal,
+            estimatedAnnualTotal: annualTotal,
+          },
+          goals: {
+            improvements: values.goals.improvements,
+            painPoints: values.goals.painPoints,
+            firstPriorities: values.goals.firstPriorities,
+            competitors: values.brand.competitors
+              ? values.brand.competitors.split(",").map((s) => s.trim())
+              : undefined,
+          },
+          brand: {
+            colors: values.brand.colors,
+            fonts: values.brand.fonts,
+            toneWords: values.brand.toneWords
+              ? values.brand.toneWords.split(",").map((s) => s.trim())
+              : undefined,
+          },
+          aiSetup: {
+            providers: values.aiSetup.providers,
+            consentBrandMemory: values.aiSetup.consentBrandMemory,
+            consentAiWorkflows: values.aiSetup.consentAiWorkflows,
+          },
         },
-        goals: {
-          improvements: values.goals.improvements,
-          painPoints: values.goals.painPoints,
-          firstPriorities: values.goals.firstPriorities,
-          competitors: values.brand.competitors ? values.brand.competitors.split(',').map(s => s.trim()) : undefined,
-        },
-        brand: {
-          colors: values.brand.colors,
-          fonts: values.brand.fonts,
-          toneWords: values.brand.toneWords ? values.brand.toneWords.split(',').map(s => s.trim()) : undefined,
-        },
-        aiSetup: {
-          providers: values.aiSetup.providers,
-          consentBrandMemory: values.aiSetup.consentBrandMemory,
-          consentAiWorkflows: values.aiSetup.consentAiWorkflows,
-        }
-      }
-    }, {
-      onSuccess: () => {
-        toast({ title: "Welcome to Concepful", description: "Your partnership has begun." });
-        setLocation('/dashboard');
       },
-      onError: () => {
-        toast({ title: "Submission failed", description: "Please try again.", variant: "destructive" });
-      }
-    });
+      {
+        onSuccess: () => {
+          toast({ title: "Welcome to Concepful", description: "Your creative department is ready." });
+          setLocation("/dashboard");
+        },
+        onError: () => {
+          toast({ title: "Submission failed", description: "Please try again.", variant: "destructive" });
+        },
+      },
+    );
   };
 
   const improvementsOptions = ["Brand consistency", "Campaign performance", "Design velocity", "Strategic direction", "AI integration", "Content volume"];
   const prioritiesOptions = ["Social assets", "Campaign systems", "Brand identity", "Presentations", "Motion graphics", "Strategy"];
   const aiProvidersOptions = ["ChatGPT", "Claude", "Gemini", "Local Models", "Other"];
 
+  const password = form.watch("account.password");
+
   return (
     <SiteLayout>
       <div className="flex-1 bg-muted/30">
-        <div className="sticky top-16 z-40 bg-background/80 backdrop-blur border-b p-4">
-          <div className="container mx-auto max-w-3xl flex items-center justify-between gap-4">
-            <div className="text-sm font-medium text-muted-foreground w-20">Step {step} of 5</div>
-            <Progress value={(step / 5) * 100} className="h-2" />
+        {/* Progress bar */}
+        <div className="sticky top-16 z-40 bg-background/90 backdrop-blur border-b px-6 py-3">
+          <div className="container mx-auto max-w-3xl space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">
+                Step {step} of {TOTAL_STEPS} — <span className="text-foreground">{STEP_LABELS[step - 1]}</span>
+              </span>
+              <span className="text-xs text-muted-foreground">{Math.round((step / TOTAL_STEPS) * 100)}%</span>
+            </div>
+            <Progress value={(step / TOTAL_STEPS) * 100} className="h-1.5" />
           </div>
         </div>
 
@@ -160,10 +247,119 @@ export default function Onboarding() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: 0.28 }}
                   className="bg-card border rounded-2xl p-8 shadow-sm"
                 >
+
+                  {/* ── STEP 1: Create Account ── */}
                   {step === 1 && (
+                    <div className="space-y-6">
+                      <div>
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <User className="h-5 w-5 text-primary" />
+                          </div>
+                          <Badge variant="outline" className="text-primary border-primary/30">New account</Badge>
+                        </div>
+                        <h2 className="text-2xl font-serif font-bold mb-2">Create your account</h2>
+                        <p className="text-muted-foreground">
+                          Set up your login credentials to access your client portal after onboarding.
+                        </p>
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="account.username"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Username</FormLabel>
+                            <FormDescription>
+                              This is your unique handle in the portal (e.g. <span className="font-mono">acme-co</span>).
+                            </FormDescription>
+                            <FormControl>
+                              <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
+                                <Input
+                                  {...field}
+                                  placeholder="your-company"
+                                  className="pl-7 h-11"
+                                  autoComplete="username"
+                                  autoCapitalize="none"
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="account.password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Input
+                                  {...field}
+                                  type={showPassword ? "text" : "password"}
+                                  placeholder="Create a strong password"
+                                  className="pr-10 h-11"
+                                  autoComplete="new-password"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword((v) => !v)}
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                              </div>
+                            </FormControl>
+                            <PasswordStrength password={password} />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="account.confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Confirm Password</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Input
+                                  {...field}
+                                  type={showConfirm ? "text" : "password"}
+                                  placeholder="Re-enter your password"
+                                  className="pr-10 h-11"
+                                  autoComplete="new-password"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowConfirm((v) => !v)}
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                  {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <p className="text-xs text-muted-foreground pt-2">
+                        Your credentials are encrypted and stored securely. You'll use these to log into your client portal.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* ── STEP 2: Company Basics ── */}
+                  {step === 2 && (
                     <div className="space-y-6">
                       <div>
                         <h2 className="text-2xl font-serif font-bold mb-2">Company Basics</h2>
@@ -200,9 +396,9 @@ export default function Onboarding() {
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl><SelectTrigger><SelectValue placeholder="Select size" /></SelectTrigger></FormControl>
                               <SelectContent>
-                                <SelectItem value="1-10">1-10 employees</SelectItem>
-                                <SelectItem value="11-50">11-50 employees</SelectItem>
-                                <SelectItem value="51-200">51-200 employees</SelectItem>
+                                <SelectItem value="1-10">1–10 employees</SelectItem>
+                                <SelectItem value="11-50">11–50 employees</SelectItem>
+                                <SelectItem value="51-200">51–200 employees</SelectItem>
                                 <SelectItem value="200+">200+ employees</SelectItem>
                               </SelectContent>
                             </Select>
@@ -225,7 +421,8 @@ export default function Onboarding() {
                     </div>
                   )}
 
-                  {step === 2 && (
+                  {/* ── STEP 3: Goals ── */}
+                  {step === 3 && (
                     <div className="space-y-8">
                       <div>
                         <h2 className="text-2xl font-serif font-bold mb-2">Strategic Goals</h2>
@@ -237,18 +434,21 @@ export default function Onboarding() {
                           <div className="mb-4"><FormLabel className="text-base">What are you trying to improve?</FormLabel></div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {improvementsOptions.map((item) => (
-                              <FormField key={item} control={form.control} name="goals.improvements" render={({ field }) => {
-                                return (
-                                  <FormItem key={item} className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-lg hover:bg-secondary/50 cursor-pointer">
-                                    <FormControl>
-                                      <Checkbox checked={field.value?.includes(item)} onCheckedChange={(checked) => {
-                                        return checked ? field.onChange([...field.value, item]) : field.onChange(field.value?.filter((value) => value !== item))
-                                      }} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal cursor-pointer w-full">{item}</FormLabel>
-                                  </FormItem>
-                                )
-                              }} />
+                              <FormField key={item} control={form.control} name="goals.improvements" render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-lg hover:bg-secondary/50 cursor-pointer">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(item)}
+                                      onCheckedChange={(checked) =>
+                                        checked
+                                          ? field.onChange([...field.value, item])
+                                          : field.onChange(field.value?.filter((v) => v !== item))
+                                      }
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="font-normal cursor-pointer w-full">{item}</FormLabel>
+                                </FormItem>
+                              )} />
                             ))}
                           </div>
                         </FormItem>
@@ -267,18 +467,21 @@ export default function Onboarding() {
                           <div className="mb-4"><FormLabel className="text-base">What kind of work do you need first?</FormLabel></div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {prioritiesOptions.map((item) => (
-                              <FormField key={item} control={form.control} name="goals.firstPriorities" render={({ field }) => {
-                                return (
-                                  <FormItem key={item} className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-lg hover:bg-secondary/50 cursor-pointer">
-                                    <FormControl>
-                                      <Checkbox checked={field.value?.includes(item)} onCheckedChange={(checked) => {
-                                        return checked ? field.onChange([...field.value, item]) : field.onChange(field.value?.filter((value) => value !== item))
-                                      }} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal cursor-pointer w-full">{item}</FormLabel>
-                                  </FormItem>
-                                )
-                              }} />
+                              <FormField key={item} control={form.control} name="goals.firstPriorities" render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-lg hover:bg-secondary/50 cursor-pointer">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(item)}
+                                      onCheckedChange={(checked) =>
+                                        checked
+                                          ? field.onChange([...field.value, item])
+                                          : field.onChange(field.value?.filter((v) => v !== item))
+                                      }
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="font-normal cursor-pointer w-full">{item}</FormLabel>
+                                </FormItem>
+                              )} />
                             ))}
                           </div>
                         </FormItem>
@@ -286,14 +489,15 @@ export default function Onboarding() {
                     </div>
                   )}
 
-                  {step === 3 && (
+                  {/* ── STEP 4: Brand ── */}
+                  {step === 4 && (
                     <div className="space-y-6">
                       <div>
                         <h2 className="text-2xl font-serif font-bold mb-2">Brand Inputs</h2>
                         <p className="text-muted-foreground">Help us align with your visual identity.</p>
                       </div>
 
-                      <div className="bg-primary/5 p-4 rounded-lg text-sm text-primary mb-6">
+                      <div className="bg-primary/5 p-4 rounded-lg text-sm text-primary">
                         <strong>Note:</strong> Full logo and asset upload will be available in your dashboard after onboarding.
                       </div>
 
@@ -313,14 +517,15 @@ export default function Onboarding() {
                           <FormMessage />
                         </FormItem>
                       )} />
-                      
+
                       <div className="pt-4">
                         <p className="text-sm text-muted-foreground italic">You can add specific colors and fonts later in the Brand Center.</p>
                       </div>
                     </div>
                   )}
 
-                  {step === 4 && (
+                  {/* ── STEP 5: AI Setup ── */}
+                  {step === 5 && (
                     <div className="space-y-8">
                       <div>
                         <h2 className="text-2xl font-serif font-bold mb-2">AI Collaboration Setup</h2>
@@ -332,18 +537,21 @@ export default function Onboarding() {
                           <div className="mb-4"><FormLabel className="text-base">Which AI providers does your team currently use?</FormLabel></div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {aiProvidersOptions.map((item) => (
-                              <FormField key={item} control={form.control} name="aiSetup.providers" render={({ field }) => {
-                                return (
-                                  <FormItem key={item} className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-lg hover:bg-secondary/50 cursor-pointer">
-                                    <FormControl>
-                                      <Checkbox checked={field.value?.includes(item)} onCheckedChange={(checked) => {
-                                        return checked ? field.onChange([...field.value, item]) : field.onChange(field.value?.filter((value) => value !== item))
-                                      }} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal cursor-pointer w-full">{item}</FormLabel>
-                                  </FormItem>
-                                )
-                              }} />
+                              <FormField key={item} control={form.control} name="aiSetup.providers" render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-lg hover:bg-secondary/50 cursor-pointer">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(item)}
+                                      onCheckedChange={(checked) =>
+                                        checked
+                                          ? field.onChange([...field.value, item])
+                                          : field.onChange(field.value?.filter((v) => v !== item))
+                                      }
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="font-normal cursor-pointer w-full">{item}</FormLabel>
+                                </FormItem>
+                              )} />
                             ))}
                           </div>
                         </FormItem>
@@ -387,7 +595,8 @@ export default function Onboarding() {
                     </div>
                   )}
 
-                  {step === 5 && (
+                  {/* ── STEP 6: Review ── */}
+                  {step === 6 && (
                     <div className="space-y-8">
                       <div>
                         <h2 className="text-2xl font-serif font-bold mb-2">Final Review</h2>
@@ -395,14 +604,27 @@ export default function Onboarding() {
                       </div>
 
                       <div className="bg-secondary/30 border rounded-xl p-6 space-y-6">
+                        {/* Account */}
+                        <div className="flex justify-between items-center pb-4 border-b border-border/50">
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Login credentials</p>
+                            <p className="font-mono font-semibold">@{form.getValues().account.username}</p>
+                          </div>
+                          <Check className="h-5 w-5 text-emerald-500" />
+                        </div>
+
                         <div className="flex justify-between items-center pb-4 border-b border-border/50">
                           <div>
                             <p className="text-sm text-muted-foreground mb-1">Selected Plan</p>
                             <p className="font-serif font-bold text-xl">{TIERS[tier as TierKey].name} ({billing})</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm text-muted-foreground mb-1">Estimated {billing === 'monthly' ? 'Monthly' : 'Monthly Avg'}</p>
-                            <p className="font-bold text-2xl">${billing === 'annual' ? (calcAnnualTotal(tier as TierKey, calcMonthlyTotal(tier as TierKey, addOns, aiOpsLevel as any), billing) / 12).toFixed(0) : calcMonthlyTotal(tier as TierKey, addOns, aiOpsLevel as any).toFixed(0)}</p>
+                            <p className="text-sm text-muted-foreground mb-1">Estimated {billing === "monthly" ? "Monthly" : "Monthly Avg"}</p>
+                            <p className="font-bold text-2xl">
+                              ${billing === "annual"
+                                ? (calcAnnualTotal(tier as TierKey, calcMonthlyTotal(tier as TierKey, addOns, aiOpsLevel as any), billing) / 12).toFixed(0)
+                                : calcMonthlyTotal(tier as TierKey, addOns, aiOpsLevel as any).toFixed(0)}
+                            </p>
                           </div>
                         </div>
 
@@ -410,42 +632,57 @@ export default function Onboarding() {
                           <div>
                             <p className="text-sm font-semibold mb-3">Add-ons & AI</p>
                             <ul className="space-y-2 text-sm text-muted-foreground">
-                              {addOns.length === 0 && aiOpsLevel === 'none' && <li>None selected</li>}
-                              {addOns.map(id => {
-                                const a = MONTHLY_ADDONS.find(x => x.id === id);
+                              {addOns.length === 0 && aiOpsLevel === "none" && <li>None selected</li>}
+                              {addOns.map((id) => {
+                                const a = MONTHLY_ADDONS.find((x) => x.id === id);
                                 return a ? <li key={id}>+ {a.label}</li> : null;
                               })}
-                              {aiOpsLevel !== 'none' && <li>+ {AI_OPS[aiOpsLevel as AiOpsKey].label}</li>}
+                              {aiOpsLevel !== "none" && <li>+ {AI_OPS[aiOpsLevel as AiOpsKey].label}</li>}
                             </ul>
                           </div>
                           <div>
                             <p className="text-sm font-semibold mb-3">Contact Details</p>
                             <ul className="space-y-2 text-sm text-muted-foreground">
                               <li>{form.getValues().company.name}</li>
-                              <li>{form.getValues().contact.name} ({form.getValues().contact.email})</li>
+                              <li>{form.getValues().contact.name}</li>
+                              <li>{form.getValues().contact.email}</li>
                             </ul>
                           </div>
                         </div>
                       </div>
 
                       <div className="pt-4 flex flex-col items-center gap-4 text-center">
-                        <Button type="submit" size="lg" className="w-full md:w-auto h-14 px-12 text-lg" disabled={submitOnboarding.isPending}>
-                          {submitOnboarding.isPending ? "Submitting..." : "Begin Creative Partnership"}
+                        <Button
+                          type="submit"
+                          size="lg"
+                          className="w-full md:w-auto h-14 px-12 text-lg"
+                          disabled={submitOnboarding.isPending}
+                        >
+                          {submitOnboarding.isPending ? "Submitting…" : "Launch My Creative Department"}
                         </Button>
                         <p className="text-sm text-muted-foreground">By submitting, you agree to our terms of service.</p>
                       </div>
                     </div>
                   )}
+
                 </motion.div>
               </AnimatePresence>
 
-              {step < 5 && (
-                <div className="flex justify-between items-center pt-6">
+              {step < TOTAL_STEPS && (
+                <div className="flex justify-between items-center pt-4">
                   <Button type="button" variant="ghost" onClick={prevStep} disabled={step === 1}>
                     <ChevronLeft className="mr-2 h-4 w-4" /> Back
                   </Button>
                   <Button type="button" onClick={nextStep} className="px-8">
                     Continue <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+
+              {step === TOTAL_STEPS && (
+                <div className="flex justify-start pt-4">
+                  <Button type="button" variant="ghost" onClick={prevStep}>
+                    <ChevronLeft className="mr-2 h-4 w-4" /> Back
                   </Button>
                 </div>
               )}
