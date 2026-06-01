@@ -15,6 +15,7 @@ import History from "@/pages/dashboard/history";
 import BrandCenter from "@/pages/dashboard/brand";
 import BrandCheck from "@/pages/dashboard/brand-check";
 import AiCollaboration from "@/pages/dashboard/ai-collaboration";
+import ProjectCard from "@/pages/dashboard/project";
 import AdminDashboard from "@/pages/admin/index";
 import Leads from "@/pages/admin/leads";
 
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/dashboard/requests" component={Requests} />
       <Route path="/dashboard/history" component={History} />
       <Route path="/dashboard/brand" component={BrandCenter} />
+      <Route path="/dashboard/project/:id" component={ProjectCard} />
       <Route path="/dashboard/brand-check" component={BrandCheck} />
       <Route path="/dashboard/ai-collaboration" component={AiCollaboration} />
       
