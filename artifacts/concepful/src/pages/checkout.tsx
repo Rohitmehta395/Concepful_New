@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -29,6 +29,78 @@ const fmt = (v: number) =>
     currency: "USD",
     maximumFractionDigits: 0,
   }).format(v);
+
+const CHECKOUT_STEPS = [
+  { id: "plan", label: "Choose plan", href: "/pricing" },
+  { id: "addons", label: "Customize", href: "/pricing" },
+  { id: "details", label: "Your details", href: null },
+  { id: "payment", label: "Payment", href: null },
+] as const;
+
+function CheckoutTimeline({ activeStep }: { activeStep: "details" | "payment" }) {
+  const [, setLocation] = useLocation();
+  const activeIndex = CHECKOUT_STEPS.findIndex((s) => s.id === activeStep);
+
+  return (
+    <div className="mb-8">
+      <div className="flex items-center">
+        {CHECKOUT_STEPS.map((step, i) => {
+          const isDone = i < activeIndex;
+          const isActive = i === activeIndex;
+          const isClickable = isDone && step.href;
+
+          return (
+            <div key={step.id} className="flex items-center flex-1 last:flex-none">
+              <button
+                onClick={() => isClickable && setLocation(step.href!)}
+                disabled={!isClickable}
+                className={[
+                  "group flex flex-col items-center gap-1.5 min-w-0",
+                  isClickable ? "cursor-pointer" : "cursor-default",
+                ].join(" ")}
+                title={isClickable ? `Go back to: ${step.label}` : undefined}
+              >
+                <div className={[
+                  "relative h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all duration-200 shrink-0",
+                  isDone
+                    ? "border-primary bg-primary text-primary-foreground group-hover:scale-110 group-hover:shadow-md group-hover:shadow-primary/30"
+                    : isActive
+                    ? "border-primary bg-background text-primary shadow-[0_0_0_4px_hsl(349,90%,54%,0.12)]"
+                    : "border-border bg-background text-muted-foreground",
+                ].join(" ")}>
+                  {isDone ? (
+                    <Check className="h-3.5 w-3.5 stroke-[2.5]" />
+                  ) : (
+                    <span className="text-xs font-bold tabular-nums">{i + 1}</span>
+                  )}
+                  {isActive && (
+                    <span className="absolute inset-0 rounded-full border-2 border-primary animate-ping opacity-30" />
+                  )}
+                </div>
+                <span className={[
+                  "text-[11px] font-medium whitespace-nowrap transition-colors",
+                  isDone ? "text-primary group-hover:text-primary/80" : isActive ? "text-foreground" : "text-muted-foreground",
+                ].join(" ")}>
+                  {isDone && isClickable && (
+                    <span className="inline-block mr-0.5 opacity-60 text-[9px]">↩</span>
+                  )}
+                  {step.label}
+                </span>
+              </button>
+
+              {i < CHECKOUT_STEPS.length - 1 && (
+                <div className={[
+                  "flex-1 h-px mx-2 mb-5 transition-colors duration-300",
+                  i < activeIndex ? "bg-primary/50" : "bg-border",
+                ].join(" ")} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 const TEST_EMAIL = "test@concepful.com";
 const TEST_PHONE = "+1 (555) 000-0000";
@@ -345,7 +417,7 @@ export default function Checkout() {
 
         <TestModeBanner onSkip={() => setLocation("/thank-you")} />
 
-        <div className="mb-10">
+        <div className="mb-8">
           <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight">
             Complete your purchase
           </h1>
@@ -353,6 +425,8 @@ export default function Checkout() {
             You're one step away from activating your {TIERS[tier].name} plan.
           </p>
         </div>
+
+        <CheckoutTimeline activeStep="details" />
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-14">
           <div className="lg:col-span-3 space-y-8">
