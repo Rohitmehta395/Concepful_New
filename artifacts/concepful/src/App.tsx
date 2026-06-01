@@ -9,6 +9,8 @@ import PricingBreakdown from "@/pages/pricing";
 import Checkout from "@/pages/checkout";
 import ThankYou from "@/pages/thank-you";
 import Onboarding from "@/pages/onboarding";
+import WorkIndex from "@/pages/work/index";
+import CaseStudy from "@/pages/work/case-study";
 import DashboardOverview from "@/pages/dashboard/index";
 import Requests from "@/pages/dashboard/requests";
 import History from "@/pages/dashboard/history";
@@ -25,6 +27,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
+      <Route path="/work" component={WorkIndex} />
+      <Route path="/work/:slug" component={CaseStudy} />
       <Route path="/pricing" component={PricingBreakdown} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/thank-you" component={ThankYou} />
