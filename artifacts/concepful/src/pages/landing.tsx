@@ -12,6 +12,7 @@ import {
   type TierKey, type AiOpsKey,
 } from "@/lib/pricing";
 import { usePricingStore } from "@/hooks/use-pricing-store";
+import { useAuthState } from "@/hooks/use-auth-state";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
@@ -107,6 +108,7 @@ const BANDWIDTH_LABELS: Record<string, string> = {
 
 export default function Landing() {
   const [, setLocation] = useLocation();
+  const { markPricingInterest } = useAuthState();
   const { tier, setTier, billing, setBilling, addOns, setAddOns, aiOpsLevel, setAiOpsLevel } =
     usePricingStore();
 
@@ -544,7 +546,7 @@ export default function Landing() {
                       data-testid="review-pricing-btn"
                       size="lg"
                       className="w-full h-12 text-base font-semibold mt-2"
-                      onClick={() => setLocation("/pricing")}
+                      onClick={() => { markPricingInterest(); setLocation("/pricing"); }}
                     >
                       Review Full Breakdown
                     </Button>

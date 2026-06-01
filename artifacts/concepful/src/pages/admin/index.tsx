@@ -1,14 +1,19 @@
+import { useEffect } from "react";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { useGetAdminStats, useGetAdminMrr, useListOnboardings } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Briefcase, TrendingUp, DollarSign, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
+import { useAuthState } from "@/hooks/use-auth-state";
 
 export default function AdminDashboard() {
+  const { enableAdmin } = useAuthState();
   const { data: stats, isLoading: statsLoading } = useGetAdminStats();
   const { data: mrr, isLoading: mrrLoading } = useGetAdminMrr();
   const { data: leads, isLoading: leadsLoading } = useListOnboardings();
+
+  useEffect(() => { enableAdmin(); }, []);
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 

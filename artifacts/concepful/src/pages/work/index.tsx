@@ -3,17 +3,90 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { CASE_STUDIES, CATEGORY_FILTERS } from "@/data/case-studies";
+import { useAuthState } from "@/hooks/use-auth-state";
 import { cn } from "@/lib/utils";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Sparkles, Share2 } from "lucide-react";
 
 const MOSAIC_CONFIG: Record<string, string> = {
-  large:  "col-span-2 row-span-2 md:col-span-2 md:row-span-2",
+  large:  "col-span-2 row-span-2",
   wide:   "col-span-2 row-span-1",
   tall:   "col-span-1 row-span-2",
   square: "col-span-1 row-span-1",
 };
 
 const ROW_HEIGHT = "minmax(180px, 1fr)";
+
+function WorkCTA() {
+  const { role, session } = useAuthState();
+
+  if (role === "client" || role === "admin") {
+    const planName = session?.plan ? `${session.plan.charAt(0).toUpperCase() + session.plan.slice(1)}` : "";
+    return (
+      <section className="border-t border-border/40 px-6 py-20">
+        <div className="container mx-auto max-w-5xl text-center">
+          <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-4 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+            {planName} Client
+          </span>
+          <h2 className="font-serif text-3xl font-bold mb-4">Feature your recent work.</h2>
+          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+            We'd love to showcase what we've built together. Share a recent project and we'll turn it into a case study — good for your portfolio, great for your SEO.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <a
+              href="/dashboard"
+              className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors"
+            >
+              <Sparkles className="h-4 w-4" /> Go to your portal
+            </a>
+            <a
+              href="mailto:hello@concepful.com?subject=Feature my project"
+              className="inline-flex items-center gap-2 border border-border text-foreground font-semibold px-6 py-3 rounded-xl hover:border-primary/40 hover:bg-secondary/50 transition-colors"
+            >
+              <Share2 className="h-4 w-4" /> Submit a project
+            </a>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (role === "prospect-hot") {
+    return (
+      <section className="border-t border-border/40 px-6 py-20">
+        <div className="container mx-auto max-w-5xl text-center">
+          <h2 className="font-serif text-3xl font-bold mb-4">Ready to activate?</h2>
+          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+            You've seen the plan. Now get your creative department running — onboards in 24 hours, no lock-in.
+          </p>
+          <a
+            href="/checkout"
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors"
+          >
+            Complete your setup <ArrowUpRight className="h-4 w-4" />
+          </a>
+        </div>
+      </section>
+    );
+  }
+
+  // prospect-cold (default)
+  return (
+    <section className="border-t border-border/40 px-6 py-20">
+      <div className="container mx-auto max-w-5xl text-center">
+        <h2 className="font-serif text-3xl font-bold mb-4">Your work could be next.</h2>
+        <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+          Concepful clients get a full creative department on a monthly retainer — no briefs lost in inboxes, no agency markup.
+        </p>
+        <a
+          href="/"
+          className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors"
+        >
+          See plans <ArrowUpRight className="h-4 w-4" />
+        </a>
+      </div>
+    </section>
+  );
+}
 
 export default function WorkIndex() {
   const [, setLocation] = useLocation();
@@ -89,58 +162,31 @@ export default function WorkIndex() {
                     MOSAIC_CONFIG[cs.mosaic]
                   )}
                 >
-                  {/* Gradient background */}
                   <div className={cn(
                     "absolute inset-0 bg-gradient-to-br transition-transform duration-500 group-hover:scale-105",
                     cs.gradient
                   )} />
-
-                  {/* Subtle texture overlay */}
                   <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml,%3Csvg width=60 height=60 viewBox=0 0 60 60 xmlns=http://www.w3.org/2000/svg%3E%3Cg fill=none fill-rule=evenodd%3E%3Cg fill=%23ffffff fill-opacity=1%3E%3Cpath d=M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]" />
+                  <div className="absolute top-4 right-4 h-12 w-12 rounded-full opacity-20 blur-xl" style={{ backgroundColor: cs.accentColor }} />
+                  <div className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full opacity-10" style={{ backgroundColor: cs.accentColor }} />
 
-                  {/* Geometric accent shape */}
-                  <div
-                    className="absolute top-4 right-4 h-12 w-12 rounded-full opacity-20 blur-xl"
-                    style={{ backgroundColor: cs.accentColor }}
-                  />
-                  <div
-                    className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full opacity-10"
-                    style={{ backgroundColor: cs.accentColor }}
-                  />
-
-                  {/* Content */}
                   <div className="relative z-10 h-full flex flex-col justify-between p-5 md:p-6">
                     <div className="flex items-start justify-between">
                       <span
                         className="text-[10px] font-bold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border"
-                        style={{
-                          color: cs.accentColor,
-                          borderColor: `${cs.accentColor}40`,
-                          backgroundColor: `${cs.accentColor}15`,
-                        }}
+                        style={{ color: cs.accentColor, borderColor: `${cs.accentColor}40`, backgroundColor: `${cs.accentColor}15` }}
                       >
                         {cs.categoryLabel}
                       </span>
-                      <ArrowUpRight
-                        className="h-4 w-4 text-white/40 opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                      />
+                      <ArrowUpRight className="h-4 w-4 text-white/40 opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                     </div>
-
                     <div>
                       <p className="text-white/50 text-xs mb-1.5">{cs.client}</p>
-                      <h2 className="font-serif text-white font-bold leading-tight text-lg md:text-xl line-clamp-2">
-                        {cs.title}
-                      </h2>
-                      <p className="text-white/60 text-xs mt-2 leading-relaxed line-clamp-2 hidden group-hover:block md:hidden">
-                        {cs.teaser}
-                      </p>
-                      <p className="text-white/60 text-xs mt-2 leading-relaxed line-clamp-2 hidden md:block">
-                        {cs.teaser}
-                      </p>
+                      <h2 className="font-serif text-white font-bold leading-tight text-lg md:text-xl line-clamp-2">{cs.title}</h2>
+                      <p className="text-white/60 text-xs mt-2 leading-relaxed line-clamp-2 hidden md:block">{cs.teaser}</p>
                     </div>
                   </div>
 
-                  {/* Hover border glow */}
                   <div
                     className="absolute inset-0 rounded-2xl border-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                     style={{ borderColor: `${cs.accentColor}60` }}
@@ -158,21 +204,7 @@ export default function WorkIndex() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="border-t border-border/40 px-6 py-20">
-        <div className="container mx-auto max-w-5xl text-center">
-          <h2 className="font-serif text-3xl font-bold mb-4">Your work could be next.</h2>
-          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            Concepful clients get a full creative department on a monthly retainer — no briefs lost in inboxes, no agency markup.
-          </p>
-          <a
-            href="/checkout"
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors"
-          >
-            See plans <ArrowUpRight className="h-4 w-4" />
-          </a>
-        </div>
-      </section>
+      <WorkCTA />
     </SiteLayout>
   );
 }

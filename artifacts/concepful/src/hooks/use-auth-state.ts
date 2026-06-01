@@ -1,6 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
-const AUTH_KEY = "concepful_session";
+const AUTH_KEY    = "concepful_session";
+const ADMIN_KEY   = "concepful_admin";
+const PRICING_KEY = "concepful_pricing_interest";
+
+export type UserRole = "admin" | "client" | "prospect-hot" | "prospect-cold";
 
 export type AuthSession = {
   email: string;
@@ -8,40 +12,75 @@ export type AuthSession = {
   activatedAt: string;
 } | null;
 
-export function useAuthState() {
-  const [session, setSession] = useState<AuthSession>(() => {
-    try {
-      const raw = localStorage.getItem(AUTH_KEY);
-      return raw ? (JSON.parse(raw) as AuthSession) : null;
-    } catch {
-      return null;
-    }
-  });
+function readSession(): AuthSession {
+  try {
+    const raw = localStorage.getItem(AUTH_KEY);
+    return raw ? (JSON.parse(raw) as AuthSession) : null;
+  } catch { return null; }
+}
 
-  const login = (email: string, plan: string) => {
+function readBool(key: string): boolean {
+  try { return localStorage.getItem(key) === "true"; } catch { return false; }
+}
+
+export function useAuthState() {
+  const [session, setSession]                   = useState<AuthSession>(readSession);
+  const [isAdmin, setIsAdmin]                   = useState(() => readBool(ADMIN_KEY));
+  const [hasPricingInterest, setPricingInterest] = useState(() => readBool(PRICING_KEY));
+
+  const role: UserRole =
+    isAdmin            ? "admin" :
+    !!session          ? "client" :
+    hasPricingInterest ? "prospect-hot" :
+                         "prospect-cold";
+
+  const login = useCallback((email: string, plan: string) => {
     const s: AuthSession = { email, plan, activatedAt: new Date().toISOString() };
     localStorage.setItem(AUTH_KEY, JSON.stringify(s));
     setSession(s);
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem(AUTH_KEY);
     setSession(null);
-  };
+  }, []);
 
+  const markPricingInterest = useCallback(() => {
+    localStorage.setItem(PRICING_KEY, "true");
+    setPricingInterest(true);
+  }, []);
+
+  const enableAdmin = useCallback(() => {
+    localStorage.setItem(ADMIN_KEY, "true");
+    setIsAdmin(true);
+  }, []);
+
+  const disableAdmin = useCallback(() => {
+    localStorage.removeItem(ADMIN_KEY);
+    setIsAdmin(false);
+  }, []);
+
+  // Cross-tab sync
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
-      if (e.key === AUTH_KEY) {
-        try {
-          setSession(e.newValue ? (JSON.parse(e.newValue) as AuthSession) : null);
-        } catch {
-          setSession(null);
-        }
-      }
+      if (e.key === AUTH_KEY)   setSession(e.newValue ? JSON.parse(e.newValue) : null);
+      if (e.key === ADMIN_KEY)   setIsAdmin(e.newValue === "true");
+      if (e.key === PRICING_KEY) setPricingInterest(e.newValue === "true");
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  return { session, isLoggedIn: !!session, login, logout };
+  return {
+    session,
+    isLoggedIn: !!session,
+    isAdmin,
+    hasPricingInterest,
+    role,
+    login,
+    logout,
+    markPricingInterest,
+    enableAdmin,
+    disableAdmin,
+  };
 }

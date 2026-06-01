@@ -2,12 +2,14 @@ import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { CASE_STUDIES } from "@/data/case-studies";
+import { useAuthState } from "@/hooks/use-auth-state";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, ArrowRight, CheckCircle2, Wrench, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Wrench, ArrowUpRight, Share2, Sparkles } from "lucide-react";
 
 export default function CaseStudy() {
   const [, params] = useRoute("/work/:slug");
   const [, setLocation] = useLocation();
+  const { role, session } = useAuthState();
   const slug = params?.slug;
 
   const cs = CASE_STUDIES.find(c => c.slug === slug);
@@ -208,12 +210,28 @@ export default function CaseStudy() {
             <p className="text-sm text-muted-foreground mt-0.5">{next.client} · {next.categoryLabel}</p>
           </div>
 
-          <a
-            href="/checkout"
-            className="shrink-0 inline-flex items-center gap-2 text-sm font-semibold border border-primary/30 text-primary px-4 py-2 rounded-xl hover:bg-primary/5 transition-colors"
-          >
-            Work with us <ArrowUpRight className="h-3.5 w-3.5" />
-          </a>
+          {(role === "client" || role === "admin") ? (
+            <a
+              href="mailto:hello@concepful.com?subject=Feature my project"
+              className="shrink-0 inline-flex items-center gap-2 text-sm font-semibold border border-primary/30 text-primary px-4 py-2 rounded-xl hover:bg-primary/5 transition-colors"
+            >
+              <Share2 className="h-3.5 w-3.5" /> Submit yours
+            </a>
+          ) : role === "prospect-hot" ? (
+            <a
+              href="/checkout"
+              className="shrink-0 inline-flex items-center gap-2 text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:bg-primary/90 transition-colors"
+            >
+              Complete setup <ArrowUpRight className="h-3.5 w-3.5" />
+            </a>
+          ) : (
+            <a
+              href="/"
+              className="shrink-0 inline-flex items-center gap-2 text-sm font-semibold border border-primary/30 text-primary px-4 py-2 rounded-xl hover:bg-primary/5 transition-colors"
+            >
+              See plans <ArrowUpRight className="h-3.5 w-3.5" />
+            </a>
+          )}
         </div>
       </section>
     </SiteLayout>
