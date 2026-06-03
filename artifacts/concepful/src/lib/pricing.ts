@@ -22,8 +22,8 @@ export const TIERS = {
       "Email templates",
       "Basic presentations",
       "Photo direction",
-      "AI concept variations",
       "Short-form copy",
+      "Baseline AI Services included",
     ],
   },
   pulse: {
@@ -54,6 +54,7 @@ export const TIERS = {
       "Competitive audits",
       "Messaging framework",
       "Monthly strategy call",
+      "Baseline AI Services included",
     ],
   },
   cortex: {
@@ -84,6 +85,7 @@ export const TIERS = {
       "Agentic content workflows",
       "Custom AI pipelines",
       "Weekly strategy sync",
+      "Baseline AI Services included",
     ],
   },
 };
@@ -123,8 +125,8 @@ export const MONTHLY_ADDONS = [
 
 export const AI_OPS = {
   none: {
-    label: "No AI Layer",
-    description: "Human creative team only. No AI augmentation.",
+    label: "Baseline AI Services",
+    description: "High-level AI across every workflow in your tier — concept generation, copy assistance, and asset variations. Included in all plans at no extra cost.",
     compute: null as string | null,
     price: 0,
   },

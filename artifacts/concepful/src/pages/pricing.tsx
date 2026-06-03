@@ -72,6 +72,14 @@ export default function PricingBreakdown() {
     setLocation("/checkout");
   };
 
+  // Auto-recommend AI level when tier changes
+  const AI_RECOMMEND: Record<TierKey, AiOpsKey> = {
+    signal:  "none",
+    pulse:   "integration",
+    cortex:  "intelligence",
+  };
+  useEffect(() => { setAiOpsLevel(AI_RECOMMEND[tier]); }, [tier]);
+
   // Mobile bottom sheet state
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -157,7 +165,7 @@ export default function PricingBreakdown() {
       </div>
 
       <div className="container mx-auto px-6 py-10 max-w-6xl">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-12">
 
           {/* ── Left: scrollable config ── */}
           <div className="space-y-16 min-w-0">
@@ -270,20 +278,43 @@ export default function PricingBreakdown() {
               </div>
               <h2 className="font-serif text-2xl font-bold tracking-tight mb-2">AI Intelligence Level</h2>
               <p className="text-muted-foreground text-sm mb-6">
-                Choose how deeply AI integrates into your company's workflows, systems, and infrastructure.
+                All plans ship with Baseline AI Services. Upgrade to embed AI more deeply into your company's infrastructure.
+              </p>
+
+              {/* Baseline AI — always included, locked at top */}
+              <div className="flex items-start gap-4 p-5 rounded-xl border-2 border-primary/30 bg-primary/5 mb-5">
+                <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
+                  <Bot className="h-4.5 w-4.5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <span className="font-semibold text-sm">{AI_OPS.none.label}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
+                      Always Included
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted-foreground leading-relaxed block">{AI_OPS.none.description}</span>
+                  <span className="text-sm font-semibold text-primary block mt-1.5">Included in all plans</span>
+                </div>
+              </div>
+
+              {/* Upgrade options */}
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+                Upgrade AI Integration
               </p>
               <RadioGroup
-                value={aiOpsLevel}
+                value={aiOpsLevel === "none" ? "" : aiOpsLevel}
                 onValueChange={v => setAiOpsLevel(v as AiOpsKey)}
                 className="grid grid-cols-1 gap-4"
               >
-                {(Object.entries(AI_OPS) as [AiOpsKey, (typeof AI_OPS)[AiOpsKey]][]).map(([key, op]) => {
+                {(Object.entries(AI_OPS).filter(([k]) => k !== "none") as [AiOpsKey, (typeof AI_OPS)[AiOpsKey]][]).map(([key, op]) => {
                   const Icon = AI_ICONS[key];
                   const selected = aiOpsLevel === key;
+                  const recommended = AI_RECOMMEND[tier] === key;
                   return (
                     <div
                       key={key}
-                      onClick={() => setAiOpsLevel(key)}
+                      onClick={() => setAiOpsLevel(selected ? "none" : key)}
                       className={cn(
                         "relative flex items-start gap-4 p-5 border rounded-xl transition-all cursor-pointer group",
                         selected
@@ -291,6 +322,11 @@ export default function PricingBreakdown() {
                           : "border-border/60 hover:border-primary/30 hover:bg-secondary/20",
                       )}
                     >
+                      {recommended && (
+                        <span className="absolute top-3 right-3 text-[10px] font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                          Recommended
+                        </span>
+                      )}
                       <RadioGroupItem value={key} id={`ai-${key}`} className="mt-1 shrink-0" />
                       <div className={cn(
                         "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors",
@@ -307,7 +343,7 @@ export default function PricingBreakdown() {
                           </span>
                         )}
                         <span className="text-sm font-semibold block mt-1.5" style={{ color: selected ? "hsl(349,90%,54%)" : undefined }}>
-                          {op.price === 0 ? "Included" : `+${fmt(op.price)}/mo`}
+                          +{fmt(op.price)}/mo
                         </span>
                       </Label>
                     </div>

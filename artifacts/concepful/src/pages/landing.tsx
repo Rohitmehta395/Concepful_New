@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -102,6 +102,7 @@ export default function Landing() {
   const { tier, setTier, billing, setBilling, addOns, aiOpsLevel } = usePricingStore();
 
   const [mobileTierIndex, setMobileTierIndex] = useState(TIER_KEYS.indexOf(tier));
+  const touchStartX = useRef(0);
 
   const monthlyTotal  = calcMonthlyTotal(tier, addOns, aiOpsLevel);
   const annualTotal   = calcAnnualTotal(tier, monthlyTotal, billing);
@@ -249,7 +250,15 @@ export default function Landing() {
           </div>
 
           {/* Mobile carousel */}
-          <div className="md:hidden relative px-4 mb-4">
+          <div
+            className="md:hidden relative px-4 mb-4"
+            onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+            onTouchEnd={(e) => {
+              const delta = touchStartX.current - e.changedTouches[0].clientX;
+              if (delta > 40) handleMobileSwipe(1);
+              else if (delta < -40) handleMobileSwipe(-1);
+            }}
+          >
             <div className="overflow-hidden">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
@@ -290,7 +299,7 @@ export default function Landing() {
                 <ChevronRight className="h-5 w-5" />
               </Button>
             </div>
-            <p className="text-center text-xs text-muted-foreground mt-2">{mobileTierIndex + 1} of 3 — tap arrows to compare</p>
+            <p className="text-center text-xs text-muted-foreground mt-2">{mobileTierIndex + 1} of 3 — swipe or tap arrows to compare</p>
           </div>
 
           {/* Desktop 3-col grid */}
