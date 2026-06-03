@@ -38,21 +38,21 @@ const formSchema = z.object({
     path: ["confirmPassword"],
   }),
   company: z.object({
-    name: z.string().min(2),
-    website: z.string().url(),
-    industry: z.string().min(2),
-    size: z.string(),
-    revenueRange: z.string(),
+    name: z.string().min(2, "Company name is required"),
+    website: z.string().url("Enter a valid URL").or(z.literal("")).optional(),
+    industry: z.string().optional(),
+    size: z.string().optional(),
+    revenueRange: z.string().optional(),
   }),
   contact: z.object({
-    name: z.string().min(2),
-    email: z.string().email(),
+    name: z.string().optional(),
+    email: z.string().email("A valid company email is required"),
     phone: z.string().optional(),
   }),
   goals: z.object({
-    improvements: z.array(z.string()),
-    painPoints: z.string(),
-    firstPriorities: z.array(z.string()),
+    improvements: z.array(z.string()).optional().default([]),
+    painPoints: z.string().optional(),
+    firstPriorities: z.array(z.string()).optional().default([]),
   }),
   brand: z.object({
     colors: z.array(z.string()).max(5).optional(),
@@ -61,7 +61,7 @@ const formSchema = z.object({
     competitors: z.string().optional(),
   }),
   aiSetup: z.object({
-    providers: z.array(z.string()),
+    providers: z.array(z.string()).optional().default([]),
     modelName: z.string().optional(),
     usageNotes: z.string().optional(),
     consentBrandMemory: z.boolean().default(false),
@@ -183,22 +183,22 @@ export default function Onboarding() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      account: { username: "", password: "", confirmPassword: "" },
-      company: { name: "", website: "", industry: "", size: "", revenueRange: "" },
-      contact: { name: "", email: "", phone: "" },
-      goals: { improvements: [], painPoints: "", firstPriorities: [] },
-      brand: { colors: [], fonts: [], toneWords: "", competitors: "" },
+      account: { username: "Testies", password: "Testies1!", confirmPassword: "Testies1!" },
+      company: { name: "Testies Inc.", website: "https://testies.dev", industry: "Technology", size: "11-50", revenueRange: "$1M-$10M" },
+      contact: { name: "Testies User", email: "hello@testies.dev", phone: "" },
+      goals: { improvements: ["Brand consistency", "Faster content output"], painPoints: "Design bandwidth is a bottleneck across every campaign.", firstPriorities: ["Brand guidelines", "Social media content"] },
+      brand: { colors: ["#E8193C", "#0E1228"], fonts: ["Poppins", "Inter"], toneWords: "Bold, modern, trustworthy", competitors: "Pentagram, Superside" },
       aiSetup: { providers: [], modelName: "", usageNotes: "", consentBrandMemory: false, consentAiWorkflows: false },
     },
   });
 
   const fieldsByStep: Record<number, (keyof FormValues | string)[]> = {
     1: ["account.username", "account.password", "account.confirmPassword"],
-    2: ["company.name", "company.website", "company.industry", "company.size", "company.revenueRange", "contact.name", "contact.email"],
-    3: ["goals.improvements", "goals.painPoints", "goals.firstPriorities"],
-    4: ["brand.colors", "brand.fonts", "brand.toneWords", "brand.competitors"],
+    2: ["company.name", "contact.email"],
+    3: [],
+    4: [],
     5: [],
-    6: ["aiSetup.providers", "aiSetup.modelName", "aiSetup.usageNotes", "aiSetup.consentBrandMemory", "aiSetup.consentAiWorkflows"],
+    6: [],
     7: [],
   };
 
