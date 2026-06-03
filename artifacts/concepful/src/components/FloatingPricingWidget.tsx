@@ -12,7 +12,7 @@ const TIER_KEYS: TierKey[] = ["signal", "pulse", "cortex"];
 export function FloatingPricingWidget() {
   const [, setLocation] = useLocation();
   const [open, setOpen] = useState(false);
-  const { tier, setTier, billing, setBilling, addOns, aiOpsLevel } = usePricingStore();
+  const { tier, setTier, billing, setBilling, addOns, aiOpsLevel, setPricingMode } = usePricingStore();
 
   const monthlyTotal = calcMonthlyTotal(tier, addOns, aiOpsLevel);
   const annualTotal = calcAnnualTotal(tier, monthlyTotal, billing);
@@ -52,7 +52,7 @@ export function FloatingPricingWidget() {
                   {TIER_KEYS.map(key => (
                     <button
                       key={key}
-                      onClick={() => setTier(key)}
+                      onClick={() => { setTier(key); setPricingMode("retainer"); }}
                       className={cn(
                         "flex-1 py-1.5 px-2 text-xs font-semibold rounded-lg border transition-all",
                         tier === key

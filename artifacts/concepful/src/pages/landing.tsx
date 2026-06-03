@@ -113,11 +113,13 @@ export default function Landing() {
     const next = Math.max(0, Math.min(2, mobileTierIndex + dir));
     setMobileTierIndex(next);
     setTier(TIER_KEYS[next]);
+    setPricingMode("retainer");
   };
 
   const handleTierSelect = (key: TierKey) => {
     setTier(key);
     setMobileTierIndex(TIER_KEYS.indexOf(key));
+    setPricingMode("retainer");
   };
 
   const handleTierContinue = (key: TierKey) => {
