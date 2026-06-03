@@ -419,6 +419,50 @@ export interface MrrBreakdown {
   byTier: MrrBreakdownByTierItem[];
 }
 
+export interface ErrorEnvelope {
+  error: string;
+}
+
+export interface UploadUrlRequest {
+  /** @minLength 1 */
+  name: string;
+  /** @minimum 1 */
+  size: number;
+  /** @minLength 1 */
+  contentType: string;
+}
+
+export interface UploadUrlResponse {
+  uploadURL: string;
+  objectPath: string;
+}
+
+export interface FigmaExtractRequest {
+  /** Full Figma file URL (e.g. https://www.figma.com/file/KEY/Name) */
+  fileUrl: string;
+  /** Figma personal access token */
+  accessToken: string;
+}
+
+export type FigmaExtractResponsePagesItem = {
+  id: string;
+  name: string;
+};
+
+export type FigmaExtractResponseFramesItem = {
+  id: string;
+  name: string;
+  pageId: string;
+  pageName: string;
+  thumbnailUrl?: string | null;
+};
+
+export interface FigmaExtractResponse {
+  fileName: string;
+  pages: FigmaExtractResponsePagesItem[];
+  frames: FigmaExtractResponseFramesItem[];
+}
+
 export type ListWorkRequestsParams = {
 companyId?: number;
 status?: string;

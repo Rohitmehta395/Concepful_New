@@ -18,6 +18,58 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
+ * @summary Request a presigned URL for file upload
+ */
+
+
+
+
+
+export const RequestUploadUrlBody = zod.object({
+  "name": zod.string().min(1),
+  "size": zod.number().min(1),
+  "contentType": zod.string().min(1)
+})
+
+export const RequestUploadUrlResponse = zod.object({
+  "uploadURL": zod.string().url(),
+  "objectPath": zod.string()
+})
+
+
+/**
+ * @summary Serve an uploaded object
+ */
+export const GetStorageObjectParams = zod.object({
+  "objectPath": zod.coerce.string()
+})
+
+
+/**
+ * @summary Extract frames and assets from a Figma file
+ */
+export const ExtractFigmaAssetsBody = zod.object({
+  "fileUrl": zod.string().describe('Full Figma file URL (e.g. https:\/\/www.figma.com\/file\/KEY\/Name)'),
+  "accessToken": zod.string().describe('Figma personal access token')
+})
+
+export const ExtractFigmaAssetsResponse = zod.object({
+  "fileName": zod.string(),
+  "pages": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "frames": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "pageId": zod.string(),
+  "pageName": zod.string(),
+  "thumbnailUrl": zod.string().nullish()
+}))
+})
+
+
+/**
  * @summary Submit onboarding form
  */
 export const SubmitOnboardingBody = zod.object({

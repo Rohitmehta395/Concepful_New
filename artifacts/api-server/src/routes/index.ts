@@ -10,6 +10,8 @@ import aiProfilesRouter from "./aiProfiles";
 import brandCheckRouter from "./brandCheck";
 import adminRouter from "./admin";
 import stripeRouter from "./stripe";
+import storageRouter from "./storage";
+import figmaRouter from "./figma";
 
 const router: IRouter = Router();
 
@@ -24,5 +26,7 @@ router.use(aiProfilesRouter);
 router.use(brandCheckRouter);
 router.use(adminRouter);
 router.use(stripeRouter);
+router.use(storageRouter);
+router.use(figmaRouter);
 
 export default router;

@@ -9,6 +9,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: storage
+    description: Object storage upload and serving endpoints
+  - name: figma
+    description: Figma file integration
   - name: onboarding
     description: Prospect onboarding
   - name: companies
@@ -42,6 +46,94 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /storage/uploads/request-url:
+    post:
+      tags: [storage]
+      operationId: requestUploadUrl
+      summary: Request a presigned URL for file upload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadUrlRequest'
+      responses:
+        '200':
+          description: Presigned upload URL generated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadUrlResponse'
+        '400':
+          description: Missing or invalid required fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Failed to generate upload URL.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /storage/objects/{objectPath}:
+    get:
+      tags: [storage]
+      operationId: getStorageObject
+      summary: Serve an uploaded object
+      parameters:
+        - name: objectPath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Object content streamed.
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Object not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /figma/extract:
+    post:
+      tags: [figma]
+      operationId: extractFigmaAssets
+      summary: Extract frames and assets from a Figma file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FigmaExtractRequest'
+      responses:
+        '200':
+          description: Figma file data extracted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FigmaExtractResponse'
+        '400':
+          description: Invalid request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '422':
+          description: Figma API error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
 
   /onboarding:
     post:
@@ -861,3 +953,73 @@ components:
               tier: { type: string }
               clients: { type: integer }
               mrr: { type: number }
+
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    UploadUrlRequest:
+      type: object
+      required: [name, size, contentType]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        size:
+          type: integer
+          minimum: 1
+        contentType:
+          type: string
+          minLength: 1
+
+    UploadUrlResponse:
+      type: object
+      required: [uploadURL, objectPath]
+      properties:
+        uploadURL:
+          type: string
+          format: uri
+        objectPath:
+          type: string
+
+    FigmaExtractRequest:
+      type: object
+      required: [fileUrl, accessToken]
+      properties:
+        fileUrl:
+          type: string
+          description: Full Figma file URL (e.g. https://www.figma.com/file/KEY/Name)
+        accessToken:
+          type: string
+          description: Figma personal access token
+
+    FigmaExtractResponse:
+      type: object
+      required: [fileName, pages, frames]
+      properties:
+        fileName:
+          type: string
+        pages:
+          type: array
+          items:
+            type: object
+            required: [id, name]
+            properties:
+              id: { type: string }
+              name: { type: string }
+        frames:
+          type: array
+          items:
+            type: object
+            required: [id, name, pageId, pageName]
+            properties:
+              id: { type: string }
+              name: { type: string }
+              pageId: { type: string }
+              pageName: { type: string }
+              thumbnailUrl:
+                type: string
+                nullable: true
