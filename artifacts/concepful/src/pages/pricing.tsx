@@ -1,9 +1,9 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Check, X, Zap, Clock, Users, RefreshCw,
-  ChevronRight, Cpu, Bot, Workflow, Boxes, Radar,
+  ChevronRight, ChevronUp, ChevronDown, Cpu, Bot, Workflow, Boxes, Radar,
 } from "lucide-react";
 import {
   TIERS, MONTHLY_ADDONS, AI_OPS, PROJECT_ADDONS,
@@ -71,6 +71,22 @@ export default function PricingBreakdown() {
     markPricingInterest();
     setLocation("/checkout");
   };
+
+  // Mobile bottom sheet state
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  // Auto-collapse on scroll
+  useEffect(() => {
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      if (Math.abs(window.scrollY - lastY) > 8) {
+        setSheetOpen(false);
+        lastY = window.scrollY;
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // Section refs for scroll-to from sidebar links
   const enhanceRef   = useRef<HTMLElement>(null);
@@ -323,7 +339,7 @@ export default function PricingBreakdown() {
 
           {/* ── Right: sticky order summary ── */}
           <div className="hidden lg:block">
-            <Card className="sticky top-32 border-primary/20 shadow-lg shadow-primary/5">
+            <Card className="sticky top-[120px] border-primary/20 shadow-lg shadow-primary/5">
               <CardContent className="p-6">
                 <h3 className="text-base font-bold mb-1 font-serif">Order Summary</h3>
 
@@ -417,21 +433,140 @@ export default function PricingBreakdown() {
         </div>
       </div>
 
-      {/* ── Mobile sticky bottom bar ── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur border-t border-border/40 px-4 py-3 safe-bottom">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-lg font-bold tabular-nums">{fmt(displayPrice)}<span className="text-xs font-normal text-muted-foreground">/mo</span></p>
-            <p className="text-xs text-muted-foreground">{t.name} · {billing}</p>
+      {/* ── Mobile bottom sheet ── */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
+        {/* Backdrop when open */}
+        <AnimatePresence>
+          {sheetOpen && (
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="fixed inset-0 bg-black/30 z-40"
+              onClick={() => setSheetOpen(false)}
+            />
+          )}
+        </AnimatePresence>
+
+        <motion.div
+          className="relative z-50 bg-background border-t border-border/40 shadow-2xl rounded-t-2xl overflow-hidden"
+          animate={{ height: sheetOpen ? "auto" : 72 }}
+          transition={{ type: "spring", damping: 30, stiffness: 350 }}
+          style={{ maxHeight: "75dvh" }}
+        >
+          {/* Collapsed summary row — toggle area + CTA as siblings, never nested */}
+          <div className="flex items-center gap-2 px-5 py-4">
+            {/* Tap-to-toggle: price + plan + badge + chevron */}
+            <button
+              onClick={() => setSheetOpen(v => !v)}
+              className="flex items-center gap-3 min-w-0 flex-1 text-left focus-visible:outline-none"
+              aria-label={sheetOpen ? "Collapse order summary" : "Expand order summary"}
+            >
+              <div className="min-w-0">
+                <p className="text-base font-bold tabular-nums leading-none">
+                  {fmt(displayPrice)}<span className="text-xs font-normal text-muted-foreground ml-0.5">/mo</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t.name} · {billing}</p>
+              </div>
+              {(addOns.length > 0 || AI_OPS[aiOpsLevel].price > 0) && (
+                <span className="shrink-0 text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full">
+                  {addOns.length + (AI_OPS[aiOpsLevel].price > 0 ? 1 : 0)} add-on{(addOns.length + (AI_OPS[aiOpsLevel].price > 0 ? 1 : 0)) !== 1 ? "s" : ""}
+                </span>
+              )}
+              {sheetOpen
+                ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 ml-1" />
+                : <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0 ml-1" />
+              }
+            </button>
+
+            {/* CTA — sibling of toggle, never inside it */}
+            <Button
+              size="sm"
+              className="h-8 px-4 font-semibold text-xs shrink-0"
+              onClick={handleCheckout}
+            >
+              Proceed
+            </Button>
           </div>
-          <Button onClick={handleCheckout} className="font-semibold px-6">
-            Proceed to Payment
-          </Button>
-        </div>
+
+          {/* Expanded content */}
+          <AnimatePresence>
+            {sheetOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="overflow-y-auto px-5 pb-6"
+                style={{ maxHeight: "calc(75dvh - 72px)" }}
+              >
+                <div className="border-t border-border/40 pt-4 space-y-3 text-sm mb-4">
+                  {/* Base plan */}
+                  <div className="flex justify-between items-start pb-3 border-b border-border/40">
+                    <div>
+                      <p className="font-medium">{t.name} plan</p>
+                      <p className="text-xs text-muted-foreground capitalize">{billing} billing</p>
+                    </div>
+                    <span className="font-medium shrink-0 ml-2">{fmt(tierPrice)}/mo</span>
+                  </div>
+
+                  {/* Add-ons */}
+                  {addOns.length > 0 && (
+                    <div className="space-y-1.5 pb-3 border-b border-border/40">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Specialist add-ons</p>
+                      {addOns.map(id => {
+                        const a = MONTHLY_ADDONS.find(x => x.id === id);
+                        return a ? (
+                          <div key={id} className="flex justify-between text-muted-foreground">
+                            <span className="truncate mr-2">{a.label}</span>
+                            <span className="shrink-0">+{fmt(a.price)}</span>
+                          </div>
+                        ) : null;
+                      })}
+                    </div>
+                  )}
+
+                  {/* AI level */}
+                  {AI_OPS[aiOpsLevel].price > 0 && (
+                    <div className="flex justify-between text-muted-foreground pb-3 border-b border-border/40">
+                      <span className="truncate mr-2">{AI_OPS[aiOpsLevel].label}</span>
+                      <span className="shrink-0">+{fmt(AI_OPS[aiOpsLevel].price)}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Total */}
+                <div className="bg-secondary/50 rounded-xl p-4 mb-4">
+                  <div className="flex justify-between items-end">
+                    <span className="text-xs text-muted-foreground">
+                      {billing === "annual" ? "Monthly avg" : "Monthly total"}
+                    </span>
+                    <span className="text-2xl font-bold tracking-tight tabular-nums">{fmt(displayPrice)}</span>
+                  </div>
+                  {billing === "annual" && annualSavings > 0 && (
+                    <div className="flex justify-between text-xs text-primary mt-2 pt-2 border-t border-border/40">
+                      <span>You save annually</span>
+                      <span className="font-semibold">{fmt(annualSavings)}</span>
+                    </div>
+                  )}
+                </div>
+
+                <Button size="lg" className="w-full font-semibold" onClick={handleCheckout}>
+                  Proceed to Payment
+                </Button>
+                <p className="text-center text-xs text-muted-foreground mt-3">
+                  Secured by Stripe · Cancel anytime
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
 
-      {/* Bottom padding for mobile bar */}
-      <div className="h-24 lg:h-0" />
+      {/* Bottom padding for mobile sheet */}
+      <div className="h-20 lg:h-0" />
     </SiteLayout>
   );
 }
