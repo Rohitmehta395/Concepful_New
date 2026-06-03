@@ -99,7 +99,7 @@ const BANDWIDTH_LABELS: Record<string, string> = {
 export default function Landing() {
   const [, setLocation] = useLocation();
   const { markPricingInterest } = useAuthState();
-  const { tier, setTier, billing, setBilling, addOns, aiOpsLevel } = usePricingStore();
+  const { tier, setTier, billing, setBilling, addOns, aiOpsLevel, setPricingMode } = usePricingStore();
 
   const [mobileTierIndex, setMobileTierIndex] = useState(TIER_KEYS.indexOf(tier));
   const touchStartX = useRef(0);
@@ -327,6 +327,16 @@ export default function Landing() {
 
           <p className="text-center text-xs text-muted-foreground">
             Not sure? <button onClick={() => handleTierContinue("pulse")} className="text-primary hover:underline font-medium">Start with Studio</button> — our most popular plan. Switch anytime.
+          </p>
+
+          <p className="text-center text-xs text-muted-foreground mt-3">
+            Not ready for a retainer?{" "}
+            <button
+              onClick={() => { setPricingMode("oneTime"); setLocation("/pricing"); }}
+              className="text-primary hover:underline font-medium"
+            >
+              Browse one-time projects →
+            </button>
           </p>
         </section>
 

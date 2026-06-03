@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { TIERS, AI_OPS } from "@/lib/pricing";
 
-export type TierKey  = keyof typeof TIERS;
-export type AiOpsKey = keyof typeof AI_OPS;
+export type TierKey      = keyof typeof TIERS;
+export type AiOpsKey     = keyof typeof AI_OPS;
+export type PricingMode  = "retainer" | "oneTime";
 
 const VALID_AI_KEYS = Object.keys(AI_OPS) as AiOpsKey[];
 
@@ -30,12 +31,26 @@ export function usePricingStore() {
     return VALID_AI_KEYS.includes(saved as AiOpsKey) ? (saved as AiOpsKey) : "none";
   });
 
+  const [pricingMode, setPricingMode] = useState<PricingMode>(() => {
+    return (localStorage.getItem("pricing_mode") as PricingMode) || "retainer";
+  });
+
+  const [selectedProjects, setSelectedProjects] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("pricing_projects") || "[]");
+    } catch {
+      return [];
+    }
+  });
+
   useEffect(() => {
     localStorage.setItem("pricing_tier", tier);
     localStorage.setItem("pricing_billing", billing);
     localStorage.setItem("pricing_addOns", JSON.stringify(addOns));
     localStorage.setItem("pricing_aiOpsLevel", aiOpsLevel);
-  }, [tier, billing, addOns, aiOpsLevel]);
+    localStorage.setItem("pricing_mode", pricingMode);
+    localStorage.setItem("pricing_projects", JSON.stringify(selectedProjects));
+  }, [tier, billing, addOns, aiOpsLevel, pricingMode, selectedProjects]);
 
   return {
     tier,
@@ -46,5 +61,9 @@ export function usePricingStore() {
     setAddOns,
     aiOpsLevel,
     setAiOpsLevel,
+    pricingMode,
+    setPricingMode,
+    selectedProjects,
+    setSelectedProjects,
   };
 }
