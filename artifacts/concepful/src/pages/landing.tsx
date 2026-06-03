@@ -1,15 +1,14 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check, ChevronLeft, ChevronRight, ArrowRight,
   Layers, Palette, Globe, Megaphone, Monitor, PenTool,
-  Lightbulb, FileText, Sparkles, Zap, Shield, Clock,
+  Lightbulb, FileText, Sparkles, Zap, Clock,
 } from "lucide-react";
 import {
-  TIERS, MONTHLY_ADDONS, AI_OPS, PROJECT_ADDONS,
-  calcMonthlyTotal, calcAnnualTotal,
-  type TierKey, type AiOpsKey,
+  TIERS, calcMonthlyTotal, calcAnnualTotal,
+  type TierKey,
 } from "@/lib/pricing";
 import { usePricingStore } from "@/hooks/use-pricing-store";
 import { useAuthState } from "@/hooks/use-auth-state";
@@ -17,19 +16,10 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { FloatingPricingWidget } from "@/components/FloatingPricingWidget";
 import { cn } from "@/lib/utils";
-
-const STEPS = [
-  { id: "plan",     label: "Your Plan" },
-  { id: "enhance",  label: "Enhance" },
-  { id: "ai",       label: "AI Intelligence" },
-  { id: "activate", label: "Activate" },
-];
 
 const TIER_KEYS: TierKey[] = ["signal", "pulse", "cortex"];
 
@@ -109,38 +99,14 @@ const BANDWIDTH_LABELS: Record<string, string> = {
 export default function Landing() {
   const [, setLocation] = useLocation();
   const { markPricingInterest } = useAuthState();
-  const { tier, setTier, billing, setBilling, addOns, setAddOns, aiOpsLevel, setAiOpsLevel } =
-    usePricingStore();
+  const { tier, setTier, billing, setBilling, addOns, aiOpsLevel } = usePricingStore();
 
-  const [activeStep, setActiveStep] = useState(0);
   const [mobileTierIndex, setMobileTierIndex] = useState(TIER_KEYS.indexOf(tier));
-  const sectionRefs = useRef<(HTMLElement | null)[]>([]);
 
-  const handleAddOnToggle = (id: string) =>
-    setAddOns((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]));
-
-  const monthlyTotal = calcMonthlyTotal(tier, addOns, aiOpsLevel);
-  const annualTotal = calcAnnualTotal(tier, monthlyTotal, billing);
-  const displayPrice = billing === "annual" ? Math.round(annualTotal / 12) : monthlyTotal;
-  const annualSavings = billing === "annual" ? monthlyTotal * 12 - annualTotal : 0;
+  const monthlyTotal  = calcMonthlyTotal(tier, addOns, aiOpsLevel);
+  const annualTotal   = calcAnnualTotal(tier, monthlyTotal, billing);
   const fmt = (v: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const idx = sectionRefs.current.indexOf(entry.target as HTMLElement);
-            if (idx !== -1) setActiveStep(idx);
-          }
-        });
-      },
-      { threshold: 0.35 },
-    );
-    sectionRefs.current.forEach((el) => { if (el) observer.observe(el); });
-    return () => observer.disconnect();
-  }, []);
 
   const handleMobileSwipe = (dir: 1 | -1) => {
     const next = Math.max(0, Math.min(2, mobileTierIndex + dir));
@@ -153,10 +119,10 @@ export default function Landing() {
     setMobileTierIndex(TIER_KEYS.indexOf(key));
   };
 
-  const aiOpsRecommendation: Record<TierKey, AiOpsKey> = {
-    signal: "basic",
-    pulse: "advanced",
-    cortex: "embedded",
+  const handleTierContinue = (key: TierKey) => {
+    handleTierSelect(key);
+    markPricingInterest();
+    setLocation("/pricing");
   };
 
   return (
@@ -194,7 +160,7 @@ export default function Landing() {
                   size="lg"
                   className="h-13 px-8 text-base font-semibold"
                   style={{ backgroundColor: "hsl(349, 90%, 54%)" }}
-                  onClick={() => sectionRefs.current[0]?.scrollIntoView({ behavior: "smooth", block: "center" })}
+                  onClick={() => document.getElementById("plan-selector")?.scrollIntoView({ behavior: "smooth", block: "center" })}
                 >
                   Choose a plan <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -202,9 +168,7 @@ export default function Landing() {
                   size="lg"
                   variant="ghost"
                   className="h-13 px-8 text-base text-white/80 hover:text-white hover:bg-white/10 border border-white/15"
-                  onClick={() => {
-                    document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
+                  onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                 >
                   See how it works
                 </Button>
@@ -254,59 +218,15 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* ── STEP INDICATORS ── */}
-        <div className="hidden lg:flex flex-col fixed left-8 top-1/2 -translate-y-1/2 z-40 gap-1">
-          {STEPS.map((step, i) => (
-            <button
-              key={step.id}
-              onClick={() => sectionRefs.current[i]?.scrollIntoView({ behavior: "smooth", block: "center" })}
-              className="flex items-center gap-3 group text-left"
-            >
-              <div className={cn(
-                "w-2 h-2 rounded-full transition-all duration-300",
-                i === activeStep ? "bg-primary scale-150" : "bg-border group-hover:bg-muted-foreground",
-              )} />
-              <span className={cn(
-                "text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                i === activeStep ? "text-foreground opacity-100" : "text-muted-foreground opacity-0 group-hover:opacity-100",
-              )}>
-                {step.label}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        <div className="flex lg:hidden justify-center gap-2 pt-8 pb-2 px-6">
-          {STEPS.map((step, i) => (
-            <button
-              key={step.id}
-              onClick={() => sectionRefs.current[i]?.scrollIntoView({ behavior: "smooth", block: "start" })}
-              className="flex flex-col items-center gap-1"
-            >
-              <div className={cn(
-                "rounded-full transition-all duration-300",
-                i === activeStep ? "w-6 h-2 bg-primary" : "w-2 h-2 bg-border",
-              )} />
-              <span className={cn(
-                "text-[10px] font-medium transition-colors",
-                i === activeStep ? "text-primary" : "text-muted-foreground",
-              )}>{step.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* ── STEP 1: PLAN SELECTOR ── */}
-        <section
-          ref={(el) => { sectionRefs.current[0] = el; }}
-          className="pt-14 pb-6 px-6 scroll-mt-8"
-        >
+        {/* ── PLAN SELECTOR ── */}
+        <section id="plan-selector" className="pt-16 pb-10 px-6 scroll-mt-8">
           <div className="container mx-auto max-w-5xl mb-10 text-center">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">Step 1</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">Choose your plan</p>
             <h2 className="font-serif text-3xl md:text-4xl font-extrabold tracking-tight mb-3">
-              Choose your creative bandwidth
+              Creative bandwidth that fits your team.
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
-              Like selecting a mobile plan — pick the capacity that fits your team. Upgrade or downgrade anytime.
+              Like selecting a mobile plan — pick the capacity that fits your pace. Upgrade or downgrade anytime.
             </p>
           </div>
 
@@ -344,6 +264,7 @@ export default function Landing() {
                     isSelected={tier === TIER_KEYS[mobileTierIndex]}
                     billing={billing}
                     onSelect={handleTierSelect}
+                    onContinue={handleTierContinue}
                     fmt={fmt}
                     bandwidthLabels={BANDWIDTH_LABELS}
                   />
@@ -373,7 +294,7 @@ export default function Landing() {
           </div>
 
           {/* Desktop 3-col grid */}
-          <div className="hidden md:grid container mx-auto px-6 grid-cols-3 gap-5 mb-4 max-w-5xl">
+          <div className="hidden md:grid container mx-auto px-6 grid-cols-3 gap-5 mb-8 max-w-5xl">
             {TIER_KEYS.map((key, i) => (
               <motion.div
                 key={key}
@@ -387,195 +308,17 @@ export default function Landing() {
                   isSelected={tier === key}
                   billing={billing}
                   onSelect={handleTierSelect}
+                  onContinue={handleTierContinue}
                   fmt={fmt}
                   bandwidthLabels={BANDWIDTH_LABELS}
                 />
               </motion.div>
             ))}
           </div>
-        </section>
 
-        {/* ── STEP 2: ENHANCEMENTS ── */}
-        <section
-          ref={(el) => { sectionRefs.current[1] = el; }}
-          className="container mx-auto px-6 py-16 scroll-mt-8 max-w-5xl border-t border-border/40"
-        >
-          <div className="mb-8">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-2">Step 2</p>
-            <h2 className="font-serif text-3xl font-extrabold tracking-tight mb-2">Enhance your plan</h2>
-            <p className="text-muted-foreground">Optional upgrades added to your monthly retainer.</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {MONTHLY_ADDONS.map((addon) => {
-              const checked = addOns.includes(addon.id);
-              return (
-                <label
-                  key={addon.id}
-                  data-testid={`addon-${addon.id}`}
-                  className={cn(
-                    "flex items-start gap-4 p-4 border rounded-xl cursor-pointer transition-all duration-150",
-                    checked ? "border-primary bg-primary/5" : "border-border/60 hover:border-primary/40 hover:bg-secondary/40",
-                  )}
-                >
-                  <Checkbox checked={checked} onCheckedChange={() => handleAddOnToggle(addon.id)} className="mt-0.5" />
-                  <div>
-                    <p className="text-sm font-semibold leading-tight">{addon.label}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{addon.description}</p>
-                    <p className="text-sm text-primary font-medium mt-1.5">+{fmt(addon.price)}/mo</p>
-                  </div>
-                </label>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* ── STEP 3: AI INTELLIGENCE ── */}
-        <section
-          ref={(el) => { sectionRefs.current[2] = el; }}
-          className="container mx-auto px-6 py-16 scroll-mt-8 max-w-5xl border-t border-border/40"
-        >
-          <div className="mb-8">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-2">Step 3</p>
-            <h2 className="font-serif text-3xl font-extrabold tracking-tight mb-2">AI Intelligence level</h2>
-            <p className="text-muted-foreground">
-              Augment your creative team with AI-powered brand memory, content workflows, and automation.
-            </p>
-          </div>
-          <RadioGroup
-            value={aiOpsLevel}
-            onValueChange={(v) => setAiOpsLevel(v as AiOpsKey)}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-          >
-            {(Object.entries(AI_OPS) as [AiOpsKey, (typeof AI_OPS)[AiOpsKey]][]).map(([key, op]) => {
-              const isRec = key === aiOpsRecommendation[tier] && key !== "none";
-              return (
-                <div
-                  key={key}
-                  data-testid={`ai-ops-${key}`}
-                  className={cn(
-                    "relative flex items-start gap-4 p-5 border rounded-xl transition-all cursor-pointer",
-                    aiOpsLevel === key ? "border-primary bg-primary/5" : "border-border/60 hover:border-primary/30",
-                  )}
-                  onClick={() => setAiOpsLevel(key)}
-                >
-                  {isRec && (
-                    <span className="absolute top-3 right-3 text-[10px] font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                      Recommended
-                    </span>
-                  )}
-                  <RadioGroupItem value={key} id={`aiops-${key}`} className="mt-1 shrink-0" />
-                  <Label htmlFor={`aiops-${key}`} className="flex-1 cursor-pointer space-y-0.5">
-                    <span className="font-semibold text-sm block">{op.label}</span>
-                    <span className="text-xs text-muted-foreground block">{op.description}</span>
-                    <span className="text-sm text-primary font-medium block mt-1.5">
-                      {op.price === 0 ? "Included" : `+${fmt(op.price)}/mo`}
-                    </span>
-                  </Label>
-                </div>
-              );
-            })}
-          </RadioGroup>
-        </section>
-
-        {/* ── STEP 4: ACTIVATE ── */}
-        <section
-          ref={(el) => { sectionRefs.current[3] = el; }}
-          className="container mx-auto px-6 py-16 scroll-mt-8 max-w-5xl border-t border-border/40"
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
-            <div className="lg:col-span-2">
-              <div className="sticky top-24">
-                <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-2">Step 4</p>
-                <h2 className="font-serif text-3xl font-extrabold tracking-tight mb-6">Activate your team</h2>
-                <Card className="border-2 border-primary/20 shadow-lg shadow-primary/5">
-                  <CardContent className="p-6 space-y-4">
-                    <div className="flex justify-between items-center pb-4 border-b border-border/60">
-                      <div>
-                        <p className="font-semibold">{TIERS[tier].name} plan</p>
-                        <p className="text-xs text-muted-foreground capitalize">{billing} billing</p>
-                      </div>
-                      <p className="font-semibold">{fmt(TIERS[tier].monthly)}/mo</p>
-                    </div>
-
-                    {addOns.length > 0 && (
-                      <div className="space-y-2 pb-4 border-b border-border/60">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Enhancements</p>
-                        {addOns.map((id) => {
-                          const a = MONTHLY_ADDONS.find((x) => x.id === id);
-                          return a ? (
-                            <div key={id} className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">{a.label}</span>
-                              <span>+{fmt(a.price)}</span>
-                            </div>
-                          ) : null;
-                        })}
-                      </div>
-                    )}
-
-                    {AI_OPS[aiOpsLevel].price > 0 && (
-                      <div className="flex justify-between text-sm pb-4 border-b border-border/60">
-                        <span className="text-muted-foreground">{AI_OPS[aiOpsLevel].label}</span>
-                        <span>+{fmt(AI_OPS[aiOpsLevel].price)}</span>
-                      </div>
-                    )}
-
-                    <div className="pt-2">
-                      <div className="flex justify-between items-end mb-1">
-                        <p className="text-sm text-muted-foreground">
-                          {billing === "annual" ? "Avg monthly" : "Monthly total"}
-                        </p>
-                        <p className="text-3xl font-bold tracking-tight">{fmt(displayPrice)}</p>
-                      </div>
-                      {billing === "annual" && (
-                        <>
-                          <div className="flex justify-between text-sm mt-2">
-                            <span className="text-muted-foreground">Annual total</span>
-                            <span className="font-semibold">{fmt(annualTotal)}</span>
-                          </div>
-                          {annualSavings > 0 && (
-                            <div className="flex justify-between text-sm text-primary mt-1">
-                              <span>You save</span>
-                              <span className="font-semibold">{fmt(annualSavings)}</span>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-
-                    <Button
-                      data-testid="review-pricing-btn"
-                      size="lg"
-                      className="w-full h-12 text-base font-semibold mt-2"
-                      onClick={() => { markPricingInterest(); setLocation("/pricing"); }}
-                    >
-                      Review Full Breakdown
-                    </Button>
-                    <p className="text-center text-xs text-muted-foreground flex items-center justify-center gap-1.5">
-                      <Shield className="h-3 w-3" /> Cancel anytime · No lock-in
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            <div className="lg:col-span-3">
-              <h3 className="font-serif text-2xl font-extrabold tracking-tight mb-2">One-time projects</h3>
-              <p className="text-muted-foreground text-sm mb-6">
-                Custom-scoped work outside your retainer. Priced per engagement.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {PROJECT_ADDONS.map((proj) => (
-                  <div
-                    key={proj.label}
-                    className="flex items-center justify-between p-4 border border-border/60 rounded-xl bg-secondary/20 hover:bg-secondary/40 transition-colors"
-                  >
-                    <p className="text-sm font-medium">{proj.label}</p>
-                    <p className="text-sm text-muted-foreground ml-4 shrink-0">from {fmt(proj.startingAt)}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <p className="text-center text-xs text-muted-foreground">
+            Not sure? <button onClick={() => handleTierContinue("pulse")} className="text-primary hover:underline font-medium">Start with Studio</button> — our most popular plan. Switch anytime.
+          </p>
         </section>
 
         {/* ── HOW IT WORKS ── */}
@@ -666,7 +409,7 @@ export default function Landing() {
                 size="lg"
                 className="h-14 px-10 text-base font-semibold"
                 style={{ backgroundColor: "hsl(349, 90%, 54%)" }}
-                onClick={() => sectionRefs.current[0]?.scrollIntoView({ behavior: "smooth", block: "center" })}
+                onClick={() => document.getElementById("plan-selector")?.scrollIntoView({ behavior: "smooth", block: "center" })}
               >
                 Choose your plan <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -681,14 +424,15 @@ export default function Landing() {
   );
 }
 
-/* ── Tier Card Component ── */
+/* ── Tier Card ── */
 function TierCard({
-  tierKey, isSelected, billing, onSelect, fmt, bandwidthLabels,
+  tierKey, isSelected, billing, onSelect, onContinue, fmt, bandwidthLabels,
 }: {
   tierKey: TierKey;
   isSelected: boolean;
   billing: "monthly" | "annual";
   onSelect: (k: TierKey) => void;
+  onContinue: (k: TierKey) => void;
   fmt: (v: number) => string;
   bandwidthLabels: Record<string, string>;
 }) {
@@ -760,21 +504,22 @@ function TierCard({
             ))}
             {t.capabilities.length > 5 && (
               <li className="text-xs text-primary font-medium pl-5">
-                +{t.capabilities.length - 5} more
+                +{t.capabilities.length - 5} more included
               </li>
             )}
           </ul>
         </div>
       </CardContent>
 
-      <CardFooter className="pt-2">
+      <CardFooter className="pt-2 pb-5">
         <Button
           variant={isSelected ? "default" : "outline"}
-          className="w-full"
-          onClick={(e) => { e.stopPropagation(); onSelect(tierKey); }}
+          className="w-full gap-2"
+          onClick={(e) => { e.stopPropagation(); onContinue(tierKey); }}
           data-testid={`select-tier-${tierKey}`}
         >
-          {isSelected ? "Selected" : "Select plan"}
+          {isSelected ? "Continue with this plan" : "Select & customize"}
+          <ArrowRight className="h-4 w-4" />
         </Button>
       </CardFooter>
     </Card>

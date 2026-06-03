@@ -89,34 +89,84 @@ export const TIERS = {
 };
 
 export const MONTHLY_ADDONS = [
-  { id: "async_pack",        label: "Additional Request Pack",      description: "+10 async requests/mo",                   price: 1500 },
-  { id: "rush_delivery",     label: "Priority Rush Delivery",       description: "Guaranteed 12-hr turnaround",              price: 1500 },
-  { id: "extra_revisions",   label: "Unlimited Revision Rounds",    description: "No revision limits on any deliverable",    price: 1000 },
-  { id: "strategy_session",  label: "Monthly Strategy Sprint",      description: "2-hour facilitated strategy session",      price: 1500 },
-  { id: "ai_content",        label: "AI Content Pack",              description: "AI-authored blog, social & email content", price: 1000 },
-  { id: "brand_photography", label: "Brand Photography Direction",  description: "Creative direction for photo shoots",       price: 3000 },
+  {
+    id: "motion_graphics",
+    label: "Motion Graphics",
+    description: "Extended animation, motion design & video asset production beyond plan scope.",
+    price: 2000,
+  },
+  {
+    id: "three_d_art",
+    label: "3D Art & Visualization",
+    description: "3D modeling, rendering & visual effects for campaigns, product renders, and spatial content.",
+    price: 3000,
+  },
+  {
+    id: "product_design",
+    label: "Product Design Sprint",
+    description: "Deep-dive UX/UI product design, user research synthesis & interactive prototype iterations.",
+    price: 2500,
+  },
+  {
+    id: "illustration",
+    label: "Custom Illustration",
+    description: "Bespoke illustration sets, editorial art, icon systems & branded character design.",
+    price: 1500,
+  },
+  {
+    id: "rush_delivery",
+    label: "Priority Rush Delivery",
+    description: "Guaranteed 12-hr turnaround on all submitted requests.",
+    price: 1500,
+  },
 ];
 
 export const AI_OPS = {
-  none:     { label: "No AI Enhancement",      description: "Human creative team only",                                   price: 0 },
-  basic:    { label: "AI Assist",              description: "AI copy variations & visual concept exploration",            price: 0 },
-  advanced: { label: "AI Enhanced",            description: "Brand voice modeling, multi-model content workflows",        price: 2500 },
-  embedded: { label: "AI Intelligence System", description: "Full brand memory, agentic workflows & automated QA",       price: 6000 },
+  none: {
+    label: "No AI Layer",
+    description: "Human creative team only. No AI augmentation.",
+    compute: null as string | null,
+    price: 0,
+  },
+  integration: {
+    label: "AI Workflow Integration",
+    description: "Embed AI agents into your existing creative and marketing stack — covering agent-driven briefing, scheduling, and approval loops.",
+    compute: "~50K tokens / mo",
+    price: 2500,
+  },
+  brand_command: {
+    label: "AI Brand Command Center",
+    description: "Real-time brand monitoring, competitive signal ingestion, auto-brief generation, and trend intelligence dashboards.",
+    compute: "~150K tokens / mo",
+    price: 4000,
+  },
+  intelligence: {
+    label: "AI Intelligence System",
+    description: "Fully custom AI workflow: brand memory, multi-model content pipelines, automated quality assurance, and agentic publishing.",
+    compute: "~250K tokens / mo + dedicated compute",
+    price: 6000,
+  },
+  robotics: {
+    label: "AI Robotics Assistance",
+    description: "Interface AI with physical hardware for creative robotics, spatial computing, or interactive physical installations.",
+    compute: "Custom GPU / edge compute",
+    price: 12000,
+  },
 };
 
 export const PROJECT_ADDONS = [
   { label: "Brand Identity System",           startingAt: 15000 },
   { label: "Website Design & Build",          startingAt: 20000 },
   { label: "Campaign System",                 startingAt: 12000 },
-  { label: "Pitch Deck / Investor Materials", startingAt: 8000 },
+  { label: "Pitch Deck / Investor Materials", startingAt:  8000 },
   { label: "Product UI/UX Design",            startingAt: 18000 },
   { label: "Video Creative Direction",        startingAt: 10000 },
   { label: "AI Workflow Customization",       startingAt: 12000 },
-  { label: "Innovation Sprint",               startingAt: 6000 },
+  { label: "Innovation Sprint",               startingAt:  6000 },
 ];
 
-export type TierKey = keyof typeof TIERS;
-export type AiOpsKey = keyof typeof AI_OPS;
+export type TierKey   = keyof typeof TIERS;
+export type AiOpsKey  = keyof typeof AI_OPS;
 
 export function calcMonthlyTotal(
   tier: TierKey,

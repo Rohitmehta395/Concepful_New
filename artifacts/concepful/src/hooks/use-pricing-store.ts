@@ -1,18 +1,22 @@
 import { useState, useEffect } from "react";
 import { TIERS, AI_OPS } from "@/lib/pricing";
 
-export type TierKey = keyof typeof TIERS;
+export type TierKey  = keyof typeof TIERS;
 export type AiOpsKey = keyof typeof AI_OPS;
+
+const VALID_AI_KEYS = Object.keys(AI_OPS) as AiOpsKey[];
 
 export function usePricingStore() {
   const [tier, setTier] = useState<TierKey>(() => {
     const saved = localStorage.getItem("pricing_tier");
     return (saved as TierKey) || "signal";
   });
+
   const [billing, setBilling] = useState<"monthly" | "annual">(() => {
     const saved = localStorage.getItem("pricing_billing");
     return (saved as "monthly" | "annual") || "monthly";
   });
+
   const [addOns, setAddOns] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem("pricing_addOns") || "[]");
@@ -20,9 +24,10 @@ export function usePricingStore() {
       return [];
     }
   });
+
   const [aiOpsLevel, setAiOpsLevel] = useState<AiOpsKey>(() => {
     const saved = localStorage.getItem("pricing_aiOpsLevel");
-    return (saved as AiOpsKey) || "none";
+    return VALID_AI_KEYS.includes(saved as AiOpsKey) ? (saved as AiOpsKey) : "none";
   });
 
   useEffect(() => {
