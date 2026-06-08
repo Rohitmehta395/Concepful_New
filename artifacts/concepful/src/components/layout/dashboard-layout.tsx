@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, CheckSquare, History, Palette, ShieldCheck, Cpu } from "lucide-react";
+import { LayoutDashboard, CheckSquare, History, Palette, ShieldCheck, Cpu, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -9,6 +9,7 @@ const navItems = [
   { name: "Brand Center", href: "/dashboard/brand", icon: Palette },
   { name: "Brand Check", href: "/dashboard/brand-check", icon: ShieldCheck },
   { name: "AI Collaboration", href: "/dashboard/ai-collaboration", icon: Cpu },
+  { name: "Account Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {

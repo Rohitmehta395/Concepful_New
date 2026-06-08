@@ -157,14 +157,14 @@ export const AI_OPS = {
 };
 
 export const PROJECT_ADDONS = [
-  { id: "brand_identity", label: "Brand Identity System",           startingAt: 15000, hours: "60–80 hrs",  weeks: "4–6 wks" },
-  { id: "website",        label: "Website Design & Build",          startingAt: 20000, hours: "80–120 hrs", weeks: "6–8 wks" },
-  { id: "campaign",       label: "Campaign System",                 startingAt: 12000, hours: "40–60 hrs",  weeks: "3–5 wks" },
-  { id: "pitch_deck",     label: "Pitch Deck / Investor Materials", startingAt:  8000, hours: "20–35 hrs",  weeks: "2–3 wks" },
-  { id: "product_ui",     label: "Product UI/UX Design",            startingAt: 18000, hours: "70–100 hrs", weeks: "5–8 wks" },
-  { id: "video",          label: "Video Creative Direction",        startingAt: 10000, hours: "30–50 hrs",  weeks: "3–4 wks" },
-  { id: "ai_workflow",    label: "AI Workflow Customization",       startingAt: 12000, hours: "40–60 hrs",  weeks: "3–5 wks" },
-  { id: "innovation",     label: "Innovation Sprint",               startingAt:  6000, hours: "20–30 hrs",  weeks: "1–2 wks" },
+  { id: "brand_identity", label: "Brand Identity System",           price: 15000, hours: "60–80 hrs",  weeks: "4–6 wks" },
+  { id: "website",        label: "Website Design & Build",          price: 20000, hours: "80–120 hrs", weeks: "6–8 wks" },
+  { id: "campaign",       label: "Campaign System",                 price: 12000, hours: "40–60 hrs",  weeks: "3–5 wks" },
+  { id: "pitch_deck",     label: "Pitch Deck / Investor Materials", price:  8000, hours: "20–35 hrs",  weeks: "2–3 wks" },
+  { id: "product_ui",     label: "Product UI/UX Design",            price: 18000, hours: "70–100 hrs", weeks: "5–8 wks" },
+  { id: "video",          label: "Video Creative Direction",        price: 10000, hours: "30–50 hrs",  weeks: "3–4 wks" },
+  { id: "ai_workflow",    label: "AI Workflow Customization",       price: 12000, hours: "40–60 hrs",  weeks: "3–5 wks" },
+  { id: "innovation",     label: "Innovation Sprint",               price:  6000, hours: "20–30 hrs",  weeks: "1–2 wks" },
 ];
 
 export type TierKey   = keyof typeof TIERS;

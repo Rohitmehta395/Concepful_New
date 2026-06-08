@@ -58,7 +58,7 @@ export default function PricingBreakdown() {
     setSelectedProjects(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
 
   const projectsTotal = selectedProjects.reduce(
-    (sum, id) => sum + (PROJECT_ADDONS.find(p => p.id === id)?.startingAt ?? 0), 0
+    (sum, id) => sum + (PROJECT_ADDONS.find(p => p.id === id)?.price ?? 0), 0
   );
 
   const monthlyTotal   = calcMonthlyTotal(tier, addOns, aiOpsLevel);
@@ -77,7 +77,11 @@ export default function PricingBreakdown() {
 
   const handleCheckout = () => {
     markPricingInterest();
-    setLocation("/checkout");
+    if (pricingMode === "oneTime") {
+      setLocation("/onboarding");
+    } else {
+      setLocation("/checkout");
+    }
   };
 
   // Auto-recommend AI level when tier changes
@@ -182,7 +186,7 @@ export default function PricingBreakdown() {
             ) : (
               <div className="text-right hidden sm:block">
                 {selectedProjects.length > 0
-                  ? <p className="text-sm font-semibold">{selectedProjects.length} project{selectedProjects.length > 1 ? "s" : ""} · from {fmt(projectsTotal)}</p>
+                  ? <p className="text-sm font-semibold">{selectedProjects.length} project{selectedProjects.length > 1 ? "s" : ""} · {fmt(projectsTotal)}</p>
                   : <p className="text-sm text-muted-foreground">Select projects below</p>
                 }
               </div>
@@ -193,7 +197,7 @@ export default function PricingBreakdown() {
               className="h-9 px-5 font-semibold text-sm"
               disabled={pricingMode === "oneTime" && selectedProjects.length === 0}
             >
-              {pricingMode === "oneTime" ? "Get a Quote" : "Proceed to payment"}
+              {pricingMode === "oneTime" ? "Begin Project" : "Proceed to payment"}
             </Button>
           </div>
         </div>
@@ -247,7 +251,7 @@ export default function PricingBreakdown() {
                             <span className="font-semibold text-sm leading-snug">{proj.label}</span>
                           </div>
                           <span className={cn("text-sm font-bold shrink-0 tabular-nums", selected ? "text-primary" : "text-muted-foreground")}>
-                            from {fmt(proj.startingAt)}
+                            {fmt(proj.price)}
                           </span>
                         </div>
                         <div className="flex items-center gap-3 pl-7 text-xs text-muted-foreground">
@@ -262,10 +266,10 @@ export default function PricingBreakdown() {
                   })}
                 </div>
 
-                <div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-900/40 dark:bg-amber-950/20 p-4 text-sm text-amber-800 dark:text-amber-300">
-                  <p className="font-semibold mb-1">Overage policy</p>
-                  <p className="leading-relaxed text-amber-700 dark:text-amber-400">
-                    Each project scope includes a fixed block of senior creative hours. If your project scope expands beyond that block, additional time is billed at <strong>$85/hr</strong> — you'll always be notified before any overage begins.
+                <div className="rounded-xl border border-border/40 bg-secondary/20 p-4 text-sm text-muted-foreground">
+                  <p className="font-semibold text-foreground mb-1">Flat-rate pricing</p>
+                  <p className="leading-relaxed">
+                    Each project is quoted at a fixed price. Scope is confirmed before work begins — no surprise overages.
                   </p>
                 </div>
               </div>
@@ -564,7 +568,7 @@ export default function PricingBreakdown() {
                             <div key={id} className="pb-3 border-b border-border/40">
                               <div className="flex justify-between items-start gap-2 mb-1">
                                 <span className="font-medium leading-snug">{p.label}</span>
-                                <span className="font-semibold shrink-0 text-primary">from {fmt(p.startingAt)}</span>
+                                <span className="font-semibold shrink-0 text-primary">{fmt(p.price)}</span>
                               </div>
                               <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                                 <Clock className="h-3 w-3 shrink-0" />
@@ -580,22 +584,15 @@ export default function PricingBreakdown() {
                     {selectedProjects.length > 0 && (
                       <div className="bg-secondary/50 rounded-xl p-4 mb-4">
                         <div className="flex justify-between items-end">
-                          <span className="text-xs text-muted-foreground">Starting from</span>
+                          <span className="text-xs text-muted-foreground">Flat Total</span>
                           <span className="text-2xl font-bold tracking-tight tabular-nums">{fmt(projectsTotal)}</span>
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-1">
-                          Final scope and pricing confirmed during kickoff.
+                          Fixed price · Scope confirmed before work begins.
                         </p>
                       </div>
                     )}
 
-                    {/* $85/hr overage note */}
-                    <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900/40 dark:bg-amber-950/20 px-3 py-2.5 mb-5">
-                      <p className="text-[11px] font-semibold text-amber-800 dark:text-amber-300 mb-0.5">Overage rate: $85/hr</p>
-                      <p className="text-[10px] text-amber-700 dark:text-amber-400 leading-relaxed">
-                        Each project includes a defined block of senior creative hours. Time beyond that block is billed at <strong>$85/hr</strong> — you'll be notified before any overage begins.
-                      </p>
-                    </div>
 
                     <Button
                       size="lg"
@@ -603,7 +600,7 @@ export default function PricingBreakdown() {
                       onClick={handleCheckout}
                       disabled={selectedProjects.length === 0}
                     >
-                      {selectedProjects.length === 0 ? "Select a project to continue" : "Get a Custom Quote"}
+                      {selectedProjects.length === 0 ? "Select a project to continue" : "Begin Project"}
                     </Button>
                     <p className="text-center text-xs text-muted-foreground mt-3">
                       No commitment required · Scoped before you pay

@@ -17,12 +17,12 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { AiOpsKey, TierKey, usePricingStore } from "@/hooks/use-pricing-store";
-import { calcMonthlyTotal, calcAnnualTotal, TIERS, MONTHLY_ADDONS, AI_OPS } from "@/lib/pricing";
+import { calcMonthlyTotal, calcAnnualTotal, TIERS, MONTHLY_ADDONS, AI_OPS, PROJECT_ADDONS } from "@/lib/pricing";
 import { useSubmitOnboarding } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-const TOTAL_STEPS = 7;
+const RETAINER_STEPS = 7;
 
 const formSchema = z.object({
   account: z.object({
@@ -113,7 +113,7 @@ function PasswordStrength({ password }: { password: string }) {
   );
 }
 
-const STEP_LABELS = [
+const RETAINER_STEP_LABELS = [
   "Create Account",
   "Your Company",
   "Goals",
@@ -123,10 +123,21 @@ const STEP_LABELS = [
   "Review",
 ];
 
+const ONETIME_STEP_LABELS = ["Create Account", "Project Brief", "Review"];
+
 export default function Onboarding() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { tier, billing, addOns, aiOpsLevel } = usePricingStore();
+  const { tier, billing, addOns, aiOpsLevel, pricingMode, selectedProjects } = usePricingStore();
+  const isOneTime = pricingMode === "oneTime";
+  const TOTAL_STEPS = isOneTime ? 3 : RETAINER_STEPS;
+  const STEP_LABELS = isOneTime ? ONETIME_STEP_LABELS : RETAINER_STEP_LABELS;
+  const fmt = (v: number) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
+  const projectsTotal = selectedProjects.reduce(
+    (sum, id) => sum + (PROJECT_ADDONS.find(p => p.id === id)?.price ?? 0), 0
+  );
+
   const submitOnboarding = useSubmitOnboarding();
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
@@ -217,6 +228,42 @@ export default function Onboarding() {
   };
 
   const onSubmit = (values: FormValues) => {
+    if (isOneTime) {
+      submitOnboarding.mutate(
+        {
+          data: {
+            company: { name: values.company.name || "Unknown", website: "", industry: "", size: "", revenueRange: "" },
+            contact: values.contact,
+            plan: {
+              tier: "signal" as any,
+              billingCycle: "monthly" as any,
+              addOns: [],
+              aiOpsLevel: "none" as any,
+              estimatedMonthlyTotal: projectsTotal,
+              estimatedAnnualTotal: projectsTotal,
+            },
+            goals: {
+              improvements: selectedProjects,
+              painPoints: values.goals.painPoints ?? "",
+              firstPriorities: [],
+            },
+            brand: {},
+            aiSetup: { providers: [], consentBrandMemory: false, consentAiWorkflows: false },
+          },
+        },
+        {
+          onSuccess: () => {
+            toast({ title: "Request received!", description: "We'll review your project and follow up within 24 hours." });
+            setLocation("/dashboard");
+          },
+          onError: () => {
+            toast({ title: "Submission failed", description: "Please try again.", variant: "destructive" });
+          },
+        },
+      );
+      return;
+    }
+
     const monthlyTotal = calcMonthlyTotal(tier, addOns, aiOpsLevel);
     const annualTotal = calcAnnualTotal(tier, monthlyTotal, billing);
 
@@ -409,8 +456,144 @@ export default function Onboarding() {
                     </div>
                   )}
 
-                  {/* ── STEP 2: Company Basics ── */}
-                  {step === 2 && (
+                  {/* ── STEP 2: Project Brief (one-time only) ── */}
+                  {step === 2 && isOneTime && (
+                    <div className="space-y-6">
+                      <div>
+                        <Badge variant="outline" className="text-primary border-primary/30 mb-3">One-Time Project</Badge>
+                        <h2 className="text-2xl font-serif font-bold mb-2">Project Brief</h2>
+                        <p className="text-muted-foreground">Tell us what you need and how to reach you.</p>
+                      </div>
+
+                      {selectedProjects.length > 0 && (
+                        <div className="bg-secondary/40 border rounded-xl p-5 space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                            Selected project{selectedProjects.length > 1 ? "s" : ""}
+                          </p>
+                          {selectedProjects.map(id => {
+                            const proj = PROJECT_ADDONS.find(p => p.id === id);
+                            return proj ? (
+                              <div key={id} className="flex items-center justify-between text-sm">
+                                <span className="font-medium">{proj.label}</span>
+                                <span className="text-primary font-bold">{fmt(proj.price)}</span>
+                              </div>
+                            ) : null;
+                          })}
+                          {selectedProjects.length > 1 && (
+                            <div className="flex items-center justify-between text-sm font-semibold border-t border-border/40 pt-2 mt-2">
+                              <span>Total</span>
+                              <span className="text-primary">{fmt(projectsTotal)}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField control={form.control} name="company.name" render={({ field }) => (
+                          <FormItem><FormLabel>Company Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                        <FormField control={form.control} name="contact.email" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email Address <span className="text-destructive">*</span></FormLabel>
+                            <FormControl><Input type="email" placeholder="you@company.com" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+
+                      <FormField control={form.control} name="goals.painPoints" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tell us about your project <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                          <FormDescription>Any background, goals, constraints, or timelines we should know.</FormDescription>
+                          <FormControl>
+                            <Textarea
+                              className="min-h-[120px]"
+                              placeholder="Describe your project, goals, audience, or anything else that helps us scope the work..."
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
+                  )}
+
+                  {/* ── STEP 3: Review & Submit (one-time only) ── */}
+                  {step === 3 && isOneTime && (
+                    <div className="space-y-8">
+                      <div>
+                        <h2 className="text-2xl font-serif font-bold mb-2">Ready to submit</h2>
+                        <p className="text-muted-foreground">Review your project request before we get started.</p>
+                      </div>
+
+                      <div className="bg-secondary/30 border rounded-xl p-6 space-y-5">
+                        <div className="flex justify-between items-center pb-4 border-b border-border/50">
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Account</p>
+                            <p className="font-mono font-semibold">@{form.getValues().account.username}</p>
+                          </div>
+                        </div>
+
+                        {selectedProjects.length > 0 ? (
+                          <div className="pb-4 border-b border-border/50">
+                            <p className="text-xs text-muted-foreground mb-3">Selected Projects</p>
+                            <div className="space-y-2">
+                              {selectedProjects.map(id => {
+                                const proj = PROJECT_ADDONS.find(p => p.id === id);
+                                return proj ? (
+                                  <div key={id} className="flex items-center justify-between text-sm">
+                                    <span className="font-medium">{proj.label}</span>
+                                    <span className="text-primary font-bold">{fmt(proj.price)}</span>
+                                  </div>
+                                ) : null;
+                              })}
+                              {selectedProjects.length > 1 && (
+                                <div className="flex items-center justify-between text-sm font-semibold border-t border-border/40 pt-2 mt-1">
+                                  <span>Project Total</span>
+                                  <span className="text-primary">{fmt(projectsTotal)}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="pb-4 border-b border-border/50 text-sm text-muted-foreground">
+                            No projects selected — we'll reach out to scope your custom request.
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <p className="text-sm font-semibold mb-2">Contact</p>
+                            <ul className="space-y-1 text-sm text-muted-foreground">
+                              {form.getValues().company.name && <li>{form.getValues().company.name}</li>}
+                              <li>{form.getValues().contact.email || "No email provided"}</li>
+                            </ul>
+                          </div>
+                          {form.getValues().goals.painPoints && (
+                            <div>
+                              <p className="text-sm font-semibold mb-2">Project Brief</p>
+                              <p className="text-sm text-muted-foreground line-clamp-4">{form.getValues().goals.painPoints}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="pt-4 flex flex-col items-center gap-4 text-center">
+                        <Button
+                          type="submit"
+                          size="lg"
+                          className="w-full md:w-auto h-14 px-12 text-lg"
+                          disabled={submitOnboarding.isPending}
+                        >
+                          {submitOnboarding.isPending ? "Submitting…" : "Submit Project Request"}
+                        </Button>
+                        <p className="text-sm text-muted-foreground">We'll review your request and follow up within 24 hours.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── STEP 2: Company Basics (retainer only) ── */}
+                  {step === 2 && !isOneTime && (
                     <div className="space-y-6">
                       <div>
                         <h2 className="text-2xl font-serif font-bold mb-2">Company Basics</h2>
@@ -472,8 +655,8 @@ export default function Onboarding() {
                     </div>
                   )}
 
-                  {/* ── STEP 3: Goals ── */}
-                  {step === 3 && (
+                  {/* ── STEP 3: Goals (retainer only) ── */}
+                  {step === 3 && !isOneTime && (
                     <div className="space-y-8">
                       <div>
                         <h2 className="text-2xl font-serif font-bold mb-2">Strategic Goals</h2>
