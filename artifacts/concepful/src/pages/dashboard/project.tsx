@@ -105,6 +105,74 @@ function buildTimeline(
 }
 
 /* ══════════════════════════════════════════════════════
+   WORK MOSAIC GRID
+   Visual timeline of all creative iterations for a project
+══════════════════════════════════════════════════════ */
+function WorkMosaicGrid({ items, onOpen }: { items: MediaItem[]; onOpen: (m: MediaItem) => void }) {
+  if (items.length === 0) return null;
+
+  return (
+    <div className="grid grid-cols-3 gap-3" style={{ gridAutoRows: "172px" }}>
+      {items.map((item, i) => {
+        const km   = MEDIA_KIND_META[item.kind as keyof typeof MEDIA_KIND_META] ?? { icon: "◻", label: "Asset" };
+        const grad = gradientFor(item);
+
+        /* Alternate pattern: [span-2, span-1] then [span-1, span-2] */
+        const groupPos = i % 4;
+        const isWide   = groupPos === 0 || groupPos === 3;
+
+        return (
+          <button
+            key={item.id}
+            onClick={() => onOpen(item)}
+            className={cn(
+              "relative overflow-hidden rounded-2xl group text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+              isWide ? "col-span-2" : "col-span-1",
+            )}
+            style={{ background: grad }}
+          >
+            {/* Oversized faded icon */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+              <span className="text-[90px] leading-none font-black opacity-[0.06]">{km.icon}</span>
+            </div>
+
+            {/* Version + Final badges */}
+            <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-black/30 text-white/90 backdrop-blur-sm">
+                v{item.iteration}
+              </span>
+              {item.isFinal && (
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary text-white shadow-sm">
+                  Final
+                </span>
+              )}
+            </div>
+
+            {/* Hover overlay */}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-200 z-10">
+              <div className="h-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3.5 py-2 text-white text-xs font-semibold shadow">
+                  <Maximize2 className="h-3 w-3" /> Review &amp; Comment
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom gradient info strip */}
+            <div className="absolute bottom-0 inset-x-0 p-3.5 bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10">
+              <p className="text-[9px] font-bold text-white/50 uppercase tracking-widest mb-0.5">{km.label}</p>
+              <p className="text-sm font-semibold text-white leading-tight line-clamp-1">{item.title}</p>
+              {isWide && item.description && (
+                <p className="text-[10px] text-white/60 line-clamp-1 mt-0.5">{item.description}</p>
+              )}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════
    SUB-COMPONENTS
 ══════════════════════════════════════════════════════ */
 function FigmaIcon({ className }: { className?: string }) {
@@ -834,6 +902,21 @@ export default function ProjectDetail() {
             </div>
           </div>
         </section>
+
+        {/* ══════════════════════════════════════════════
+            SECTION: WORK MOSAIC
+        ══════════════════════════════════════════════ */}
+        {mediaItems.length > 0 && (
+          <section id="mosaic" className="scroll-mt-12 pt-4">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Work Mosaic</p>
+              <span className="text-[10px] text-muted-foreground bg-secondary/50 px-2.5 py-1 rounded-full border border-border/40">
+                {mediaItems.length} iteration{mediaItems.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <WorkMosaicGrid items={mediaItems} onOpen={setReviewMedia} />
+          </section>
+        )}
 
         {/* ══════════════════════════════════════════════
             SECTION: BRIEF

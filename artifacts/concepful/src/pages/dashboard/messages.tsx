@@ -450,6 +450,14 @@ export default function Messages() {
   const [search,   setSearch]   = useState("");
   const [selected, setSelected] = useState<Ping | null>(null);
 
+  useEffect(() => {
+    const openId = sessionStorage.getItem("concepful_open_message");
+    if (!openId) return;
+    sessionStorage.removeItem("concepful_open_message");
+    const ping = pings.find(p => p.id === openId);
+    if (ping) setSelected(ping);
+  }, []);
+
   const all = pings.filter(p => p.kind === "message");
 
   /* Group messages by projectId to get thread counts */

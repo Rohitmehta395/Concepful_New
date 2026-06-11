@@ -48,6 +48,7 @@ function Router() {
       <Route path="/dashboard/settings" component={AccountSettings} />
       <Route path="/dashboard/calendar" component={CalendarPage} />
       <Route path="/dashboard/messages" component={Messages} />
+      <Route path="/dashboard/collateral" component={MediaPage} />
       <Route path="/dashboard/media" component={MediaPage} />
 
       <Route path="/admin" component={AdminDashboard} />

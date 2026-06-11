@@ -708,7 +708,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             {([
               { href: "/dashboard/calendar", icon: Calendar,      label: "Calendar" },
               { href: "/dashboard/messages", icon: MessageSquare, label: "Messages" },
-              { href: "/dashboard/media",    icon: Paperclip,     label: "Media"    },
+              { href: "/dashboard/collateral", icon: Paperclip,     label: "Collateral" },
             ] as const).map(({ href, icon: Icon, label }) => (
               <Link key={href} href={href}>
                 <button className={cn(
@@ -792,7 +792,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   ping={ping}
                   isActive={false}
                   onClick={() => {
-                    if (ping.projectId) {
+                    if (ping.kind === "message") {
+                      sessionStorage.setItem("concepful_open_message", ping.id);
+                      setLocation("/dashboard/messages");
+                    } else if (ping.projectId) {
                       const projectPath = `/dashboard/project/${ping.projectId}`;
                       if (location.startsWith(projectPath)) {
                         setTimeout(() => {
