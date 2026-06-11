@@ -13,7 +13,6 @@ import {
 import { useListWorkRequests, useListCompletedWork } from "@workspace/api-client-react";
 import { ArtworkThumbnail } from "@/components/ArtworkThumbnail";
 import { cn } from "@/lib/utils";
-import { useDashboard } from "@/lib/dashboard-context";
 import { getProjectMedia, gradientFor, MEDIA_KIND_META } from "@/lib/media";
 
 const PHASES = ["Discovery", "Brief", "Design", "Review", "Revisions", "Delivered"] as const;
@@ -110,8 +109,10 @@ const FILTERS: { key: FilterKey; label: string }[] = [
 ];
 
 export default function DashboardOverview() {
-  const { activePing } = useDashboard();
+  return <DashboardLayout><DashboardContent /></DashboardLayout>;
+}
 
+function DashboardContent() {
   const { data: requests, isLoading } = useListWorkRequests(
     { query: { queryKey: ["requests", 1] } },
     { request: { query: { companyId: 1 } } },
@@ -162,16 +163,6 @@ export default function DashboardOverview() {
   });
   const firstDay = new Date(calYear, calMonth, 1).getDay();
   const totalDays = new Date(calYear, calMonth + 1, 0).getDate();
-
-  /* ── Compact mode when ping is active (renders in narrow right column) ── */
-  if (activePing) {
-    return (
-      <CompactProjectList
-        requests={allRequests}
-        completedWork={deliveredWork}
-      />
-    );
-  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-7">

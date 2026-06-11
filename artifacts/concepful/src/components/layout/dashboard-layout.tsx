@@ -2,15 +2,14 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import {
   MessageSquare, CheckSquare, Paperclip, Plus, X,
-  ChevronDown, Settings, LayoutDashboard, Layers,
-  Bell, ChevronLeft, ChevronRight, ArrowUpDown,
-  Folder, Send,
+  Settings, LayoutDashboard, Layers,
+  ChevronLeft, ChevronRight, ArrowUpDown,
+  Folder, Send, Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Link as WouterLink } from "wouter";
 import {
   Ping, PingKind, PingSubtype,
@@ -25,7 +24,7 @@ const KIND_SUBTYPES: Record<PingKind, PingSubtype[]> = {
   media:   ["document", "asset"],
 };
 
-const PINGS_PER_PAGE = 8;
+const PINGS_PER_PAGE = 10;
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -37,7 +36,9 @@ function timeAgo(iso: string): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-/* ── Compose Panel ─────────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   COMPOSE PANEL (middle column — spacious)
+═══════════════════════════════════════════════════ */
 function ComposePanel({ onSend, onClose }: {
   onSend: (p: Omit<Ping, "id" | "date">) => void;
   onClose: () => void;
@@ -49,7 +50,12 @@ function ComposePanel({ onSend, onClose }: {
   const { activeProjectId } = useDashboard();
 
   const subtypes = KIND_SUBTYPES[kind];
-  const handleKind = (k: PingKind) => { setKind(k); setSubtype(KIND_SUBTYPES[k][0]); };
+
+  const handleKind = (k: PingKind) => {
+    setKind(k);
+    setSubtype(KIND_SUBTYPES[k][0]);
+  };
+
   const handleSend = () => {
     if (!title.trim() && !body.trim()) return;
     onSend({
@@ -62,100 +68,116 @@ function ComposePanel({ onSend, onClose }: {
     setTitle(""); setBody("");
   };
 
-  const kindIcons = { message: MessageSquare, todo: CheckSquare, media: Paperclip };
+  const kindDefs = [
+    { k: "message" as PingKind, Icon: MessageSquare, label: "Message" },
+    { k: "todo"    as PingKind, Icon: CheckSquare,   label: "Task"    },
+    { k: "media"   as PingKind, Icon: Paperclip,     label: "File"    },
+  ];
 
   return (
-    <div className="border-t bg-card p-3 space-y-3 shrink-0">
-      {/* Kind row */}
-      <div className="flex gap-1">
-        {(["message","todo","media"] as PingKind[]).map(k => {
-          const Icon = kindIcons[k];
-          const m = KIND_META[k];
-          return (
-            <button key={k} onClick={() => handleKind(k)}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all border",
-                kind === k ? cn(m.bg, m.color, m.border) : "border-transparent text-muted-foreground hover:bg-secondary",
-              )}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              <span>{m.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Subtype pills */}
-      <div className="flex gap-1 flex-wrap">
-        {subtypes.map(s => (
-          <button key={s} onClick={() => setSubtype(s)}
-            className={cn(
-              "text-[11px] px-2.5 py-0.5 rounded-full border transition-all font-medium",
-              subtype === s ? "bg-foreground text-background border-foreground" : "border-border text-muted-foreground hover:border-foreground/40",
-            )}
-          >
-            {SUBTYPE_META[s].label}
-          </button>
-        ))}
-      </div>
-
-      <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title (optional)" className="h-8 text-sm" />
-      <Textarea
-        value={body} onChange={e => setBody(e.target.value)}
-        placeholder={kind === "message" ? "What do you want to say?" : kind === "todo" ? "Describe the task…" : "Note about this file…"}
-        className="text-sm resize-none min-h-[56px]"
-        onKeyDown={e => { if (e.key === "Enter" && e.metaKey) handleSend(); }}
-      />
-      <div className="flex items-center justify-between">
-        <p className="text-[10px] text-muted-foreground">⌘+Enter</p>
-        <div className="flex gap-1.5">
-          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onClose}>Cancel</Button>
-          <Button size="sm" className="h-7 text-xs" onClick={handleSend} disabled={!body.trim() && !title.trim()}>Send Ping</Button>
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="px-6 py-4 border-b shrink-0 flex items-center justify-between">
+        <div>
+          <p className="font-semibold text-sm">New Action</p>
+          <p className="text-[11px] text-muted-foreground">Log a message, task, or file</p>
         </div>
+        <button onClick={onClose}
+          className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
+          <X className="h-4 w-4" />
+        </button>
       </div>
-    </div>
-  );
-}
 
-/* ── Ping Item (sidebar row) ───────────────────────── */
-function PingItem({ ping, isExpanded, onToggle, onMarkDone }: {
-  ping: Ping; isExpanded: boolean; onToggle: () => void; onMarkDone?: () => void;
-}) {
-  const { setActivePing } = useDashboard();
-  const m  = KIND_META[ping.kind];
-  const sm = SUBTYPE_META[ping.subtype];
-
-  const handleClick = () => {
-    setActivePing(isExpanded ? null : ping);
-    onToggle();
-  };
-
-  return (
-    <div className={cn("border-b border-border/40 last:border-0 transition-colors", isExpanded && "bg-primary/[0.04]")}>
-      <button onClick={handleClick} className="w-full text-left px-3 py-2.5 flex items-start gap-2.5">
-        <div className={cn("h-7 w-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 text-base border", m.bg, m.border)}>
-          {sm.emoji}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <span className={cn("text-[10px] font-bold uppercase tracking-wide", m.color)}>{sm.label}</span>
-            {ping.done === false && ping.kind === "todo" && (
-              <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-            )}
-            {ping.author === "team" && <span className="text-[10px] text-muted-foreground/60">· Team</span>}
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
+        {/* Kind selector */}
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Type</p>
+          <div className="grid grid-cols-3 gap-2">
+            {kindDefs.map(({ k, Icon, label }) => {
+              const m = KIND_META[k];
+              return (
+                <button key={k} onClick={() => handleKind(k)}
+                  className={cn(
+                    "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-xs font-semibold",
+                    kind === k
+                      ? cn("border-primary bg-primary/[0.06]", m.color)
+                      : "border-border/50 text-muted-foreground hover:border-border",
+                  )}>
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </button>
+              );
+            })}
           </div>
-          <p className={cn("text-xs leading-snug line-clamp-1 font-medium", ping.done && "line-through text-muted-foreground")}>
-            {ping.title || ping.body}
-          </p>
-          <p className="text-[10px] text-muted-foreground mt-0.5">{timeAgo(ping.date)}</p>
         </div>
-        <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground/40 shrink-0 mt-1 transition-transform", isExpanded && "rotate-180")} />
-      </button>
+
+        {/* Subtype */}
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Category</p>
+          <div className="flex flex-wrap gap-1.5">
+            {subtypes.map(s => {
+              const sm = SUBTYPE_META[s];
+              return (
+                <button key={s} onClick={() => setSubtype(s)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all border",
+                    subtype === s
+                      ? "bg-foreground text-background border-transparent"
+                      : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground",
+                  )}>
+                  {sm.emoji} {sm.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Title */}
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Subject</p>
+          <Input value={title} onChange={e => setTitle(e.target.value)}
+            placeholder="Brief subject line…" className="text-sm" />
+        </div>
+
+        {/* Body */}
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Details</p>
+          <Textarea
+            value={body} onChange={e => setBody(e.target.value)}
+            placeholder={
+              kind === "message" ? "What do you want to say?" :
+              kind === "todo"    ? "Describe the task or action item…" :
+                                   "Notes about this file or asset…"
+            }
+            className="text-sm resize-none min-h-[120px]"
+            onKeyDown={e => { if (e.key === "Enter" && e.metaKey) handleSend(); }}
+          />
+          <p className="text-[10px] text-muted-foreground mt-1.5">⌘+Enter to send</p>
+        </div>
+
+        {activeProjectId && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground p-3 bg-secondary/30 rounded-xl border border-border/40">
+            <Folder className="h-3.5 w-3.5 shrink-0" />
+            Linked to current project
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="px-6 py-4 border-t shrink-0">
+        <Button className="w-full gap-2" onClick={handleSend}
+          disabled={!body.trim() && !title.trim()}>
+          <Send className="h-3.5 w-3.5" /> Create Action
+        </Button>
+      </div>
     </div>
   );
 }
 
-/* ── Ping Detail Panel (center column) ────────────── */
+/* ═══════════════════════════════════════════════════
+   PING DETAIL PANEL (middle column)
+═══════════════════════════════════════════════════ */
 function PingDetailPanel({ ping, onClose, onReply, onMarkDone }: {
   ping: Ping;
   onClose: () => void;
@@ -181,11 +203,16 @@ function PingDetailPanel({ ping, onClose, onReply, onMarkDone }: {
             {sm.emoji}
           </div>
           <div>
-            <span className={cn("text-[10px] font-bold uppercase tracking-wider", m.color)}>{m.label} · {sm.label}</span>
-            {ping.author === "team" && <p className="text-[10px] text-muted-foreground">From Creative Team</p>}
+            <span className={cn("text-[10px] font-bold uppercase tracking-wider", m.color)}>
+              {m.label} · {sm.label}
+            </span>
+            {ping.author === "team" && (
+              <p className="text-[10px] text-muted-foreground">From Creative Team</p>
+            )}
           </div>
         </div>
-        <button onClick={onClose} className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
+        <button onClick={onClose}
+          className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -210,7 +237,10 @@ function PingDetailPanel({ ping, onClose, onReply, onMarkDone }: {
         )}
 
         <div className="text-[10px] text-muted-foreground pt-2 border-t border-border/40">
-          {new Date(ping.date).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" })}
+          {new Date(ping.date).toLocaleDateString("en-US", {
+            weekday: "long", month: "long", day: "numeric",
+            hour: "numeric", minute: "2-digit",
+          })}
         </div>
 
         {ping.kind === "todo" && ping.done === false && (
@@ -245,45 +275,91 @@ function PingDetailPanel({ ping, onClose, onReply, onMarkDone }: {
   );
 }
 
-/* ── Dashboard Layout ──────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   ACTION ITEM ROW (sidebar — compact, clicking opens middle)
+═══════════════════════════════════════════════════ */
+function ActionItem({ ping, isActive, onClick }: {
+  ping: Ping;
+  isActive: boolean;
+  onClick: () => void;
+}) {
+  const m  = KIND_META[ping.kind];
+  const sm = SUBTYPE_META[ping.subtype];
+
+  return (
+    <button onClick={onClick}
+      className={cn(
+        "w-full flex items-start gap-2.5 px-3 py-2.5 text-left transition-colors border-b border-border/30 last:border-0",
+        isActive ? "bg-primary/[0.06]" : "hover:bg-secondary/40",
+      )}>
+      <div className={cn(
+        "h-7 w-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 text-sm border",
+        m.bg, m.border,
+        isActive && "ring-2 ring-primary/30",
+      )}>
+        {sm.emoji}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1 mb-0.5">
+          <span className={cn("text-[9px] font-bold uppercase tracking-wider", m.color)}>{sm.label}</span>
+          {ping.done === false && ping.kind === "todo" && (
+            <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+          )}
+          {ping.author === "team" && (
+            <span className="text-[9px] text-muted-foreground/70 ml-0.5">· Team</span>
+          )}
+          <span className="text-[9px] text-muted-foreground ml-auto">{timeAgo(ping.date)}</span>
+        </div>
+        <p className={cn(
+          "text-xs font-medium leading-snug line-clamp-1",
+          ping.done && "line-through text-muted-foreground",
+        )}>
+          {ping.title || ping.body}
+        </p>
+        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{ping.body}</p>
+      </div>
+    </button>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   DASHBOARD LAYOUT
+═══════════════════════════════════════════════════ */
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
 
-  /* Context state */
-  const [activePing,        setActivePingState]    = useState<Ping | null>(null);
-  const [activeProjectId,   setActiveProjectId]    = useState<number | null>(null);
-  const [activeProjectTitle,setActiveProjectTitle] = useState<string | null>(null);
+  /* Context */
+  const [activePing,         setActivePingState]    = useState<Ping | null>(null);
+  const [activeProjectId,    setActiveProjectId]    = useState<number | null>(null);
+  const [activeProjectTitle, setActiveProjectTitle] = useState<string | null>(null);
 
-  const setActivePing = (p: Ping | null) => setActivePingState(p);
+  const setActivePing    = (p: Ping | null) => { setActivePingState(p); if (p) setComposing(false); };
   const setActiveProject = (id: number | null, title: string | null) => {
     setActiveProjectId(id);
     setActiveProjectTitle(title);
   };
 
-  /* Ping stream state */
+  /* Action stream */
   const [pings,      setPings]      = useState<Ping[]>(() => loadPings());
   const [pingPage,   setPingPage]   = useState(1);
   const [pingSort,   setPingSort]   = useState<"newest"|"oldest"|"kind">("newest");
   const [filterKind, setFilterKind] = useState<PingKind|"all">("all");
   const [composing,  setComposing]  = useState(false);
-  const [expanded,   setExpanded]   = useState<string | null>(null);
 
   useEffect(() => { savePings(pings); }, [pings]);
 
-  /* When ping is deselected via context, sync expanded */
-  useEffect(() => { if (!activePing) setExpanded(null); }, [activePing]);
-
+  /* Handlers */
   const handleSend = (ping: Omit<Ping, "id"|"date">) => {
-    setPings(prev => addPing(prev, ping));
+    const updated = addPing(pings, ping);
+    setPings(updated);
     setComposing(false);
+    setActivePingState(updated[0]);
   };
 
   const handleReply = (body: string) => {
     if (!activePing) return;
-    setPings(prev => addPing(prev, {
-      kind: "message", subtype: "chat", title: body.slice(0, 60),
-      body, author: "client", projectId: activePing.projectId,
-    }));
+    const newPing = { kind: "message" as const, subtype: "chat" as const, title: body.slice(0, 60), body, author: "client" as const, projectId: activePing.projectId };
+    setPings(prev => addPing(prev, newPing));
   };
 
   const handleMarkDone = (id: string) => {
@@ -291,7 +367,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     if (activePing?.id === id) setActivePingState(prev => prev ? { ...prev, done: true } : null);
   };
 
-  /* Filter + sort + paginate — pings are always global (not project-filtered) */
+  /* Filter + sort + paginate */
   const kindFiltered = filterKind === "all" ? pings : pings.filter(p => p.kind === filterKind);
   const sorted = [...kindFiltered].sort((a, b) => {
     if (pingSort === "oldest") return new Date(a.date).getTime() - new Date(b.date).getTime();
@@ -300,14 +376,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   });
   const totalPages = Math.max(1, Math.ceil(sorted.length / PINGS_PER_PAGE));
   const pagedPings = sorted.slice((pingPage - 1) * PINGS_PER_PAGE, pingPage * PINGS_PER_PAGE);
+  const openTodos  = pings.filter(p => p.kind === "todo" && p.done === false).length;
 
-  const openTodos = pings.filter(p => p.kind === "todo" && p.done === false).length;
+  /* Middle column visibility — same on ALL pages */
+  const showMiddle = activePing !== null || composing;
 
-  /* 3-column only on the main dashboard overview */
-  const isOverview = location === "/dashboard";
-  const showThreeCol = activePing !== null && isOverview;
-
-  /* Nav second tab */
+  /* Nav */
   const isOnProject  = location.startsWith("/dashboard/project/");
   const secondTabHref  = isOnProject && activeProjectId ? `/dashboard/project/${activeProjectId}` : "/dashboard/requests";
   const secondTabLabel = isOnProject && activeProjectTitle ? activeProjectTitle : "Requests";
@@ -317,10 +391,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <DashboardContext.Provider value={ctx}>
-      <div className="min-h-screen bg-background flex">
+      <div className="min-h-screen bg-background flex overflow-x-hidden">
 
-        {/* ── PING SIDEBAR ── */}
-        <aside className="w-[270px] border-r bg-card shrink-0 flex flex-col min-h-screen sticky top-0 max-h-screen">
+        {/* ══ COLUMN 1: ACTIONS SIDEBAR ══════════════════ */}
+        <aside className="w-[250px] border-r bg-card shrink-0 flex flex-col min-h-screen sticky top-0 max-h-screen z-20">
 
           {/* Brand */}
           <div className="px-4 py-4 border-b flex items-center justify-between shrink-0">
@@ -361,7 +435,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </Link>
             <Link href={secondTabHref}>
               <button className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors max-w-[120px] truncate",
+                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors max-w-[110px] truncate",
                 (location === "/dashboard/requests" || isOnProject) ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary",
               )}>
                 <SecondIcon className="h-3.5 w-3.5 shrink-0" />
@@ -370,13 +444,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
 
-          {/* Ping header */}
+          {/* Actions header */}
           <div className="px-3 py-2 border-b flex items-center justify-between shrink-0">
             <div className="flex items-center gap-1.5">
-              <Bell className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                {"Pings"}
-              </span>
+              <Zap className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Actions</span>
             </div>
             <div className="flex items-center gap-1">
               {/* Sort */}
@@ -390,49 +462,56 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                       className={cn(
                         "text-xs px-3 py-1.5 text-left hover:bg-secondary transition-colors capitalize",
                         pingSort === s && "font-semibold text-primary",
-                      )}
-                    >{s}</button>
+                      )}>
+                      {s}
+                    </button>
                   ))}
                 </div>
               </div>
-              {/* Compose */}
-              <button onClick={() => setComposing(c => !c)}
+              {/* New Action */}
+              <button
+                onClick={() => {
+                  if (composing) { setComposing(false); }
+                  else { setComposing(true); setActivePingState(null); }
+                }}
                 className={cn(
                   "h-6 w-6 rounded-lg flex items-center justify-center transition-colors",
                   composing ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary",
-                )}
-              >
+                )}>
                 {composing ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
               </button>
             </div>
           </div>
 
           {/* Kind filter */}
-          <div className="px-3 py-1.5 flex gap-0.5 shrink-0 border-b">
+          <div className="px-3 py-1.5 flex gap-0.5 shrink-0 border-b flex-wrap">
             {(["all","message","todo","media"] as const).map(k => (
               <button key={k} onClick={() => { setFilterKind(k); setPingPage(1); }}
                 className={cn(
                   "text-[11px] px-2 py-0.5 rounded-full font-medium capitalize transition-all",
                   filterKind === k ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground",
-                )}
-              >
+                )}>
                 {k === "all" ? "All" : KIND_META[k].label}
               </button>
             ))}
           </div>
 
-          {/* Ping list */}
+          {/* Action list */}
           <div className="flex-1 overflow-y-auto min-h-0">
             {pagedPings.length === 0 ? (
               <div className="py-10 text-center text-xs text-muted-foreground px-4">
-                No pings yet.{!composing && " Hit + to send one."}
+                No actions yet.{!composing && <><br /><button className="text-primary font-semibold mt-1" onClick={() => setComposing(true)}>Create one →</button></>}
               </div>
             ) : (
               pagedPings.map(ping => (
-                <PingItem key={ping.id} ping={ping}
-                  isExpanded={expanded === ping.id}
-                  onToggle={() => setExpanded(expanded === ping.id ? null : ping.id)}
-                  onMarkDone={() => handleMarkDone(ping.id)}
+                <ActionItem
+                  key={ping.id}
+                  ping={ping}
+                  isActive={activePing?.id === ping.id}
+                  onClick={() => {
+                    if (activePing?.id === ping.id) { setActivePingState(null); }
+                    else { setActivePing(ping); }
+                  }}
                 />
               ))
             )}
@@ -452,43 +531,37 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </button>
             </div>
           )}
-
-          {/* Compose panel */}
-          {composing && <ComposePanel onSend={handleSend} onClose={() => setComposing(false)} />}
         </aside>
 
-        {/* ── MAIN AREA ── */}
-        {showThreeCol ? (
-          /* 3-column: [ping detail] [collapsed dashboard] */
-          <div className="flex-1 flex min-h-screen overflow-hidden">
-            <div className="flex-1 border-r overflow-y-auto">
-              <PingDetailPanel
-                ping={activePing!}
-                onClose={() => { setActivePingState(null); setExpanded(null); }}
-                onReply={handleReply}
-                onMarkDone={() => handleMarkDone(activePing!.id)}
+        {/* ══ COLUMN 2: MIDDLE PANEL (slides in) ═════════ */}
+        {showMiddle && (
+          <div className="flex-1 border-r bg-card flex flex-col min-h-screen sticky top-0 max-h-screen z-10 animate-in slide-in-from-left-4 duration-200">
+            {composing ? (
+              <ComposePanel
+                onSend={handleSend}
+                onClose={() => setComposing(false)}
               />
-            </div>
-            <div className="w-64 shrink-0 overflow-y-auto bg-secondary/10">
-              {children}
-            </div>
+            ) : activePing ? (
+              <PingDetailPanel
+                ping={activePing}
+                onClose={() => { setActivePingState(null); }}
+                onReply={handleReply}
+                onMarkDone={() => handleMarkDone(activePing.id)}
+              />
+            ) : null}
           </div>
-        ) : (
-          <main className="flex-1 p-6 md:p-10 overflow-y-auto min-h-screen">
-            {/* Ping detail as inline panel for non-overview pages */}
-            {activePing && !isOverview && (
-              <div className="mb-6 border rounded-2xl overflow-hidden bg-card shadow-sm max-w-xl">
-                <PingDetailPanel
-                  ping={activePing}
-                  onClose={() => { setActivePingState(null); setExpanded(null); }}
-                  onReply={handleReply}
-                  onMarkDone={() => handleMarkDone(activePing.id)}
-                />
-              </div>
-            )}
-            {children}
-          </main>
         )}
+
+        {/* ══ COLUMN 3: MAIN CONTENT ══════════════════════ */}
+        <main className={cn(
+          "overflow-y-auto min-h-screen transition-all duration-200",
+          showMiddle
+            ? "w-[380px] shrink-0 p-4 md:p-6"   /* mobile-width when panel open */
+            : "flex-1 p-6 md:p-10",
+        )}>
+          {children}
+        </main>
+
       </div>
     </DashboardContext.Provider>
   );
