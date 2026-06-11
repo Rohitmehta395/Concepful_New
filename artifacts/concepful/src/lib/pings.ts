@@ -16,6 +16,7 @@ export interface Ping {
   done?:          boolean;
   fileUrl?:       string;
   fileName?:      string;
+  previewUrl?:    string;
   scheduledDate?: string;
 }
 
@@ -95,6 +96,7 @@ export const SEED_PINGS: Ping[] = [
     title: "Moodboard v1 — Q3 Campaign",
     body: "Initial moodboard exploring editorial direction. 12 reference images across two visual territories.",
     date: daysAgo(1), projectId: "1", fileName: "moodboard_v1.fig",
+    previewUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=500&fit=crop&q=80",
   },
   {
     id: "4", kind: "message", subtype: "followup", author: "team",
@@ -114,6 +116,7 @@ export const SEED_PINGS: Ping[] = [
     title: "Brand Strategy Brief",
     body: "Completed brand strategy document covering positioning, target audience, competitive landscape, and core messaging pillars.",
     date: daysAgo(5), projectId: "3", fileName: "brand_strategy_brief.pdf",
+    previewUrl: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=500&fit=crop&q=80",
   },
   {
     id: "7", kind: "message", subtype: "note", author: "client",
@@ -126,5 +129,26 @@ export const SEED_PINGS: Ping[] = [
     title: "Social Media Template Pack — delivered",
     body: "All 24 templates (Stories, Feed, Carousel) exported and ready for download. Includes Figma source files and PNG/MP4 exports.",
     date: daysAgo(8), projectId: "4", done: true,
+  },
+  {
+    id: "9", kind: "media", subtype: "asset", author: "team",
+    title: "Brand Identity Kit — Final",
+    body: "Full brand identity system: logo suite, color tokens, typography scale, and iconography guidelines. Ready for handoff.",
+    date: daysAgo(4), projectId: "3", fileName: "brand_identity_kit.fig",
+    previewUrl: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=800&h=500&fit=crop&q=80",
+  },
+  {
+    id: "10", kind: "media", subtype: "asset", author: "team",
+    title: "Social Media Templates — All Formats",
+    body: "24 templates across Stories, Feed, and Carousel formats. Figma source + exported PNG and MP4 motion variants included.",
+    date: daysAgo(7), projectId: "4", fileName: "social_templates_v2.fig",
+    previewUrl: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=500&fit=crop&q=80",
+  },
+  {
+    id: "11", kind: "media", subtype: "document", author: "team",
+    title: "Investor Deck — v3 Final",
+    body: "Updated slide deck with revised data visualization on slide 8, executive summary, and new market opportunity section.",
+    date: daysAgo(3), projectId: "2", fileName: "investor_deck_v3.pdf",
+    previewUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=500&fit=crop&q=80",
   },
 ];

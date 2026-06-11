@@ -124,13 +124,21 @@ function MediaListCard({ ping, onClick }: { ping: Ping; onClick: () => void }) {
 
   return (
     <button onClick={onClick}
-      className="w-full flex items-center gap-4 p-4 bg-card border border-border/50 rounded-2xl text-left hover:border-border hover:shadow-sm transition-all group">
-      <div className={cn(
-        "h-11 w-11 rounded-xl flex items-center justify-center border shrink-0",
-        m.bg, m.border,
-      )}>
-        <FileTypeIcon filename={ping.fileName} className="h-5 w-5" />
-      </div>
+      className="w-full flex items-center gap-4 p-3 bg-card border border-border/50 rounded-2xl text-left hover:border-border hover:shadow-sm transition-all group">
+      {/* Thumbnail */}
+      {ping.previewUrl ? (
+        <div className="h-14 w-20 rounded-xl overflow-hidden border border-border/40 shrink-0 bg-secondary/20">
+          <img src={ping.previewUrl} alt={ping.title}
+            className="h-full w-full object-cover" />
+        </div>
+      ) : (
+        <div className={cn(
+          "h-14 w-14 rounded-xl flex items-center justify-center border shrink-0",
+          m.bg, m.border,
+        )}>
+          <FileTypeIcon filename={ping.fileName} className="h-5 w-5" />
+        </div>
+      )}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5 flex-wrap">
           <span className={cn("text-[9px] font-bold uppercase tracking-widest", m.color)}>{sm.label}</span>
@@ -145,8 +153,11 @@ function MediaListCard({ ping, onClick }: { ping: Ping; onClick: () => void }) {
           <span className="text-[9px] text-muted-foreground ml-auto">{timeAgo(ping.date)}</span>
         </div>
         <p className="text-sm font-semibold line-clamp-1 leading-snug">{ping.title}</p>
+        {ping.body && (
+          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{ping.body}</p>
+        )}
         {ping.fileName && (
-          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+          <p className="text-[10px] text-muted-foreground/60 mt-0.5 flex items-center gap-1">
             <Paperclip className="h-2.5 w-2.5 shrink-0" />
             {ping.fileName}
           </p>
@@ -168,17 +179,29 @@ function MediaGridCard({ ping, onClick }: { ping: Ping; onClick: () => void }) {
     <button onClick={onClick}
       className="flex flex-col bg-card border border-border/50 rounded-2xl overflow-hidden text-left hover:border-border hover:shadow-sm transition-all group">
       {/* Preview area */}
-      <div className={cn(
-        "h-28 flex items-center justify-center border-b relative",
-        m.bg,
-      )}>
-        <FileTypeIcon filename={ping.fileName} className="h-10 w-10 opacity-40" />
-        {ext && (
-          <span className="absolute bottom-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-background/80 border text-muted-foreground">
-            {ext}
-          </span>
-        )}
-      </div>
+      {ping.previewUrl ? (
+        <div className="h-36 relative overflow-hidden border-b">
+          <img src={ping.previewUrl} alt={ping.title}
+            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300" />
+          {ext && (
+            <span className="absolute bottom-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-background/90 border text-muted-foreground backdrop-blur-sm">
+              {ext}
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className={cn(
+          "h-36 flex items-center justify-center border-b relative",
+          m.bg,
+        )}>
+          <FileTypeIcon filename={ping.fileName} className="h-10 w-10 opacity-40" />
+          {ext && (
+            <span className="absolute bottom-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-background/80 border text-muted-foreground">
+              {ext}
+            </span>
+          )}
+        </div>
+      )}
       {/* Meta */}
       <div className="p-3 space-y-1.5">
         <div className="flex items-center gap-1.5">
