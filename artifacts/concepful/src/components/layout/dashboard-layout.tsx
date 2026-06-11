@@ -291,11 +291,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     if (activePing?.id === id) setActivePingState(prev => prev ? { ...prev, done: true } : null);
   };
 
-  /* Filter + sort + paginate */
-  const projectFiltered = activeProjectId
-    ? pings.filter(p => p.projectId === activeProjectId.toString())
-    : pings;
-  const kindFiltered = filterKind === "all" ? projectFiltered : projectFiltered.filter(p => p.kind === filterKind);
+  /* Filter + sort + paginate — pings are always global (not project-filtered) */
+  const kindFiltered = filterKind === "all" ? pings : pings.filter(p => p.kind === filterKind);
   const sorted = [...kindFiltered].sort((a, b) => {
     if (pingSort === "oldest") return new Date(a.date).getTime() - new Date(b.date).getTime();
     if (pingSort === "kind")   return a.kind.localeCompare(b.kind);
@@ -378,7 +375,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-1.5">
               <Bell className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                {activeProjectId ? "Project Pings" : "Pings"}
+                {"Pings"}
               </span>
             </div>
             <div className="flex items-center gap-1">
