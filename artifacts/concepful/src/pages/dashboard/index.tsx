@@ -14,6 +14,7 @@ import { useListWorkRequests, useListCompletedWork } from "@workspace/api-client
 import { ArtworkThumbnail } from "@/components/ArtworkThumbnail";
 import { cn } from "@/lib/utils";
 import { useDashboard } from "@/lib/dashboard-context";
+import { getProjectMedia, gradientFor, MEDIA_KIND_META } from "@/lib/media";
 
 const PHASES = ["Discovery", "Brief", "Design", "Review", "Revisions", "Delivered"] as const;
 
@@ -313,12 +314,27 @@ export default function DashboardOverview() {
       {!isLoading && filteredRequests.length > 0 && view === "bento" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredRequests.map(req => {
-            const pi = getPhaseIndex(req.status);
-            const phase = PHASES[pi];
+            const pi        = getPhaseIndex(req.status);
+            const phase     = PHASES[pi];
+            const finalMedia = getProjectMedia(String(req.id)).find(m => m.isFinal);
             return (
               <Link key={req.id} href={`/dashboard/project/${req.id}`}>
-                <div className="group relative bg-card border rounded-2xl overflow-hidden hover:shadow-md hover:border-primary/25 transition-all duration-200 cursor-pointer border-t-4 border-t-primary/30 flex flex-col"
-                  style={{ borderTopColor: `hsl(349 90% ${Math.max(40, 74 - pi * 6)}%)` }}>
+                <div className="group relative bg-card border rounded-2xl overflow-hidden hover:shadow-md hover:border-primary/25 transition-all duration-200 cursor-pointer flex flex-col"
+                  style={{ borderTopColor: finalMedia ? "transparent" : `hsl(349 90% ${Math.max(40, 74 - pi * 6)}%)`, borderTopWidth: finalMedia ? 0 : 4 }}>
+
+                  {/* Final deliverable preview thumbnail */}
+                  {finalMedia && (
+                    <div
+                      className="h-24 relative flex items-center justify-center overflow-hidden"
+                      style={{ background: gradientFor(finalMedia) }}
+                    >
+                      <span className="text-5xl opacity-10 font-bold select-none">{MEDIA_KIND_META[finalMedia.kind].icon}</span>
+                      <div className="absolute bottom-2 right-2 text-[9px] bg-black/20 text-white rounded-full px-2 py-0.5 font-bold backdrop-blur-sm">
+                        Final
+                      </div>
+                    </div>
+                  )}
+
                   <div className="p-5 space-y-4 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center text-lg shrink-0">
