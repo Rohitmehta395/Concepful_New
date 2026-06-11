@@ -1,113 +1,397 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useLocation } from "wouter";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { loadPings, savePings, Ping, PingSubtype, SUBTYPE_META, KIND_META } from "@/lib/pings";
+import { loadPings, savePings, Ping, SUBTYPE_META, KIND_META } from "@/lib/pings";
 import { cn } from "@/lib/utils";
 import {
-  MessageSquare, Search, Send, X, Check,
-  Paperclip, ChevronRight, Inbox,
+  MessageSquare, Search, Send, X, Inbox,
+  Plus, FolderOpen, Sparkles, FileText,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 
-/* ── helpers ── */
+/* ══════════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════════ */
 function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1)  return "just now";
+  const d = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(d / 60000);
+  if (m < 1) return "just now";
   if (m < 60) return `${m}m ago`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ago`;
   return `${Math.floor(h / 24)}d ago`;
 }
 
-function getProjectName(projectId?: string): string | null {
-  if (!projectId) return null;
-  try {
-    const known: Array<{id:string;title:string}> = JSON.parse(localStorage.getItem("concepful_projects") ?? "[]");
-    const found = known.find(p => p.id === projectId);
-    if (found) return found.title;
-  } catch {}
-  const fallback: Record<string,string> = {
-    "1": "Q3 Campaign Asset System", "2": "Investor Deck",
-    "3": "Brand Voice Guidelines",   "4": "Social Media Template Pack",
-  };
-  return fallback[projectId] ?? `Project #${projectId}`;
+function fmtTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
-/* ── Detail Modal ── */
-function DetailModal({ ping, onClose, onMarkDone, onReply }: {
-  ping: Ping;
-  onClose: () => void;
-  onMarkDone: () => void;
-  onReply: (body: string) => void;
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+}
+
+const SEED_PROJECTS = [
+  { id: "1", title: "Q3 Campaign Asset System" },
+  { id: "2", title: "Investor Deck" },
+  { id: "3", title: "Brand Voice Guidelines" },
+  { id: "4", title: "Social Media Template Pack" },
+];
+
+function getKnownProjects(): Array<{ id: string; title: string }> {
+  try {
+    const stored: Array<{ id: string; title: string }> = JSON.parse(
+      localStorage.getItem("concepful_projects") ?? "[]",
+    );
+    if (stored.length > 0) return stored;
+  } catch {}
+  return SEED_PROJECTS;
+}
+
+function getProjectName(projectId?: string): string | null {
+  if (!projectId) return null;
+  const known = getKnownProjects();
+  return known.find(p => p.id === projectId)?.title
+    ?? SEED_PROJECTS.find(p => p.id === projectId)?.title
+    ?? `Project #${projectId}`;
+}
+
+/* ══════════════════════════════════════════════════════
+   SELECTION TOOLBAR
+   Floats above any text selected inside the conversation
+══════════════════════════════════════════════════════ */
+function SelectionToolbar({
+  text, x, y, onAddToProject, onStartProject, onNewRequest, onDismiss,
+}: {
+  text: string;
+  x: number; y: number;
+  onAddToProject: () => void;
+  onStartProject: () => void;
+  onNewRequest: () => void;
+  onDismiss: () => void;
 }) {
-  const [reply, setReply] = useState("");
-  const m  = KIND_META[ping.kind];
-  const sm = SUBTYPE_META[ping.subtype];
-
-  const send = () => {
-    if (!reply.trim()) return;
-    onReply(reply.trim());
-    setReply("");
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-      onClick={onClose}>
-      <div className="w-full max-w-lg bg-card rounded-2xl border shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-200"
+    <div
+      className="fixed z-[70] animate-in fade-in slide-in-from-bottom-1 duration-150"
+      style={{ left: x, top: y - 8, transform: "translateX(-50%) translateY(-100%)" }}
+      onMouseDown={e => e.preventDefault()}
+    >
+      <div className="flex items-center gap-0.5 bg-gray-900 text-white rounded-xl px-1 py-1 shadow-2xl border border-white/10">
+        <button
+          onClick={onAddToProject}
+          className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-lg hover:bg-white/15 transition-colors whitespace-nowrap"
+        >
+          <FolderOpen className="h-3 w-3 text-primary" />
+          Add to project
+        </button>
+        <div className="w-px h-4 bg-white/10 mx-0.5" />
+        <button
+          onClick={onStartProject}
+          className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-lg hover:bg-white/15 transition-colors whitespace-nowrap"
+        >
+          <Sparkles className="h-3 w-3 text-yellow-400" />
+          Start project
+        </button>
+        <div className="w-px h-4 bg-white/10 mx-0.5" />
+        <button
+          onClick={onNewRequest}
+          className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-lg hover:bg-white/15 transition-colors whitespace-nowrap"
+        >
+          <Plus className="h-3 w-3 text-green-400" />
+          New request
+        </button>
+      </div>
+      {/* Caret */}
+      <div className="flex justify-center mt-[-1px]">
+        <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[5px] border-l-transparent border-r-transparent border-t-gray-900" />
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════
+   PROJECT PICKER (for "Add to project")
+══════════════════════════════════════════════════════ */
+function ProjectPicker({
+  onPick, onCancel,
+}: {
+  onPick: (projectId: string) => void;
+  onCancel: () => void;
+}) {
+  const projects = getKnownProjects();
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      onClick={onCancel}>
+      <div className="bg-card rounded-2xl border shadow-2xl p-4 min-w-[240px] animate-in zoom-in-95 duration-150"
         onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <div className="flex items-center gap-3">
-            <div className={cn("h-9 w-9 rounded-xl flex items-center justify-center text-lg border shrink-0", m.bg, m.border)}>
-              {sm.emoji}
-            </div>
-            <div>
-              <p className={cn("text-[10px] font-bold uppercase tracking-wide", m.color)}>{sm.label}</p>
-              <p className="text-[10px] text-muted-foreground">
-                {ping.author === "team" ? "Creative Team" : "You"} · {timeAgo(ping.date)}
-                {ping.projectId && <span className="ml-1">· {getProjectName(ping.projectId)}</span>}
-              </p>
-            </div>
-          </div>
-          <button onClick={onClose}
-            className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
-            <X className="h-4 w-4" />
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Add to project</p>
+          <button onClick={onCancel} className="text-muted-foreground hover:text-foreground">
+            <X className="h-3.5 w-3.5" />
           </button>
         </div>
-        <div className="px-5 py-5 space-y-3">
-          <h3 className="font-serif text-lg font-bold leading-snug">{ping.title}</h3>
-          {ping.body && <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{ping.body}</p>}
-          <p className="text-[10px] text-muted-foreground pt-1">
-            {new Date(ping.date).toLocaleDateString("en-US", {
-              weekday: "long", month: "long", day: "numeric",
-              hour: "numeric", minute: "2-digit",
-            })}
-          </p>
-        </div>
-        <div className="border-t px-5 py-4 bg-secondary/20 space-y-2">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Reply</p>
-          <div className="relative">
-            <Textarea value={reply} onChange={e => setReply(e.target.value)}
-              placeholder="Type a response… (⌘+Enter)"
-              className="text-sm resize-none min-h-[56px] pr-10"
-              onKeyDown={e => { if (e.key === "Enter" && e.metaKey) send(); }}
-            />
-            <button onClick={send} disabled={!reply.trim()}
-              className="absolute right-2 bottom-2 h-7 w-7 rounded-lg flex items-center justify-center bg-primary text-primary-foreground disabled:opacity-30 hover:bg-primary/90 transition-all">
-              <Send className="h-3 w-3" />
+        <div className="space-y-1">
+          {projects.map(p => (
+            <button key={p.id} onClick={() => onPick(p.id)}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm hover:bg-secondary transition-colors text-left">
+              <FolderOpen className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              {p.title}
             </button>
-          </div>
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-/* ── Message row card ── */
-function MessageCard({ ping, onClick }: { ping: Ping; onClick: () => void }) {
-  const sm  = SUBTYPE_META[ping.subtype];
-  const m   = KIND_META[ping.kind];
+/* ══════════════════════════════════════════════════════
+   CONVERSATION MODAL
+   Full thread for messages in same project (or standalone)
+══════════════════════════════════════════════════════ */
+function ConversationModal({
+  seed, allPings, onClose, onAddPing, onNavigate,
+}: {
+  seed: Ping;
+  allPings: Ping[];
+  onClose: () => void;
+  onAddPing: (p: Ping) => void;
+  onNavigate: (path: string) => void;
+}) {
+  const [reply, setReply] = useState("");
+  const threadRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  /* Build thread: all messages sharing the same projectId (or all standalone) */
+  const thread = useMemo(() =>
+    allPings
+      .filter(p => p.kind === "message" && p.projectId === seed.projectId)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+  [allPings, seed.projectId]);
+
+  const proj = getProjectName(seed.projectId);
+
+  /* Scroll to bottom on open */
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  /* Text selection detection */
+  const [selCtx, setSelCtx] = useState<{ text: string; x: number; y: number } | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
+
+  useEffect(() => {
+    const handle = () => {
+      const sel = window.getSelection();
+      const txt = sel?.toString().trim() ?? "";
+      if (txt && sel?.rangeCount && threadRef.current?.contains(sel.anchorNode)) {
+        const rect = sel.getRangeAt(0).getBoundingClientRect();
+        setSelCtx({ text: txt, x: rect.left + rect.width / 2, y: rect.top });
+      } else if (!txt) {
+        setSelCtx(null);
+      }
+    };
+    document.addEventListener("selectionchange", handle);
+    return () => document.removeEventListener("selectionchange", handle);
+  }, []);
+
+  /* Reply */
+  const send = useCallback(() => {
+    if (!reply.trim()) return;
+    onAddPing({
+      id: crypto.randomUUID(), kind: "message", subtype: "chat",
+      title: reply.slice(0, 60), body: reply, author: "client",
+      projectId: seed.projectId, date: new Date().toISOString(),
+    });
+    setReply("");
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+  }, [reply, seed.projectId, onAddPing]);
+
+  /* Selection actions */
+  const handleAddToProject = (projectId: string) => {
+    const sel = selCtx?.text ?? "";
+    onAddPing({
+      id: crypto.randomUUID(), kind: "message", subtype: "note",
+      title: sel.slice(0, 80), body: sel, author: "client",
+      projectId, date: new Date().toISOString(),
+    });
+    setShowPicker(false);
+    setSelCtx(null);
+    window.getSelection()?.removeAllRanges();
+  };
+
+  const handleStartProject = () => {
+    const txt = selCtx?.text ?? "";
+    sessionStorage.setItem("concepful_new_request_brief", txt);
+    setSelCtx(null);
+    onClose();
+    onNavigate("/dashboard/requests");
+  };
+
+  const handleNewRequest = () => {
+    const txt = selCtx?.text ?? "";
+    sessionStorage.setItem("concepful_new_request_brief", txt);
+    setSelCtx(null);
+    onClose();
+    onNavigate("/dashboard/requests");
+  };
+
+  return (
+    <>
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+        onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+        <div className="w-full max-w-lg bg-card rounded-2xl border shadow-2xl flex flex-col"
+          style={{ maxHeight: "min(80vh, 640px)" }}>
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-xl bg-primary/[0.08] border border-primary/20 flex items-center justify-center">
+                <MessageSquare className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-bold leading-none">{proj ?? "General"}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  {thread.length} message{thread.length !== 1 ? "s" : ""}
+                  {proj && (
+                    <button onClick={() => onNavigate(`/dashboard/project/${seed.projectId}`)}
+                      className="ml-2 text-primary hover:underline">
+                      View project →
+                    </button>
+                  )}
+                </p>
+              </div>
+            </div>
+            <button onClick={onClose}
+              className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Hint */}
+          <div className="px-5 py-2 border-b bg-secondary/20 shrink-0">
+            <p className="text-[10px] text-muted-foreground">
+              Select any text in the conversation to add it to a project, start a new project, or create a request.
+            </p>
+          </div>
+
+          {/* Thread */}
+          <div ref={threadRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0">
+            {thread.map((msg, i) => {
+              const isTeam   = msg.author === "team";
+              const sm       = SUBTYPE_META[msg.subtype];
+              const prevMsg  = thread[i - 1];
+              const showDate = !prevMsg || fmtDate(prevMsg.date) !== fmtDate(msg.date);
+
+              return (
+                <div key={msg.id}>
+                  {showDate && (
+                    <div className="flex items-center gap-3 my-2">
+                      <div className="h-px flex-1 bg-border/30" />
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                        {fmtDate(msg.date)}
+                      </span>
+                      <div className="h-px flex-1 bg-border/30" />
+                    </div>
+                  )}
+                  <div className={cn("flex gap-2.5 items-end", isTeam ? "justify-start" : "justify-end")}>
+                    {isTeam && (
+                      <div className="h-7 w-7 rounded-full bg-secondary border border-border/50 flex items-center justify-center text-[9px] font-bold text-muted-foreground shrink-0 mb-0.5">
+                        CT
+                      </div>
+                    )}
+                    <div className={cn(
+                      "max-w-[78%] space-y-1",
+                      isTeam ? "items-start" : "items-end",
+                    )}>
+                      <div className={cn(
+                        "rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed select-text cursor-text",
+                        isTeam
+                          ? "bg-secondary/60 text-foreground rounded-tl-sm"
+                          : "bg-primary text-primary-foreground rounded-tr-sm",
+                      )}>
+                        <div className={cn(
+                          "text-[9px] font-bold uppercase tracking-wider mb-1.5",
+                          isTeam ? "text-muted-foreground" : "text-primary-foreground/60",
+                        )}>
+                          {sm.label}
+                        </div>
+                        {msg.title && msg.title !== msg.body && msg.body && (
+                          <p className="font-semibold mb-1 text-[13px]">{msg.title}</p>
+                        )}
+                        <p className="leading-relaxed">{msg.body || msg.title}</p>
+                      </div>
+                      <p className={cn(
+                        "text-[9px] text-muted-foreground px-1",
+                        isTeam ? "text-left" : "text-right",
+                      )}>
+                        {fmtTime(msg.date)}
+                      </p>
+                    </div>
+                    {!isTeam && (
+                      <div className="h-7 w-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-[9px] font-bold text-primary shrink-0 mb-0.5">
+                        Me
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            <div ref={bottomRef} />
+          </div>
+
+          {/* Reply */}
+          <div className="border-t px-4 py-3 bg-secondary/10 shrink-0">
+            <div className="relative">
+              <Textarea
+                value={reply}
+                onChange={e => setReply(e.target.value)}
+                placeholder="Reply to this conversation… (⌘+Enter to send)"
+                className="text-sm resize-none min-h-[44px] pr-10 bg-background"
+                onKeyDown={e => { if (e.key === "Enter" && e.metaKey) send(); }}
+              />
+              <button onClick={send} disabled={!reply.trim()}
+                className="absolute right-2 bottom-2 h-7 w-7 rounded-lg flex items-center justify-center bg-primary text-primary-foreground disabled:opacity-30 hover:bg-primary/90 transition-all">
+                <Send className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Selection toolbar */}
+      {selCtx && !showPicker && (
+        <SelectionToolbar
+          text={selCtx.text}
+          x={selCtx.x}
+          y={selCtx.y}
+          onAddToProject={() => setShowPicker(true)}
+          onStartProject={handleStartProject}
+          onNewRequest={handleNewRequest}
+          onDismiss={() => setSelCtx(null)}
+        />
+      )}
+
+      {/* Project picker */}
+      {showPicker && (
+        <ProjectPicker
+          onPick={handleAddToProject}
+          onCancel={() => { setShowPicker(false); setSelCtx(null); }}
+        />
+      )}
+    </>
+  );
+}
+
+/* ══════════════════════════════════════════════════════
+   MESSAGE LIST CARD
+══════════════════════════════════════════════════════ */
+function MessageCard({ ping, threadCount, onClick }: {
+  ping: Ping;
+  threadCount: number;
+  onClick: () => void;
+}) {
+  const sm   = SUBTYPE_META[ping.subtype];
+  const m    = KIND_META[ping.kind];
   const proj = getProjectName(ping.projectId);
 
   return (
@@ -137,12 +421,20 @@ function MessageCard({ ping, onClick }: { ping: Ping; onClick: () => void }) {
           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{ping.body}</p>
         )}
       </div>
-      <ChevronRight className="h-4 w-4 text-muted-foreground/30 shrink-0 mt-3 group-hover:text-muted-foreground transition-colors" />
+      {/* Thread count badge */}
+      {threadCount > 1 && (
+        <div className="flex items-center gap-1 shrink-0 mt-1">
+          <MessageSquare className="h-3 w-3 text-muted-foreground/40" />
+          <span className="text-[9px] text-muted-foreground">{threadCount}</span>
+        </div>
+      )}
     </button>
   );
 }
 
-/* ── MESSAGES PAGE ── */
+/* ══════════════════════════════════════════════════════
+   MESSAGES PAGE
+══════════════════════════════════════════════════════ */
 type MFilter = "all" | "chat" | "note" | "followup";
 const FILTERS: Array<{ key: MFilter; label: string }> = [
   { key: "all",      label: "All" },
@@ -152,6 +444,7 @@ const FILTERS: Array<{ key: MFilter; label: string }> = [
 ];
 
 export default function Messages() {
+  const [, setLocation]    = useLocation();
   const [pings,    setPings]    = useState(() => loadPings());
   const [filter,   setFilter]   = useState<MFilter>("all");
   const [search,   setSearch]   = useState("");
@@ -159,26 +452,45 @@ export default function Messages() {
 
   const all = pings.filter(p => p.kind === "message");
 
-  const filtered = useMemo(() => all
+  /* Group messages by projectId to get thread counts */
+  const threadMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    all.forEach(p => {
+      const key = p.projectId ?? "__standalone__";
+      map[key] = (map[key] ?? 0) + 1;
+    });
+    return map;
+  }, [all]);
+
+  /* One card per conversation thread (de-dupe by projectId) */
+  const threads = useMemo(() => {
+    const seen = new Set<string>();
+    const result: Ping[] = [];
+    const sorted = [...all].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    for (const p of sorted) {
+      const key = p.projectId ?? `__${p.id}__`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(p);
+      }
+    }
+    return result;
+  }, [all]);
+
+  const filtered = useMemo(() => threads
     .filter(p => filter === "all" || p.subtype === filter)
     .filter(p => {
       if (!search) return true;
       const q = search.toLowerCase();
       return p.title.toLowerCase().includes(q) || p.body.toLowerCase().includes(q);
     }),
-  [all, filter, search]);
+  [threads, filter, search]);
 
-  const handleReply = (body: string) => {
-    if (!selected) return;
-    const updated = [...pings, {
-      id: crypto.randomUUID(), kind: "message" as const, subtype: "chat" as const,
-      title: body.slice(0, 60), body, author: "client" as const,
-      projectId: selected.projectId, date: new Date().toISOString(),
-    }];
+  const handleAddPing = useCallback((p: Ping) => {
+    const updated = [...pings, p];
     setPings(updated);
     savePings(updated);
-    setSelected(null);
-  };
+  }, [pings]);
 
   const stats = {
     total:    all.length,
@@ -206,10 +518,10 @@ export default function Messages() {
         {/* Stats */}
         <div className="grid grid-cols-4 gap-3">
           {[
-            { label: "Total",    value: stats.total,    sub: "messages" },
-            { label: "Chat",     value: stats.chat,     sub: "threads"  },
-            { label: "Note",     value: stats.note,     sub: "notes"    },
-            { label: "Follow-up",value: stats.followup, sub: "pending"  },
+            { label: "Total",     value: stats.total    },
+            { label: "Chat",      value: stats.chat     },
+            { label: "Note",      value: stats.note     },
+            { label: "Follow-up", value: stats.followup },
           ].map(s => (
             <div key={s.label} className="bg-card border border-border/50 rounded-xl p-3">
               <p className="text-xl font-bold font-serif">{s.value}</p>
@@ -218,23 +530,16 @@ export default function Messages() {
           ))}
         </div>
 
-        {/* Filters + search */}
+        {/* Filter + search */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-0.5 p-1 bg-secondary/30 rounded-xl border border-border/40">
             {FILTERS.map(f => (
               <button key={f.key} onClick={() => setFilter(f.key)}
                 className={cn(
                   "px-3 py-1 rounded-lg text-xs font-medium transition-all",
-                  filter === f.key
-                    ? "bg-background shadow-sm text-foreground"
-                    : "text-muted-foreground hover:text-foreground",
+                  filter === f.key ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}>
                 {f.label}
-                {f.key !== "all" && (
-                  <span className="ml-1 text-[9px] opacity-60">
-                    {f.key === "chat" ? stats.chat : f.key === "note" ? stats.note : stats.followup}
-                  </span>
-                )}
               </button>
             ))}
           </div>
@@ -255,7 +560,7 @@ export default function Messages() {
           </div>
         )}
 
-        {/* List */}
+        {/* Thread list */}
         {filtered.length === 0 ? (
           <div className="text-center py-16">
             <Inbox className="h-10 w-10 text-muted-foreground/20 mx-auto mb-3" />
@@ -266,18 +571,24 @@ export default function Messages() {
         ) : (
           <div className="space-y-2">
             {filtered.map(ping => (
-              <MessageCard key={ping.id} ping={ping} onClick={() => setSelected(ping)} />
+              <MessageCard
+                key={ping.id}
+                ping={ping}
+                threadCount={threadMap[ping.projectId ?? `__${ping.id}__`] ?? 1}
+                onClick={() => setSelected(ping)}
+              />
             ))}
           </div>
         )}
       </div>
 
       {selected && (
-        <DetailModal
-          ping={selected}
+        <ConversationModal
+          seed={selected}
+          allPings={pings}
           onClose={() => setSelected(null)}
-          onMarkDone={() => {}}
-          onReply={handleReply}
+          onAddPing={p => { handleAddPing(p); }}
+          onNavigate={path => { setSelected(null); setLocation(path); }}
         />
       )}
     </DashboardLayout>

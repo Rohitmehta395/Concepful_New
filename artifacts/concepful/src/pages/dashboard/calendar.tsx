@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useLocation } from "wouter";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { loadPings, savePings, Ping, KIND_META, SUBTYPE_META } from "@/lib/pings";
 import { cn } from "@/lib/utils";
@@ -263,6 +264,7 @@ function HistoryRow({ ping, onClick }: { ping: Ping; onClick: () => void }) {
 ══════════════════════════════════════════════════════ */
 export default function CalendarPage() {
   const today = new Date();
+  const [, setLocation] = useLocation();
   const [pings,        setPings]       = useState(() => loadPings());
   const [year,         setYear]        = useState(today.getFullYear());
   const [month,        setMonth]       = useState(today.getMonth());
@@ -447,7 +449,14 @@ export default function CalendarPage() {
             ) : (
               <div className="space-y-2">
                 {selectedDayPings.map(ping => (
-                  <HistoryRow key={ping.id} ping={ping} onClick={() => setSelected(ping)} />
+                  <HistoryRow
+                    key={ping.id}
+                    ping={ping}
+                    onClick={() => ping.projectId
+                      ? setLocation(`/dashboard/project/${ping.projectId}?pingId=${ping.id}`)
+                      : setSelected(ping)
+                    }
+                  />
                 ))}
               </div>
             )}
@@ -505,7 +514,13 @@ export default function CalendarPage() {
                         <div className="h-px flex-1 bg-border/30" />
                       </div>
                     )}
-                    <HistoryRow ping={ping} onClick={() => setSelected(ping)} />
+                    <HistoryRow
+                      ping={ping}
+                      onClick={() => ping.projectId
+                        ? setLocation(`/dashboard/project/${ping.projectId}?pingId=${ping.id}`)
+                        : setSelected(ping)
+                      }
+                    />
                   </div>
                 );
               })}

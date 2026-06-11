@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { useListWorkRequests, useCreateWorkRequest } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Clock, ExternalLink } from "lucide-react";
+import { Plus, Clock, ExternalLink, ArrowRight } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ const formSchema = z.object({
 });
 
 export default function Requests() {
+  const [, setLocation] = useLocation();
   const { data: requests, isLoading } = useListWorkRequests({ query: { queryKey: ["requests", 1] } }, { request: { query: { companyId: 1 } } });
   const createRequest = useCreateWorkRequest();
   const { toast } = useToast();
@@ -199,7 +201,11 @@ export default function Requests() {
         ) : filteredRequests.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredRequests.map(req => (
-              <Card key={req.id} className="hover:border-primary/50 transition-colors">
+              <Card
+                key={req.id}
+                onClick={() => setLocation(`/dashboard/project/${req.id}`)}
+                className="hover:border-primary/50 transition-colors cursor-pointer group hover:shadow-md"
+              >
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start mb-2">
                     <Badge variant="outline" className="capitalize">{req.status.replace('_', ' ')}</Badge>
@@ -207,7 +213,10 @@ export default function Requests() {
                       {req.priority}
                     </Badge>
                   </div>
-                  <CardTitle className="text-lg">{req.title}</CardTitle>
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-lg">{req.title}</CardTitle>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -222,6 +231,9 @@ export default function Requests() {
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         Created {new Date(req.createdAt).toLocaleDateString()}
+                      </span>
+                      <span className="ml-auto text-[10px] font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                        View project →
                       </span>
                     </div>
                   </div>
