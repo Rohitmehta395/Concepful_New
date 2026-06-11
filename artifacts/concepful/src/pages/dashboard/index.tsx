@@ -198,8 +198,8 @@ export default function DashboardOverview() {
         </div>
       </div>
 
-      {/* ── Top section: 3-col grid — Usage spans 2, KPI cards in col 3 ── */}
-      <div className="grid grid-cols-3 gap-4 items-start">
+      {/* ── Top section: 3-col grid — Usage spans 2, Status card in col 3 ── */}
+      <div className="grid grid-cols-3 gap-4 items-stretch">
 
         {/* Plan usage card — spans cols 1–2 */}
         <div className="col-span-2 bg-card border rounded-2xl p-5 flex items-center gap-6">
@@ -225,29 +225,30 @@ export default function DashboardOverview() {
           </div>
         </div>
 
-        {/* KPI bento cards — col 3, stacked */}
-        <div className="flex flex-col gap-3">
-          {[
-            { label: "Active",       value: activeRequests.length, Icon: Pencil,       accent: false },
-            { label: "Needs Review", value: pendingReview,         Icon: AlertCircle,  accent: pendingReview > 0 },
-            { label: "Delivered",    value: deliveredWork.length,  Icon: CheckCircle2, accent: false },
-          ].map(({ label, value, Icon, accent }) => (
-            <div key={label} className={cn(
-              "bg-card border rounded-2xl px-5 py-4 flex items-center gap-4 flex-1 transition-colors",
-              accent && "border-primary/30 bg-primary/[0.04]",
-            )}>
-              <div className={cn(
-                "h-9 w-9 rounded-xl flex items-center justify-center shrink-0",
-                accent ? "bg-primary/10" : "bg-secondary",
-              )}>
-                <Icon className={cn("h-4 w-4", accent ? "text-primary" : "text-muted-foreground")} />
+        {/* Single combined status card — col 3, items horizontal */}
+        <div className={cn(
+          "bg-card border rounded-2xl p-5 flex flex-col justify-center gap-0",
+          pendingReview > 0 && "border-primary/25",
+        )}>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">Project Status</p>
+          <div className="flex items-stretch divide-x divide-border/60">
+            {[
+              { label: "Active",       value: activeRequests.length, Icon: Pencil,       accent: false },
+              { label: "Needs Review", value: pendingReview,         Icon: AlertCircle,  accent: pendingReview > 0 },
+              { label: "Delivered",    value: deliveredWork.length,  Icon: CheckCircle2, accent: false },
+            ].map(({ label, value, Icon, accent }) => (
+              <div key={label} className="flex-1 flex flex-col items-center justify-center gap-2 px-3 first:pl-0 last:pr-0">
+                <div className={cn(
+                  "h-8 w-8 rounded-xl flex items-center justify-center",
+                  accent ? "bg-primary/10" : "bg-secondary",
+                )}>
+                  <Icon className={cn("h-3.5 w-3.5", accent ? "text-primary" : "text-muted-foreground")} />
+                </div>
+                <p className="text-2xl font-bold tabular-nums leading-none">{value}</p>
+                <p className={cn("text-[10px] text-center leading-tight", accent ? "text-primary font-semibold" : "text-muted-foreground")}>{label}</p>
               </div>
-              <div>
-                <p className="text-2xl font-bold leading-none tabular-nums">{value}</p>
-                <p className={cn("text-xs mt-1", accent ? "text-primary font-semibold" : "text-muted-foreground")}>{label}</p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
