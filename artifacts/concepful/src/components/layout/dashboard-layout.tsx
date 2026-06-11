@@ -1,16 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import {
   MessageSquare, CheckSquare, Paperclip, Plus, X,
   Settings, LayoutDashboard, Layers,
   ChevronLeft, ChevronRight, ArrowUpDown,
-  Folder, Send, Zap,
+  Folder, Send, Zap, Calendar, Hash,
+  AtSign, Slash, Check, User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Link as WouterLink } from "wouter";
 import {
   Ping, PingKind, PingSubtype,
   loadPings, savePings, addPing,
@@ -18,14 +18,44 @@ import {
 } from "@/lib/pings";
 import { DashboardContext, useDashboard } from "@/lib/dashboard-context";
 
+/* ══════════════════════════════════════════════════════
+   CONSTANTS
+══════════════════════════════════════════════════════ */
 const KIND_SUBTYPES: Record<PingKind, PingSubtype[]> = {
   message: ["chat", "note", "followup"],
   todo:    ["task", "project", "meeting"],
   media:   ["document", "asset"],
 };
 
-const PINGS_PER_PAGE = 10;
+const PINGS_PER_PAGE = 12;
 
+const SLASH_COMMANDS = [
+  { subtype: "chat"     as PingSubtype, kind: "message" as PingKind, label: "Chat",      emoji: "💬", desc: "Start a conversation thread"  },
+  { subtype: "note"     as PingSubtype, kind: "message" as PingKind, label: "Note",      emoji: "📝", desc: "Save a reference or thought"   },
+  { subtype: "followup" as PingSubtype, kind: "message" as PingKind, label: "Follow-up", emoji: "🔔", desc: "Set a follow-up reminder"       },
+  { subtype: "task"     as PingSubtype, kind: "todo"    as PingKind, label: "Task",      emoji: "✓",  desc: "Create an action item"         },
+  { subtype: "meeting"  as PingSubtype, kind: "todo"    as PingKind, label: "Meeting",   emoji: "◷",  desc: "Log or schedule a meeting"     },
+  { subtype: "document" as PingSubtype, kind: "media"   as PingKind, label: "Document",  emoji: "▤",  desc: "Attach or reference a document" },
+  { subtype: "asset"    as PingSubtype, kind: "media"   as PingKind, label: "Asset",     emoji: "⊞",  desc: "Link a media asset"            },
+] as const;
+
+const PEOPLE = [
+  { key: "creative-team", label: "Creative Team", role: "Team"   },
+  { key: "alex",          label: "Alex Chen",     role: "Admin"  },
+  { key: "sarah",         label: "Sarah Kim",     role: "PM"     },
+  { key: "you",           label: "You",           role: "Client" },
+];
+
+const SEED_PROJECTS = [
+  { id: "1", title: "Q3 Campaign Asset System" },
+  { id: "2", title: "Investor Deck" },
+  { id: "3", title: "Brand Voice Guidelines" },
+  { id: "4", title: "Social Media Template Pack" },
+];
+
+/* ══════════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════════ */
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
@@ -36,24 +66,186 @@ function timeAgo(iso: string): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-/* ═══════════════════════════════════════════════════
-   COMPOSE PANEL (middle column — spacious)
-═══════════════════════════════════════════════════ */
+type TriggerResult = { trigger: "/" | "#" | "@"; query: string; start: number } | null;
+
+function detectTrigger(text: string): TriggerResult {
+  for (let i = text.length - 1; i >= 0; i--) {
+    const ch = text[i] as string;
+    if (ch === "/" || ch === "#" || ch === "@") {
+      if (i === 0 || /\s/.test(text[i - 1])) {
+        const query = text.slice(i + 1).toLowerCase();
+        if (!/\s/.test(query)) {
+          return { trigger: ch as "/" | "#" | "@", query, start: i };
+        }
+      }
+    }
+    if (/\s/.test(ch)) break;
+  }
+  return null;
+}
+
+function getKnownProjects(): Array<{ id: string; title: string }> {
+  try {
+    const stored = JSON.parse(localStorage.getItem("concepful_projects") ?? "null");
+    return stored?.length ? stored : SEED_PROJECTS;
+  } catch { return SEED_PROJECTS; }
+}
+
+/* ══════════════════════════════════════════════════════
+   SMART COMPOSE TEXTAREA
+══════════════════════════════════════════════════════ */
+function SmartComposeTextarea({
+  value, onChange, placeholder, onCommandSelect, onProjectLink, className,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  onCommandSelect: (kind: PingKind, subtype: PingSubtype) => void;
+  onProjectLink: (projectId: string, projectTitle: string) => void;
+  className?: string;
+}) {
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const knownProjects = useRef(getKnownProjects());
+
+  const trig = detectTrigger(value);
+
+  const slashMatches = trig?.trigger === "/"
+    ? SLASH_COMMANDS.filter(c => c.label.toLowerCase().startsWith(trig.query))
+    : [];
+  const projectMatches = trig?.trigger === "#"
+    ? knownProjects.current.filter(p => p.title.toLowerCase().includes(trig.query))
+    : [];
+  const peopleMatches = trig?.trigger === "@"
+    ? PEOPLE.filter(p => p.label.toLowerCase().startsWith(trig.query))
+    : [];
+
+  const hasSuggestions = slashMatches.length + projectMatches.length + peopleMatches.length > 0;
+  const totalCount = slashMatches.length + projectMatches.length + peopleMatches.length;
+
+  useEffect(() => { setSelectedIdx(0); }, [trig?.query, trig?.trigger]);
+
+  const selectItem = useCallback((idx: number) => {
+    if (!trig) return;
+    if (trig.trigger === "/" && idx < slashMatches.length) {
+      const cmd = slashMatches[idx];
+      onCommandSelect(cmd.kind, cmd.subtype);
+      onChange(value.slice(0, trig.start));
+    } else if (trig.trigger === "#" && idx < projectMatches.length) {
+      const proj = projectMatches[idx];
+      onProjectLink(proj.id, proj.title);
+      onChange(value.slice(0, trig.start) + `#${proj.title} `);
+    } else if (trig.trigger === "@" && idx < peopleMatches.length) {
+      const person = peopleMatches[idx];
+      onChange(value.slice(0, trig.start) + `@${person.label} `);
+    }
+    setSelectedIdx(0);
+  }, [trig, slashMatches, projectMatches, peopleMatches, value, onChange, onCommandSelect, onProjectLink]);
+
+  return (
+    <div className="relative">
+      <Textarea
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={cn("text-sm resize-none", className)}
+        onKeyDown={e => {
+          if (!hasSuggestions) return;
+          if (e.key === "ArrowDown") { e.preventDefault(); setSelectedIdx(i => Math.min(i + 1, totalCount - 1)); }
+          if (e.key === "ArrowUp")   { e.preventDefault(); setSelectedIdx(i => Math.max(i - 1, 0)); }
+          if (e.key === "Enter")     { e.preventDefault(); selectItem(selectedIdx); }
+          if (e.key === "Escape" && trig) { onChange(value.slice(0, trig.start)); }
+        }}
+      />
+
+      {/* Floating suggestions dropdown */}
+      {hasSuggestions && (
+        <div className="absolute left-0 right-0 bottom-full mb-2 bg-popover border border-border rounded-xl shadow-2xl z-50 overflow-hidden animate-in slide-in-from-bottom-1 duration-100">
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-border/50">
+            {trig?.trigger === "/" && <Slash   className="h-3 w-3 text-muted-foreground" />}
+            {trig?.trigger === "#" && <Hash    className="h-3 w-3 text-muted-foreground" />}
+            {trig?.trigger === "@" && <AtSign  className="h-3 w-3 text-muted-foreground" />}
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              {trig?.trigger === "/" ? "Action type" : trig?.trigger === "#" ? "Link project" : "Mention person"}
+            </p>
+          </div>
+          {trig?.trigger === "/" && slashMatches.map((cmd, i) => (
+            <button key={cmd.subtype} onMouseDown={e => { e.preventDefault(); selectItem(i); }}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors",
+                i === selectedIdx ? "bg-secondary" : "hover:bg-secondary/60",
+              )}>
+              <span className="text-base shrink-0 w-6 text-center">{cmd.emoji}</span>
+              <div>
+                <p className="text-sm font-semibold leading-none mb-0.5">{cmd.label}</p>
+                <p className="text-[11px] text-muted-foreground">{cmd.desc}</p>
+              </div>
+            </button>
+          ))}
+          {trig?.trigger === "#" && projectMatches.map((proj, i) => (
+            <button key={proj.id} onMouseDown={e => { e.preventDefault(); selectItem(i); }}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors",
+                i === selectedIdx ? "bg-secondary" : "hover:bg-secondary/60",
+              )}>
+              <Folder className="h-4 w-4 text-muted-foreground shrink-0" />
+              <p className="text-sm font-medium">{proj.title}</p>
+            </button>
+          ))}
+          {trig?.trigger === "@" && peopleMatches.map((person, i) => (
+            <button key={person.key} onMouseDown={e => { e.preventDefault(); selectItem(i); }}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors",
+                i === selectedIdx ? "bg-secondary" : "hover:bg-secondary/60",
+              )}>
+              <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                <User className="h-3 w-3 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-medium leading-none mb-0.5">{person.label}</p>
+                <p className="text-[10px] text-muted-foreground">{person.role}</p>
+              </div>
+            </button>
+          ))}
+          <div className="px-3 py-1.5 border-t border-border/40 flex items-center gap-2">
+            <p className="text-[9px] text-muted-foreground">↑↓ navigate · Enter select · Esc close</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════
+   COMPOSE PANEL
+══════════════════════════════════════════════════════ */
 function ComposePanel({ onSend, onClose }: {
   onSend: (p: Omit<Ping, "id" | "date">) => void;
   onClose: () => void;
 }) {
-  const [kind,    setKind]    = useState<PingKind>("message");
-  const [subtype, setSubtype] = useState<PingSubtype>("chat");
-  const [title,   setTitle]   = useState("");
-  const [body,    setBody]    = useState("");
-  const { activeProjectId } = useDashboard();
+  const [kind,      setKind]      = useState<PingKind>("message");
+  const [subtype,   setSubtype]   = useState<PingSubtype>("chat");
+  const [title,     setTitle]     = useState("");
+  const [body,      setBody]      = useState("");
+  const [linkedProject, setLinkedProject] = useState<{ id: string; title: string } | null>(null);
+  const { activeProjectId, activeProjectTitle } = useDashboard();
+
+  const effectiveProjectId = linkedProject?.id ?? activeProjectId?.toString();
+  const effectiveProjectTitle = linkedProject?.title ?? activeProjectTitle;
 
   const subtypes = KIND_SUBTYPES[kind];
 
   const handleKind = (k: PingKind) => {
     setKind(k);
     setSubtype(KIND_SUBTYPES[k][0]);
+  };
+
+  const handleCommandSelect = (k: PingKind, s: PingSubtype) => {
+    setKind(k);
+    setSubtype(s);
+  };
+
+  const handleProjectLink = (projectId: string, projectTitle: string) => {
+    setLinkedProject({ id: projectId, title: projectTitle });
   };
 
   const handleSend = () => {
@@ -63,9 +255,9 @@ function ComposePanel({ onSend, onClose }: {
       title: title.trim() || body.slice(0, 60),
       body: body.trim(),
       author: "client",
-      projectId: activeProjectId?.toString(),
+      projectId: effectiveProjectId,
     });
-    setTitle(""); setBody("");
+    setTitle(""); setBody(""); setLinkedProject(null);
   };
 
   const kindDefs = [
@@ -76,11 +268,12 @@ function ComposePanel({ onSend, onClose }: {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="px-6 py-4 border-b shrink-0 flex items-center justify-between">
+      <div className="px-5 py-4 border-b shrink-0 flex items-center justify-between">
         <div>
           <p className="font-semibold text-sm">New Action</p>
-          <p className="text-[11px] text-muted-foreground">Log a message, task, or file</p>
+          <p className="text-[11px] text-muted-foreground">
+            Use <span className="font-mono text-primary">/</span> for type · <span className="font-mono text-primary">#</span> to link project · <span className="font-mono text-primary">@</span> to mention
+          </p>
         </div>
         <button onClick={onClose}
           className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
@@ -88,23 +281,22 @@ function ComposePanel({ onSend, onClose }: {
         </button>
       </div>
 
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
-        {/* Kind selector */}
+      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+        {/* Kind chips */}
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Type</p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-1.5">
             {kindDefs.map(({ k, Icon, label }) => {
               const m = KIND_META[k];
               return (
                 <button key={k} onClick={() => handleKind(k)}
                   className={cn(
-                    "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-xs font-semibold",
+                    "flex flex-col items-center gap-1 p-2.5 rounded-xl border-2 transition-all text-xs font-semibold",
                     kind === k
                       ? cn("border-primary bg-primary/[0.06]", m.color)
                       : "border-border/50 text-muted-foreground hover:border-border",
                   )}>
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-3.5 w-3.5" />
                   {label}
                 </button>
               );
@@ -121,7 +313,7 @@ function ComposePanel({ onSend, onClose }: {
               return (
                 <button key={s} onClick={() => setSubtype(s)}
                   className={cn(
-                    "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all border",
+                    "flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium transition-all border",
                     subtype === s
                       ? "bg-foreground text-background border-transparent"
                       : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground",
@@ -133,39 +325,42 @@ function ComposePanel({ onSend, onClose }: {
           </div>
         </div>
 
-        {/* Title */}
+        {/* Subject */}
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Subject</p>
           <Input value={title} onChange={e => setTitle(e.target.value)}
             placeholder="Brief subject line…" className="text-sm" />
         </div>
 
-        {/* Body */}
+        {/* Smart body */}
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Details</p>
-          <Textarea
-            value={body} onChange={e => setBody(e.target.value)}
-            placeholder={
-              kind === "message" ? "What do you want to say?" :
-              kind === "todo"    ? "Describe the task or action item…" :
-                                   "Notes about this file or asset…"
-            }
-            className="text-sm resize-none min-h-[120px]"
-            onKeyDown={e => { if (e.key === "Enter" && e.metaKey) handleSend(); }}
+          <SmartComposeTextarea
+            value={body}
+            onChange={setBody}
+            placeholder={`Type / for type · # to link project · @ to mention…`}
+            onCommandSelect={handleCommandSelect}
+            onProjectLink={handleProjectLink}
+            className="min-h-[100px]"
           />
           <p className="text-[10px] text-muted-foreground mt-1.5">⌘+Enter to send</p>
         </div>
 
-        {activeProjectId && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground p-3 bg-secondary/30 rounded-xl border border-border/40">
-            <Folder className="h-3.5 w-3.5 shrink-0" />
-            Linked to current project
+        {/* Project link indicator */}
+        {effectiveProjectId && (
+          <div className="flex items-center gap-2 text-xs p-2.5 bg-secondary/30 rounded-xl border border-border/40">
+            <Folder className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <span className="font-medium text-foreground truncate">{effectiveProjectTitle ?? "Project"}</span>
+            {linkedProject && (
+              <button onClick={() => setLinkedProject(null)} className="ml-auto text-muted-foreground hover:text-foreground">
+                <X className="h-3 w-3" />
+              </button>
+            )}
           </div>
         )}
       </div>
 
-      {/* Footer */}
-      <div className="px-6 py-4 border-t shrink-0">
+      <div className="px-5 py-4 border-t shrink-0">
         <Button className="w-full gap-2" onClick={handleSend}
           disabled={!body.trim() && !title.trim()}>
           <Send className="h-3.5 w-3.5" /> Create Action
@@ -175,10 +370,10 @@ function ComposePanel({ onSend, onClose }: {
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   PING DETAIL PANEL (middle column)
-═══════════════════════════════════════════════════ */
-function PingDetailPanel({ ping, onClose, onReply, onMarkDone }: {
+/* ══════════════════════════════════════════════════════
+   STANDALONE ITEM MODAL
+══════════════════════════════════════════════════════ */
+function StandaloneItemModal({ ping, onClose, onReply, onMarkDone }: {
   ping: Ping;
   onClose: () => void;
   onReply: (body: string) => void;
@@ -195,89 +390,89 @@ function PingDetailPanel({ ping, onClose, onReply, onMarkDone }: {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className={cn("h-8 w-8 rounded-xl flex items-center justify-center text-lg border", m.bg, m.border)}>
-            {sm.emoji}
-          </div>
-          <div>
-            <span className={cn("text-[10px] font-bold uppercase tracking-wider", m.color)}>
-              {m.label} · {sm.label}
-            </span>
-            {ping.author === "team" && (
-              <p className="text-[10px] text-muted-foreground">From Creative Team</p>
-            )}
-          </div>
-        </div>
-        <button onClick={onClose}
-          className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      onClick={onClose}>
+      <div
+        className="w-full max-w-md bg-card rounded-2xl border shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-200"
+        onClick={e => e.stopPropagation()}>
 
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
-        <h2 className="font-serif text-xl font-bold leading-snug">{ping.title}</h2>
-        <p className="text-sm leading-relaxed text-foreground/80">{ping.body}</p>
-
-        {ping.fileName && (
-          <div className="inline-flex items-center gap-2 border rounded-xl px-3 py-2.5 text-sm font-medium bg-secondary/40">
-            <Paperclip className="h-4 w-4 text-muted-foreground" /> {ping.fileName}
-          </div>
-        )}
-
-        {ping.projectId && (
-          <WouterLink href={`/dashboard/project/${ping.projectId}`}>
-            <div className="text-xs font-semibold text-primary hover:underline cursor-pointer">
-              View related project →
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b">
+          <div className="flex items-center gap-3">
+            <div className={cn("h-9 w-9 rounded-xl flex items-center justify-center text-lg border shrink-0", m.bg, m.border)}>
+              {sm.emoji}
             </div>
-          </WouterLink>
-        )}
-
-        <div className="text-[10px] text-muted-foreground pt-2 border-t border-border/40">
-          {new Date(ping.date).toLocaleDateString("en-US", {
-            weekday: "long", month: "long", day: "numeric",
-            hour: "numeric", minute: "2-digit",
-          })}
+            <div>
+              <p className={cn("text-[10px] font-bold uppercase tracking-wide", m.color)}>
+                {m.label} · {sm.label}
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                {ping.author === "team" ? "Creative Team" : "You"} · {timeAgo(ping.date)}
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose}
+            className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
-        {ping.kind === "todo" && ping.done === false && (
-          <Button size="sm" variant="outline" onClick={onMarkDone} className="gap-1.5">
-            <CheckSquare className="h-3.5 w-3.5" /> Mark complete
-          </Button>
-        )}
-        {ping.kind === "todo" && ping.done && (
-          <p className="text-xs font-semibold text-primary flex items-center gap-1.5">
-            <CheckSquare className="h-3.5 w-3.5" /> Completed
-          </p>
-        )}
-      </div>
+        {/* Body */}
+        <div className="px-5 py-5 space-y-4">
+          <h3 className="font-serif text-lg font-bold leading-snug">{ping.title}</h3>
+          {ping.body && <p className="text-sm text-foreground/80 leading-relaxed">{ping.body}</p>}
 
-      {/* Reply */}
-      <div className="border-t px-6 py-4 space-y-2.5 shrink-0 bg-secondary/20">
-        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Reply</p>
-        <Textarea
-          value={reply} onChange={e => setReply(e.target.value)}
-          placeholder="Type a response…"
-          className="text-sm resize-none min-h-[60px]"
-          onKeyDown={e => { if (e.key === "Enter" && e.metaKey) handleReply(); }}
-        />
-        <div className="flex items-center justify-between">
-          <p className="text-[10px] text-muted-foreground">⌘+Enter to send</p>
-          <Button size="sm" onClick={handleReply} disabled={!reply.trim()} className="gap-1.5 h-7 text-xs">
-            <Send className="h-3 w-3" /> Send
-          </Button>
+          {ping.fileName && (
+            <div className="inline-flex items-center gap-2 border rounded-xl px-3 py-2 text-sm font-medium bg-secondary/40">
+              <Paperclip className="h-3.5 w-3.5 text-muted-foreground" /> {ping.fileName}
+            </div>
+          )}
+
+          {ping.kind === "todo" && (
+            <button onClick={onMarkDone} disabled={ping.done}
+              className={cn(
+                "flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all",
+                ping.done
+                  ? "bg-primary/10 text-primary border-primary/20 cursor-default"
+                  : "border-border/60 text-muted-foreground hover:border-primary hover:text-primary",
+              )}>
+              <Check className="h-3.5 w-3.5" />
+              {ping.done ? "Completed" : "Mark complete"}
+            </button>
+          )}
+
+          <p className="text-[10px] text-muted-foreground pt-1">
+            {new Date(ping.date).toLocaleDateString("en-US", {
+              weekday: "long", month: "long", day: "numeric",
+              hour: "numeric", minute: "2-digit",
+            })}
+          </p>
+        </div>
+
+        {/* Reply area */}
+        <div className="border-t px-5 py-4 bg-secondary/20 space-y-2.5">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Reply</p>
+          <div className="relative">
+            <Textarea
+              value={reply} onChange={e => setReply(e.target.value)}
+              placeholder="Type a response… (⌘+Enter to send)"
+              className="text-sm resize-none min-h-[56px] pr-10"
+              onKeyDown={e => { if (e.key === "Enter" && e.metaKey) handleReply(); }}
+            />
+            <button onClick={handleReply} disabled={!reply.trim()}
+              className="absolute right-2 bottom-2 h-7 w-7 rounded-lg flex items-center justify-center bg-primary text-primary-foreground disabled:opacity-30 hover:bg-primary/90 transition-all">
+              <Send className="h-3 w-3" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   ACTION ITEM ROW (sidebar — compact, clicking opens middle)
-═══════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   ACTION ITEM ROW
+══════════════════════════════════════════════════════ */
 function ActionItem({ ping, isActive, onClick }: {
   ping: Ping;
   isActive: boolean;
@@ -285,28 +480,32 @@ function ActionItem({ ping, isActive, onClick }: {
 }) {
   const m  = KIND_META[ping.kind];
   const sm = SUBTYPE_META[ping.subtype];
+  const hasProject = !!ping.projectId;
 
   return (
     <button onClick={onClick}
       className={cn(
-        "w-full flex items-start gap-2.5 px-3 py-2.5 text-left transition-colors border-b border-border/30 last:border-0",
-        isActive ? "bg-primary/[0.06]" : "hover:bg-secondary/40",
+        "w-full flex items-start gap-2.5 px-3 py-2.5 text-left transition-colors border-b border-border/30 last:border-0 group",
+        isActive ? "bg-primary/[0.07]" : "hover:bg-secondary/40",
       )}>
       <div className={cn(
-        "h-7 w-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 text-sm border",
+        "h-7 w-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 text-sm border relative",
         m.bg, m.border,
-        isActive && "ring-2 ring-primary/30",
       )}>
         {sm.emoji}
+        {/* Unread dot */}
+        {ping.kind === "todo" && ping.done === false && (
+          <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary border-2 border-card" />
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1 mb-0.5">
           <span className={cn("text-[9px] font-bold uppercase tracking-wider", m.color)}>{sm.label}</span>
-          {ping.done === false && ping.kind === "todo" && (
-            <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-          )}
           {ping.author === "team" && (
-            <span className="text-[9px] text-muted-foreground/70 ml-0.5">· Team</span>
+            <span className="text-[9px] text-muted-foreground/70">· Team</span>
+          )}
+          {hasProject && (
+            <span className="text-[9px] text-muted-foreground/50">· Project</span>
           )}
           <span className="text-[9px] text-muted-foreground ml-auto">{timeAgo(ping.date)}</span>
         </div>
@@ -322,18 +521,16 @@ function ActionItem({ ping, isActive, onClick }: {
   );
 }
 
-/* ═══════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    DASHBOARD LAYOUT
-═══════════════════════════════════════════════════ */
+══════════════════════════════════════════════════════ */
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
 
   /* Context */
-  const [activePing,         setActivePingState]    = useState<Ping | null>(null);
   const [activeProjectId,    setActiveProjectId]    = useState<number | null>(null);
   const [activeProjectTitle, setActiveProjectTitle] = useState<string | null>(null);
 
-  const setActivePing    = (p: Ping | null) => { setActivePingState(p); if (p) setComposing(false); };
   const setActiveProject = (id: number | null, title: string | null) => {
     setActiveProjectId(id);
     setActiveProjectTitle(title);
@@ -342,29 +539,54 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   /* Action stream */
   const [pings,      setPings]      = useState<Ping[]>(() => loadPings());
   const [pingPage,   setPingPage]   = useState(1);
-  const [pingSort,   setPingSort]   = useState<"newest"|"oldest"|"kind">("newest");
-  const [filterKind, setFilterKind] = useState<PingKind|"all">("all");
+  const [pingSort,   setPingSort]   = useState<"newest" | "oldest" | "kind">("newest");
+  const [filterKind, setFilterKind] = useState<PingKind | "all">("all");
   const [composing,  setComposing]  = useState(false);
+
+  /* Standalone modal (for non-project pings) */
+  const [standaloneModal, setStandaloneModal] = useState<Ping | null>(null);
 
   useEffect(() => { savePings(pings); }, [pings]);
 
+  /* setActivePing — smart navigation */
+  const setActivePing = useCallback((ping: Ping | null) => {
+    if (!ping) { setStandaloneModal(null); return; }
+    if (ping.projectId) {
+      const projectPath = `/dashboard/project/${ping.projectId}`;
+      if (location.startsWith(projectPath)) {
+        // Already on this project page — scroll to the ping
+        setTimeout(() => {
+          document.getElementById(`ping-${ping.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 50);
+      } else {
+        setLocation(`${projectPath}?pingId=${ping.id}`);
+      }
+    } else {
+      setStandaloneModal(ping);
+    }
+  }, [location, setLocation]);
+
   /* Handlers */
-  const handleSend = (ping: Omit<Ping, "id"|"date">) => {
+  const handleSend = (ping: Omit<Ping, "id" | "date">) => {
     const updated = addPing(pings, ping);
     setPings(updated);
     setComposing(false);
-    setActivePingState(updated[0]);
   };
 
-  const handleReply = (body: string) => {
-    if (!activePing) return;
-    const newPing = { kind: "message" as const, subtype: "chat" as const, title: body.slice(0, 60), body, author: "client" as const, projectId: activePing.projectId };
+  const handleReply = (body: string, sourcePing: Ping) => {
+    const newPing = {
+      kind: "message" as const, subtype: "chat" as const,
+      title: body.slice(0, 60), body,
+      author: "client" as const,
+      projectId: sourcePing.projectId,
+    };
     setPings(prev => addPing(prev, newPing));
+    setStandaloneModal(null);
   };
 
   const handleMarkDone = (id: string) => {
     setPings(prev => prev.map(p => p.id === id ? { ...p, done: true } : p));
-    if (activePing?.id === id) setActivePingState(prev => prev ? { ...prev, done: true } : null);
+    setStandaloneModal(prev => prev?.id === id ? { ...prev, done: true } : prev);
   };
 
   /* Filter + sort + paginate */
@@ -378,16 +600,18 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pagedPings = sorted.slice((pingPage - 1) * PINGS_PER_PAGE, pingPage * PINGS_PER_PAGE);
   const openTodos  = pings.filter(p => p.kind === "todo" && p.done === false).length;
 
-  /* Middle column visibility — same on ALL pages */
-  const showMiddle = activePing !== null || composing;
+  /* Middle column only for composing */
+  const showMiddle = composing;
 
-  /* Nav */
-  const isOnProject  = location.startsWith("/dashboard/project/");
-  const secondTabHref  = isOnProject && activeProjectId ? `/dashboard/project/${activeProjectId}` : "/dashboard/requests";
-  const secondTabLabel = isOnProject && activeProjectTitle ? activeProjectTitle : "Requests";
+  /* Nav context */
+  const isOnProject    = location.startsWith("/dashboard/project/");
+  const secondTabHref  = isOnProject
+    ? (activeProjectId ? `/dashboard/project/${activeProjectId}` : location)
+    : "/dashboard/requests";
+  const secondTabLabel = isOnProject ? (activeProjectTitle ?? "Project") : "Requests";
   const SecondIcon     = isOnProject ? Folder : Layers;
 
-  const ctx = { activePing, setActivePing, activeProjectId, activeProjectTitle, setActiveProject };
+  const ctx = { activePing: null, setActivePing, activeProjectId, activeProjectTitle, setActiveProject };
 
   return (
     <DashboardContext.Provider value={ctx}>
@@ -403,7 +627,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <span className="font-serif text-lg font-bold tracking-tight cursor-pointer">Concepful</span>
               </Link>
               <div className="text-[11px] text-muted-foreground">
-                {activeProjectId ? activeProjectTitle ?? "Project" : "Client Portal"}
+                {activeProjectId ? (activeProjectTitle ?? "Project") : "Client Portal"}
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -424,22 +648,30 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Quick nav */}
-          <div className="px-3 py-2 border-b flex items-center gap-1 shrink-0">
+          <div className="px-3 py-2 border-b flex items-center gap-1 shrink-0 flex-wrap">
             <Link href="/dashboard">
               <button className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors",
+                "flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors",
                 location === "/dashboard" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary",
               )}>
-                <LayoutDashboard className="h-3.5 w-3.5" /> Overview
+                <LayoutDashboard className="h-3 w-3" /> Overview
               </button>
             </Link>
             <Link href={secondTabHref}>
               <button className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors max-w-[110px] truncate",
+                "flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors max-w-[90px]",
                 (location === "/dashboard/requests" || isOnProject) ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary",
               )}>
-                <SecondIcon className="h-3.5 w-3.5 shrink-0" />
+                <SecondIcon className="h-3 w-3 shrink-0" />
                 <span className="truncate">{secondTabLabel}</span>
+              </button>
+            </Link>
+            <Link href="/dashboard/calendar">
+              <button className={cn(
+                "flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors",
+                location === "/dashboard/calendar" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary",
+              )}>
+                <Calendar className="h-3 w-3" /> Calendar
               </button>
             </Link>
           </div>
@@ -451,13 +683,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Actions</span>
             </div>
             <div className="flex items-center gap-1">
-              {/* Sort */}
               <div className="relative group">
                 <button className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
                   <ArrowUpDown className="h-3 w-3" />
                 </button>
                 <div className="absolute right-0 top-7 hidden group-hover:flex flex-col bg-popover border rounded-xl shadow-lg z-50 min-w-24 py-1">
-                  {(["newest","oldest","kind"] as const).map(s => (
+                  {(["newest", "oldest", "kind"] as const).map(s => (
                     <button key={s} onClick={() => { setPingSort(s); setPingPage(1); }}
                       className={cn(
                         "text-xs px-3 py-1.5 text-left hover:bg-secondary transition-colors capitalize",
@@ -468,12 +699,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   ))}
                 </div>
               </div>
-              {/* New Action */}
               <button
-                onClick={() => {
-                  if (composing) { setComposing(false); }
-                  else { setComposing(true); setActivePingState(null); }
-                }}
+                onClick={() => setComposing(c => !c)}
                 className={cn(
                   "h-6 w-6 rounded-lg flex items-center justify-center transition-colors",
                   composing ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary",
@@ -485,7 +712,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
           {/* Kind filter */}
           <div className="px-3 py-1.5 flex gap-0.5 shrink-0 border-b flex-wrap">
-            {(["all","message","todo","media"] as const).map(k => (
+            {(["all", "message", "todo", "media"] as const).map(k => (
               <button key={k} onClick={() => { setFilterKind(k); setPingPage(1); }}
                 className={cn(
                   "text-[11px] px-2 py-0.5 rounded-full font-medium capitalize transition-all",
@@ -500,17 +727,35 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <div className="flex-1 overflow-y-auto min-h-0">
             {pagedPings.length === 0 ? (
               <div className="py-10 text-center text-xs text-muted-foreground px-4">
-                No actions yet.{!composing && <><br /><button className="text-primary font-semibold mt-1" onClick={() => setComposing(true)}>Create one →</button></>}
+                No actions yet.
+                {!composing && (
+                  <>
+                    <br />
+                    <button className="text-primary font-semibold mt-1" onClick={() => setComposing(true)}>
+                      Create one →
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
               pagedPings.map(ping => (
                 <ActionItem
                   key={ping.id}
                   ping={ping}
-                  isActive={activePing?.id === ping.id}
+                  isActive={false}
                   onClick={() => {
-                    if (activePing?.id === ping.id) { setActivePingState(null); }
-                    else { setActivePing(ping); }
+                    if (ping.projectId) {
+                      const projectPath = `/dashboard/project/${ping.projectId}`;
+                      if (location.startsWith(projectPath)) {
+                        setTimeout(() => {
+                          document.getElementById(`ping-${ping.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }, 50);
+                      } else {
+                        setLocation(`${projectPath}?pingId=${ping.id}`);
+                      }
+                    } else {
+                      setStandaloneModal(ping);
+                    }
                   }}
                 />
               ))
@@ -533,36 +778,33 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           )}
         </aside>
 
-        {/* ══ COLUMN 2: MIDDLE PANEL (slides in) ═════════ */}
+        {/* ══ COLUMN 2: COMPOSE PANEL (only when composing) ══ */}
         {showMiddle && (
           <div className="flex-1 border-r bg-card flex flex-col min-h-screen sticky top-0 max-h-screen z-10 animate-in slide-in-from-left-4 duration-200">
-            {composing ? (
-              <ComposePanel
-                onSend={handleSend}
-                onClose={() => setComposing(false)}
-              />
-            ) : activePing ? (
-              <PingDetailPanel
-                ping={activePing}
-                onClose={() => { setActivePingState(null); }}
-                onReply={handleReply}
-                onMarkDone={() => handleMarkDone(activePing.id)}
-              />
-            ) : null}
+            <ComposePanel onSend={handleSend} onClose={() => setComposing(false)} />
           </div>
         )}
 
         {/* ══ COLUMN 3: MAIN CONTENT ══════════════════════ */}
         <main className={cn(
           "overflow-y-auto min-h-screen transition-all duration-200",
-          showMiddle
-            ? "w-[380px] shrink-0 p-4 md:p-6"   /* mobile-width when panel open */
-            : "flex-1 p-6 md:p-10",
+          showMiddle ? "w-[380px] shrink-0 p-4 md:p-6" : "flex-1 p-6 md:p-10",
         )}>
           {children}
         </main>
 
       </div>
+
+      {/* ══ STANDALONE ITEM MODAL ══════════════════════════ */}
+      {standaloneModal && (
+        <StandaloneItemModal
+          ping={standaloneModal}
+          onClose={() => setStandaloneModal(null)}
+          onReply={body => handleReply(body, standaloneModal)}
+          onMarkDone={() => handleMarkDone(standaloneModal.id)}
+        />
+      )}
+
     </DashboardContext.Provider>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useRoute, useLocation } from "wouter";
+import { useRoute, useLocation, useSearch } from "wouter";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { useListWorkRequests, useListCompletedWork } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -335,9 +335,11 @@ export default function ProjectDetail() {
   const [, params]      = useRoute("/dashboard/project/:id");
   const [, setLocation] = useLocation();
   const { toast }       = useToast();
-  const { setActiveProject, setActivePing } = useDashboard();
+  const { setActiveProject } = useDashboard();
 
   const id = params?.id ? parseInt(params.id) : null;
+  const search      = useSearch();
+  const focusPingId = new URLSearchParams(search).get("pingId");
 
   /* ── Data ── */
   const { data: requests, isLoading: reqLoading } = useListWorkRequests(
@@ -405,14 +407,37 @@ export default function ProjectDetail() {
   };
 
   /* ── UI state ── */
-  const [expandedEntry, setExpandedEntry] = useState<number | null>(null);
-  const [reviewMedia,   setReviewMedia]   = useState<MediaItem | null>(null);
+  const [expandedEntry,  setExpandedEntry]  = useState<number | null>(null);
+  const [reviewMedia,    setReviewMedia]    = useState<MediaItem | null>(null);
+  const [highlightPingId, setHighlightPingId] = useState<string | null>(null);
 
   /* ── Active project context ── */
   useEffect(() => {
-    if (id && title) setActiveProject(id, title);
+    if (id && title) {
+      try {
+        const key = "concepful_projects";
+        const existing: Array<{id:string;title:string}> = JSON.parse(localStorage.getItem(key) ?? "[]");
+        const updated = [{ id: String(id), title }, ...existing.filter(p => p.id !== String(id))].slice(0, 20);
+        localStorage.setItem(key, JSON.stringify(updated));
+      } catch {}
+      setActiveProject(id, title);
+    }
     return () => setActiveProject(null, null);
   }, [id, title]);
+
+  /* ── Scroll-to ping from Actions sidebar ── */
+  useEffect(() => {
+    if (!focusPingId || isLoading) return;
+    const timer = setTimeout(() => {
+      const el = document.getElementById(`ping-${focusPingId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        setHighlightPingId(focusPingId);
+        setTimeout(() => setHighlightPingId(null), 2500);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [focusPingId, isLoading]);
 
   /* ── Add comment ── */
   const handleAddComment = (media: MediaItem, body: string) => {
@@ -751,10 +776,7 @@ export default function ProjectDetail() {
                             <div className="border-t border-border/40 pt-3">
                               <MiniCommentThread
                                 comments={comments}
-                                onViewAll={() => {
-                                  const latestComment = comments[0];
-                                  if (latestComment) setActivePing(latestComment);
-                                }}
+                                onViewAll={() => setReviewMedia(entry.media)}
                                 onOpen={() => handleOpenChat(entry.media)}
                               />
                             </div>
@@ -765,56 +787,41 @@ export default function ProjectDetail() {
                   );
                 }
 
-                /* ── Ping entry ── */
+                /* ── Ping entry (read-only history, anchored for sidebar navigation) ── */
                 const m  = KIND_META[entry.ping.kind];
                 const sm = SUBTYPE_META[entry.ping.subtype];
                 return (
-                  <div key={i}>
-                    <button onClick={toggle}
-                      className={cn(
-                        "w-full flex items-start gap-4 py-3 px-2 rounded-xl transition-colors text-left",
-                        isOpen ? "bg-primary/[0.06]" : "hover:bg-secondary/20",
-                      )}>
-                      <div className={cn(
-                        "h-9 w-9 rounded-full border flex items-center justify-center shrink-0 mt-0.5 text-base z-10",
-                        m.bg, m.border,
-                      )}>
-                        {sm.emoji}
+                  <div key={i}
+                    id={`ping-${entry.ping.id}`}
+                    className={cn(
+                      "flex items-start gap-4 py-3 px-2 rounded-xl transition-all duration-700",
+                      highlightPingId === entry.ping.id
+                        ? "bg-primary/10 ring-1 ring-inset ring-primary/25"
+                        : "",
+                    )}>
+                    <div className={cn(
+                      "h-9 w-9 rounded-full border flex items-center justify-center shrink-0 mt-0.5 text-base z-10",
+                      m.bg, m.border,
+                    )}>
+                      {sm.emoji}
+                    </div>
+                    <div className="flex-1 py-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={cn("text-[10px] font-bold uppercase tracking-wide", m.color)}>{sm.label}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {entry.ping.author === "team" ? "Creative Team" : "You"} · {timeAgo(entry.ping.date)}
+                        </span>
                       </div>
-                      <div className="flex-1 py-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={cn("text-[10px] font-bold uppercase tracking-wide", m.color)}>{sm.label}</span>
-                          <span className="text-[10px] text-muted-foreground">
-                            {entry.ping.author === "team" ? "Creative Team" : "You"} · {timeAgo(entry.ping.date)}
-                          </span>
+                      <p className="text-sm font-medium mt-0.5 line-clamp-2">{entry.ping.title}</p>
+                      {entry.ping.body && (
+                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{entry.ping.body}</p>
+                      )}
+                      {entry.ping.fileName && (
+                        <div className="inline-flex items-center gap-1 text-[10px] border rounded-lg px-2 py-1 bg-secondary/40 font-medium mt-1">
+                          📎 {entry.ping.fileName}
                         </div>
-                        <p className="text-sm font-medium mt-0.5 line-clamp-1">{entry.ping.title}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{entry.ping.body}</p>
-                      </div>
-                      <ChevronDown className={cn(
-                        "h-3.5 w-3.5 text-muted-foreground/30 shrink-0 mt-3 mr-1 transition-transform",
-                        isOpen && "rotate-180",
-                      )} />
-                    </button>
-
-                    {/* Ping expanded */}
-                    {isOpen && (
-                      <div className="ml-[52px] mb-3 p-4 bg-card border border-border/50 rounded-xl space-y-3 animate-in slide-in-from-top-2 duration-150">
-                        <h4 className="font-semibold text-sm leading-snug">{entry.ping.title}</h4>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{entry.ping.body}</p>
-                        {entry.ping.fileName && (
-                          <div className="inline-flex items-center gap-1.5 text-[11px] border rounded-lg px-2 py-1.5 bg-secondary/40 font-medium">
-                            📎 {entry.ping.fileName}
-                          </div>
-                        )}
-                        <div className="pt-1">
-                          <Button size="sm" variant="outline" className="gap-1.5 w-full"
-                            onClick={() => { setActivePing(entry.ping); setExpandedEntry(null); }}>
-                            <MessageSquare className="h-3.5 w-3.5" /> Reply in Actions
-                          </Button>
-                        </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 );
               })}
