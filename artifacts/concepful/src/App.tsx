@@ -20,6 +20,8 @@ import AiCollaboration from "@/pages/dashboard/ai-collaboration";
 import ProjectCard from "@/pages/dashboard/project";
 import AccountSettings from "@/pages/dashboard/settings";
 import CalendarPage from "@/pages/dashboard/calendar";
+import Messages from "@/pages/dashboard/messages";
+import MediaPage from "@/pages/dashboard/media-page";
 import AdminDashboard from "@/pages/admin/index";
 import Leads from "@/pages/admin/leads";
 
@@ -45,6 +47,8 @@ function Router() {
       <Route path="/dashboard/ai-collaboration" component={AiCollaboration} />
       <Route path="/dashboard/settings" component={AccountSettings} />
       <Route path="/dashboard/calendar" component={CalendarPage} />
+      <Route path="/dashboard/messages" component={Messages} />
+      <Route path="/dashboard/media" component={MediaPage} />
 
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/leads" component={Leads} />

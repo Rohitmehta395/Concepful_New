@@ -2,11 +2,12 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import {
   MessageSquare, CheckSquare, Paperclip, Plus, X,
-  Settings, LayoutDashboard, Layers,
+  Settings, LayoutDashboard, ChevronDown,
   ChevronLeft, ChevronRight, ArrowUpDown,
   Folder, Send, Zap, Calendar, Hash,
   AtSign, Slash, Check, User,
 } from "lucide-react";
+import { useListWorkRequests } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -527,6 +528,25 @@ function ActionItem({ ping, isActive, onClick }: {
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
 
+  /* Nav expansion */
+  const [navExpanded, setNavExpanded] = useState(() => {
+    try { return localStorage.getItem("concepful_nav_expanded") !== "false"; } catch { return true; }
+  });
+  const toggleNav = () => {
+    setNavExpanded(n => {
+      const next = !n;
+      try { localStorage.setItem("concepful_nav_expanded", String(next)); } catch {}
+      return next;
+    });
+  };
+
+  /* Project list for nav */
+  const { data: workRequests } = useListWorkRequests(
+    { query: { queryKey: ["nav-requests", 1] } },
+    { request: { query: { companyId: 1 } } },
+  );
+  const navProjects = workRequests?.map(r => ({ id: String(r.id), title: r.title })) ?? getKnownProjects();
+
   /* Context */
   const [activeProjectId,    setActiveProjectId]    = useState<number | null>(null);
   const [activeProjectTitle, setActiveProjectTitle] = useState<string | null>(null);
@@ -603,14 +623,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   /* Middle column only for composing */
   const showMiddle = composing;
 
-  /* Nav context */
-  const isOnProject    = location.startsWith("/dashboard/project/");
-  const secondTabHref  = isOnProject
-    ? (activeProjectId ? `/dashboard/project/${activeProjectId}` : location)
-    : "/dashboard/requests";
-  const secondTabLabel = isOnProject ? (activeProjectTitle ?? "Project") : "Requests";
-  const SecondIcon     = isOnProject ? Folder : Layers;
-
   const ctx = { activePing: null, setActivePing, activeProjectId, activeProjectTitle, setActiveProject };
 
   return (
@@ -647,33 +659,69 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          {/* Quick nav */}
-          <div className="px-3 py-2 border-b flex items-center gap-1 shrink-0 flex-wrap">
-            <Link href="/dashboard">
-              <button className={cn(
-                "flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors",
-                location === "/dashboard" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary",
-              )}>
-                <LayoutDashboard className="h-3 w-3" /> Overview
-              </button>
-            </Link>
-            <Link href={secondTabHref}>
-              <button className={cn(
-                "flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors max-w-[90px]",
-                (location === "/dashboard/requests" || isOnProject) ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary",
-              )}>
-                <SecondIcon className="h-3 w-3 shrink-0" />
-                <span className="truncate">{secondTabLabel}</span>
-              </button>
-            </Link>
-            <Link href="/dashboard/calendar">
-              <button className={cn(
-                "flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors",
-                location === "/dashboard/calendar" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary",
-              )}>
-                <Calendar className="h-3 w-3" /> Calendar
-              </button>
-            </Link>
+          {/* Main nav */}
+          <div className="px-2 pt-2 pb-1.5 border-b shrink-0 space-y-0.5">
+
+            {/* Dashboard + project dropdown */}
+            <div>
+              <div className="flex items-center">
+                <Link href="/dashboard" className="flex-1 min-w-0">
+                  <button className={cn(
+                    "w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors",
+                    location === "/dashboard"
+                      ? "bg-primary/[0.08] text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50",
+                  )}>
+                    <LayoutDashboard className="h-3.5 w-3.5 shrink-0" />
+                    <span className="flex-1 text-left">Dashboard</span>
+                  </button>
+                </Link>
+                <button onClick={toggleNav}
+                  className="h-6 w-6 rounded-md flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors shrink-0 ml-0.5">
+                  <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", navExpanded && "rotate-180")} />
+                </button>
+              </div>
+
+              {navExpanded && navProjects.length > 0 && (
+                <div className="ml-3 mt-0.5 pl-2.5 border-l border-border/30 space-y-0.5">
+                  {navProjects.map(proj => (
+                    <Link key={proj.id} href={`/dashboard/project/${proj.id}`}>
+                      <button className={cn(
+                        "w-full flex items-center gap-2 px-2 py-1 rounded-lg text-[11px] transition-colors text-left",
+                        location === `/dashboard/project/${proj.id}`
+                          ? "text-primary font-semibold bg-primary/[0.06]"
+                          : "text-muted-foreground hover:text-foreground hover:bg-secondary/40",
+                      )}>
+                        <div className={cn(
+                          "h-1.5 w-1.5 rounded-full shrink-0",
+                          location === `/dashboard/project/${proj.id}` ? "bg-primary" : "bg-muted-foreground/40",
+                        )} />
+                        <span className="truncate">{proj.title}</span>
+                      </button>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Secondary nav items */}
+            {([
+              { href: "/dashboard/calendar", icon: Calendar,      label: "Calendar" },
+              { href: "/dashboard/messages", icon: MessageSquare, label: "Messages" },
+              { href: "/dashboard/media",    icon: Paperclip,     label: "Media"    },
+            ] as const).map(({ href, icon: Icon, label }) => (
+              <Link key={href} href={href}>
+                <button className={cn(
+                  "w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors",
+                  location.startsWith(href)
+                    ? "bg-primary/[0.08] text-primary font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50",
+                )}>
+                  <Icon className="h-3.5 w-3.5 shrink-0" />
+                  {label}
+                </button>
+              </Link>
+            ))}
           </div>
 
           {/* Actions header */}

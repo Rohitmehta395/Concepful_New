@@ -5,17 +5,18 @@ export type MediaSubtype   = "document" | "asset";
 export type PingSubtype    = MessageSubtype | TodoSubtype | MediaSubtype;
 
 export interface Ping {
-  id:         string;
-  kind:       PingKind;
-  subtype:    PingSubtype;
-  title:      string;
-  body:       string;
-  author:     "client" | "team";
-  projectId?: string;
-  date:       string;
-  done?:      boolean;
-  fileUrl?:   string;
-  fileName?:  string;
+  id:             string;
+  kind:           PingKind;
+  subtype:        PingSubtype;
+  title:          string;
+  body:           string;
+  author:         "client" | "team";
+  projectId?:     string;
+  date:           string;
+  done?:          boolean;
+  fileUrl?:       string;
+  fileName?:      string;
+  scheduledDate?: string;
 }
 
 const STORAGE_KEY = "concepful_pings";
@@ -87,6 +88,7 @@ export const SEED_PINGS: Ping[] = [
     title: "Approve brand color palette",
     body: "Please review the 3 palette options in Figma and confirm your preferred direction by Friday EOD.",
     date: daysAgo(1), projectId: "1", done: false,
+    scheduledDate: "2026-06-13T17:00:00.000Z",
   },
   {
     id: "3", kind: "media", subtype: "asset", author: "team",
@@ -105,6 +107,7 @@ export const SEED_PINGS: Ping[] = [
     title: "Creative kickoff — Brand Voice Guidelines",
     body: "Scheduled for Thursday June 13 at 2pm EST. We'll walk through brand voice principles and gather input on tone and positioning.",
     date: daysAgo(3), projectId: "3", done: false,
+    scheduledDate: "2026-06-13T14:00:00.000Z",
   },
   {
     id: "6", kind: "media", subtype: "document", author: "team",
