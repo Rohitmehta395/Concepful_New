@@ -198,18 +198,18 @@ export default function DashboardOverview() {
         </div>
       </div>
 
-      {/* ── Top section: Plan Usage (left) + KPI strip (right) ── */}
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-4 items-start">
+      {/* ── Top section: 3-col grid — Usage spans 2, KPI cards in col 3 ── */}
+      <div className="grid grid-cols-3 gap-4 items-start">
 
-        {/* Plan usage card */}
-        <div className="bg-card border rounded-2xl p-5 flex items-center gap-5">
+        {/* Plan usage card — spans cols 1–2 */}
+        <div className="col-span-2 bg-card border rounded-2xl p-5 flex items-center gap-6">
           <PlanGauge used={3.5} total={5} />
-          <div className="flex-1 space-y-3 min-w-0">
+          <div className="flex-1 space-y-4 min-w-0">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Plan Usage</p>
-              <p className="font-serif text-base font-bold">Signal — Core</p>
+              <p className="font-serif text-lg font-bold">Signal — Core</p>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2">
+            <div className="grid grid-cols-4 gap-x-5 gap-y-2">
               {[
                 { val: "6",   label: "Requests" },
                 { val: "10",  label: "Monthly Limit" },
@@ -217,31 +217,34 @@ export default function DashboardOverview() {
                 { val: "87%", label: "On Time", accent: true },
               ].map(({ val, label, accent }) => (
                 <div key={label}>
-                  <p className={cn("text-lg font-bold tabular-nums leading-none", accent && "text-primary")}>{val}</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mt-0.5">{label}</p>
+                  <p className={cn("text-xl font-bold tabular-nums leading-none", accent && "text-primary")}>{val}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mt-1">{label}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* KPI strip — vertical */}
-        <div className="flex flex-col gap-2.5">
+        {/* KPI bento cards — col 3, stacked */}
+        <div className="flex flex-col gap-3">
           {[
-            { label: "Active",        value: activeRequests.length,  Icon: Pencil,      accent: false },
-            { label: "Needs Review",  value: pendingReview,          Icon: AlertCircle, accent: pendingReview > 0 },
-            { label: "Delivered",     value: deliveredWork.length,   Icon: CheckCircle2,accent: false },
+            { label: "Active",       value: activeRequests.length, Icon: Pencil,       accent: false },
+            { label: "Needs Review", value: pendingReview,         Icon: AlertCircle,  accent: pendingReview > 0 },
+            { label: "Delivered",    value: deliveredWork.length,  Icon: CheckCircle2, accent: false },
           ].map(({ label, value, Icon, accent }) => (
             <div key={label} className={cn(
-              "bg-card border rounded-xl px-4 py-2.5 flex items-center gap-3 transition-colors",
+              "bg-card border rounded-2xl px-5 py-4 flex items-center gap-4 flex-1 transition-colors",
               accent && "border-primary/30 bg-primary/[0.04]",
             )}>
-              <div className={cn("h-7 w-7 rounded-lg flex items-center justify-center shrink-0", accent ? "bg-primary/10" : "bg-secondary")}>
-                <Icon className={cn("h-3.5 w-3.5", accent ? "text-primary" : "text-muted-foreground")} />
+              <div className={cn(
+                "h-9 w-9 rounded-xl flex items-center justify-center shrink-0",
+                accent ? "bg-primary/10" : "bg-secondary",
+              )}>
+                <Icon className={cn("h-4 w-4", accent ? "text-primary" : "text-muted-foreground")} />
               </div>
               <div>
-                <p className="text-xl font-bold leading-none tabular-nums">{value}</p>
-                <p className={cn("text-[10px] mt-0.5", accent ? "text-primary font-semibold" : "text-muted-foreground")}>{label}</p>
+                <p className="text-2xl font-bold leading-none tabular-nums">{value}</p>
+                <p className={cn("text-xs mt-1", accent ? "text-primary font-semibold" : "text-muted-foreground")}>{label}</p>
               </div>
             </div>
           ))}
