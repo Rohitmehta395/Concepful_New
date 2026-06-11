@@ -6,18 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Clock, ExternalLink, ArrowRight } from "lucide-react";
+import { Plus, Clock, ExternalLink, ArrowRight, Sparkles } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   title: z.string().min(2),
@@ -25,6 +27,7 @@ const formSchema = z.object({
   priority: z.enum(["low", "medium", "high", "urgent"]),
   goal: z.string().optional(),
   description: z.string().optional(),
+  aiAssistance: z.boolean().optional().default(false),
 });
 
 export default function Requests() {
@@ -44,6 +47,7 @@ export default function Requests() {
       priority: "medium",
       goal: "",
       description: "",
+      aiAssistance: false,
     },
   });
 
@@ -172,6 +176,41 @@ export default function Requests() {
                         <FormControl>
                           <Textarea placeholder="Provide detailed context..." className="min-h-[150px]" {...field} />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="aiAssistance"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div
+                          onClick={() => field.onChange(!field.value)}
+                          className={cn(
+                            "flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all select-none",
+                            field.value
+                              ? "border-primary/40 bg-primary/[0.04]"
+                              : "border-border hover:border-primary/25 hover:bg-secondary/40",
+                          )}
+                        >
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value ?? false}
+                              onCheckedChange={field.onChange}
+                              className="mt-0.5 shrink-0"
+                            />
+                          </FormControl>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />
+                              <span className="text-sm font-semibold leading-none">Add AI Assistance</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              An AI agent will be added to this task to help with drafts, initial concepts, and research — giving your team a head start.
+                            </p>
+                          </div>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}

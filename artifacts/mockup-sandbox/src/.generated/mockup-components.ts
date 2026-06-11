@@ -8,6 +8,7 @@ export const modules: ModuleMap = {
   "./components/mockups/client-dashboard/Clarity.tsx": () => import("../components/mockups/client-dashboard/Clarity.tsx"),
   "./components/mockups/client-dashboard/Command.tsx": () => import("../components/mockups/client-dashboard/Command.tsx"),
   "./components/mockups/client-dashboard/Forge.tsx": () => import("../components/mockups/client-dashboard/Forge.tsx"),
+  "./components/mockups/client-dashboard/Hybrid.tsx": () => import("../components/mockups/client-dashboard/Hybrid.tsx"),
   "./components/mockups/client-dashboard/Sprint.tsx": () => import("../components/mockups/client-dashboard/Sprint.tsx"),
   "./components/mockups/client-dashboard/StudioAI.tsx": () => import("../components/mockups/client-dashboard/StudioAI.tsx")
 };
