@@ -1,23 +1,21 @@
 export type PingKind = "message" | "todo" | "media";
-
 export type MessageSubtype = "chat" | "note" | "followup";
 export type TodoSubtype    = "task" | "project" | "meeting";
 export type MediaSubtype   = "document" | "asset";
-
-export type PingSubtype = MessageSubtype | TodoSubtype | MediaSubtype;
+export type PingSubtype    = MessageSubtype | TodoSubtype | MediaSubtype;
 
 export interface Ping {
-  id:        string;
-  kind:      PingKind;
-  subtype:   PingSubtype;
-  title:     string;
-  body:      string;
-  author:    "client" | "team";
+  id:         string;
+  kind:       PingKind;
+  subtype:    PingSubtype;
+  title:      string;
+  body:       string;
+  author:     "client" | "team";
   projectId?: string;
-  date:      string;
-  done?:     boolean;
-  fileUrl?:  string;
-  fileName?: string;
+  date:       string;
+  done?:      boolean;
+  fileUrl?:   string;
+  fileName?:  string;
 }
 
 const STORAGE_KEY = "concepful_pings";
@@ -35,44 +33,43 @@ export function savePings(pings: Ping[]): void {
 }
 
 export function addPing(pings: Ping[], ping: Omit<Ping, "id" | "date">): Ping[] {
-  const newPing: Ping = {
-    ...ping,
-    id:   crypto.randomUUID(),
-    date: new Date().toISOString(),
-  };
+  const newPing: Ping = { ...ping, id: crypto.randomUUID(), date: new Date().toISOString() };
   return [newPing, ...pings];
 }
 
-export const KIND_META: Record<PingKind, { label: string; color: string; bg: string; border: string }> = {
+export const KIND_META: Record<PingKind, { label: string; color: string; bg: string; border: string; dot: string }> = {
   message: {
     label:  "Message",
-    color:  "text-blue-600 dark:text-blue-400",
-    bg:     "bg-blue-50 dark:bg-blue-950/30",
-    border: "border-blue-200 dark:border-blue-800",
+    color:  "text-primary",
+    bg:     "bg-primary/[0.07]",
+    border: "border-primary/20",
+    dot:    "bg-primary",
   },
   todo: {
     label:  "To-Do",
-    color:  "text-amber-600 dark:text-amber-400",
-    bg:     "bg-amber-50 dark:bg-amber-950/30",
-    border: "border-amber-200 dark:border-amber-800",
+    color:  "text-[hsl(232,28%,28%)]",
+    bg:     "bg-[hsl(232,28%,11%)]/[0.07]",
+    border: "border-[hsl(232,28%,11%)]/20",
+    dot:    "bg-[hsl(232,28%,28%)]",
   },
   media: {
     label:  "Media",
-    color:  "text-violet-600 dark:text-violet-400",
-    bg:     "bg-violet-50 dark:bg-violet-950/30",
-    border: "border-violet-200 dark:border-violet-800",
+    color:  "text-muted-foreground",
+    bg:     "bg-secondary/60",
+    border: "border-border",
+    dot:    "bg-muted-foreground",
   },
 };
 
 export const SUBTYPE_META: Record<PingSubtype, { label: string; emoji: string }> = {
-  chat:      { label: "Chat",      emoji: "💬" },
-  note:      { label: "Note",      emoji: "📝" },
-  followup:  { label: "Follow-up", emoji: "🔔" },
-  task:      { label: "Task",      emoji: "✅" },
-  project:   { label: "Project",   emoji: "📁" },
-  meeting:   { label: "Meeting",   emoji: "📅" },
-  document:  { label: "Document",  emoji: "📄" },
-  asset:     { label: "Asset",     emoji: "🖼️" },
+  chat:     { label: "Chat",      emoji: "💬" },
+  note:     { label: "Note",      emoji: "📝" },
+  followup: { label: "Follow-up", emoji: "🔔" },
+  task:     { label: "Task",      emoji: "✓"  },
+  project:  { label: "Project",   emoji: "□"  },
+  meeting:  { label: "Meeting",   emoji: "◷"  },
+  document: { label: "Document",  emoji: "▤"  },
+  asset:    { label: "Asset",     emoji: "⊞"  },
 };
 
 const now = new Date();
@@ -82,13 +79,13 @@ export const SEED_PINGS: Ping[] = [
   {
     id: "1", kind: "message", subtype: "chat", author: "team",
     title: "Q3 Campaign — direction confirmed",
-    body: "Hey! We've reviewed your brief and locked in the moodboard direction. Coral + dark navy palette, editorial photography style. Moving to Design phase tomorrow.",
+    body: "Hey! We've locked in the moodboard direction — coral + dark navy palette, editorial photography style. Moving to Design phase tomorrow.",
     date: daysAgo(0), projectId: "1",
   },
   {
     id: "2", kind: "todo", subtype: "task", author: "team",
     title: "Approve brand color palette",
-    body: "Please review the 3 palette options shared in the Figma board and confirm your preferred direction by EOD Friday.",
+    body: "Please review the 3 palette options in Figma and confirm your preferred direction by Friday EOD.",
     date: daysAgo(1), projectId: "1", done: false,
   },
   {
@@ -100,13 +97,13 @@ export const SEED_PINGS: Ping[] = [
   {
     id: "4", kind: "message", subtype: "followup", author: "team",
     title: "Investor Deck — revision notes",
-    body: "Quick follow-up: the slide 8 data visualization needs your updated Q1 numbers before we can finalize. Can you drop them in the notes thread?",
+    body: "Quick follow-up: slide 8 data visualization needs your updated Q1 numbers before we can finalize. Can you drop them in the notes?",
     date: daysAgo(2), projectId: "2",
   },
   {
     id: "5", kind: "todo", subtype: "meeting", author: "team",
     title: "Creative kickoff — Brand Voice Guidelines",
-    body: "Scheduled for Thursday June 13 at 2pm EST. We'll walk through brand voice principles and gather input on tone, vocabulary, and audience positioning.",
+    body: "Scheduled for Thursday June 13 at 2pm EST. We'll walk through brand voice principles and gather input on tone and positioning.",
     date: daysAgo(3), projectId: "3", done: false,
   },
   {
@@ -118,13 +115,13 @@ export const SEED_PINGS: Ping[] = [
   {
     id: "7", kind: "message", subtype: "note", author: "client",
     title: "Reference: competitor rebrand I like",
-    body: "Sharing this link as a reference — I really like how Figma handled their brand refresh. Particularly the typography pairing and the way they used whitespace.",
+    body: "Sharing this as a reference — I really like how Figma handled their brand refresh. Particularly the typography pairing and use of whitespace.",
     date: daysAgo(6),
   },
   {
     id: "8", kind: "todo", subtype: "project", author: "team",
     title: "Social Media Template Pack — delivered",
-    body: "All 24 templates (Stories, Feed, Carousel) have been exported and are ready for download. Includes both Figma source files and PNG/MP4 exports.",
+    body: "All 24 templates (Stories, Feed, Carousel) exported and ready for download. Includes Figma source files and PNG/MP4 exports.",
     date: daysAgo(8), projectId: "4", done: true,
   },
 ];
