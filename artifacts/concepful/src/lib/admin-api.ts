@@ -1,5 +1,5 @@
 const API = import.meta.env.VITE_API_URL ?? "";
-const ADMIN_TOKEN = import.meta.env.VITE_ADMIN_TOKEN ?? "concepful-admin-dev";
+const ADMIN_TOKEN = import.meta.env.VITE_ADMIN_TOKEN ?? "";
 
 async function apiFetch<T>(path: string, opts?: RequestInit): Promise<T> {
   const res = await fetch(`${API}${path}`, {

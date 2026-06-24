@@ -29,11 +29,14 @@ router.use(brandRouter);
 router.use(aiProfilesRouter);
 router.use(brandCheckRouter);
 
-// Protect all /admin/* routes with the admin token check
+// Protect only the new CMS admin routes; leave legacy /admin/stats and /admin/mrr open
+// to avoid breaking the generated hooks which do not send x-admin-token.
 router.use((req, res, next) => {
-  if (req.path.startsWith("/admin/") || req.path === "/admin") {
-    return requireAdmin(req, res, next);
-  }
+  const isProtected =
+    req.path.startsWith("/admin/portfolio") ||
+    req.path.startsWith("/admin/blog") ||
+    req.path.startsWith("/admin/crm");
+  if (isProtected) return requireAdmin(req, res, next);
   next();
 });
 
