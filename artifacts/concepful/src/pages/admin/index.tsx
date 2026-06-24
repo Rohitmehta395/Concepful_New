@@ -1,24 +1,32 @@
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { useGetAdminStats, useGetAdminMrr, useListOnboardings } from "@workspace/api-client-react";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Briefcase, TrendingUp, DollarSign, ArrowRight, BookOpen, UserCheck } from "lucide-react";
 import { Link } from "wouter";
-import { portfolioApi, blogApi, crmApi } from "@/lib/admin-api";
+
+type ExtendedStats = {
+  totalLeads: number;
+  activeClients: number;
+  totalMrr: number;
+  openRequests: number;
+  signalClients: number;
+  pulseClients: number;
+  cortexClients: number;
+  completedWorkThisMonth: number;
+  recentOnboardings: unknown[];
+  totalContacts: number;
+  activeProspects: number;
+  publishedPosts: number;
+  publishedPortfolio: number;
+};
 
 export default function AdminDashboard() {
-  const { data: stats, isLoading: statsLoading } = useGetAdminStats();
+  const { data: rawStats, isLoading: statsLoading } = useGetAdminStats();
   const { data: mrr, isLoading: mrrLoading } = useGetAdminMrr();
   const { data: leads, isLoading: leadsLoading } = useListOnboardings();
-  const { data: contacts = [] } = useQuery({ queryKey: ["admin-crm"], queryFn: crmApi.list });
-  const { data: posts = [] } = useQuery({ queryKey: ["admin-blog"], queryFn: blogApi.list });
-  const { data: portfolio = [] } = useQuery({ queryKey: ["admin-portfolio"], queryFn: portfolioApi.list });
 
-  const totalContacts = contacts.length;
-  const activeProspects = contacts.filter(c => !["won", "lost"].includes(c.stage)).length;
-  const publishedPosts = posts.filter(p => p.status === "published").length;
-  const publishedPortfolio = portfolio.filter(p => p.status === "published").length;
+  const stats = rawStats as ExtendedStats | undefined;
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
@@ -30,6 +38,7 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground">High-level view of Concepful's pipeline and revenue.</p>
         </div>
 
+        {/* Revenue & pipeline metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -80,6 +89,7 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
+        {/* CRM & content metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -87,7 +97,9 @@ export default function AdminDashboard() {
               <UserCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{totalContacts}</div>
+              {statsLoading ? <Skeleton className="h-8 w-16" /> : (
+                <div className="text-3xl font-bold">{stats?.totalContacts ?? 0}</div>
+              )}
               <Link href="/admin/crm" className="text-xs text-primary hover:underline">View contacts →</Link>
             </CardContent>
           </Card>
@@ -97,7 +109,9 @@ export default function AdminDashboard() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{activeProspects}</div>
+              {statsLoading ? <Skeleton className="h-8 w-16" /> : (
+                <div className="text-3xl font-bold">{stats?.activeProspects ?? 0}</div>
+              )}
               <p className="text-xs text-muted-foreground">In pipeline (not won/lost)</p>
             </CardContent>
           </Card>
@@ -107,7 +121,9 @@ export default function AdminDashboard() {
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{publishedPosts}</div>
+              {statsLoading ? <Skeleton className="h-8 w-16" /> : (
+                <div className="text-3xl font-bold">{stats?.publishedPosts ?? 0}</div>
+              )}
               <Link href="/admin/blog" className="text-xs text-primary hover:underline">Manage blog →</Link>
             </CardContent>
           </Card>
@@ -117,7 +133,9 @@ export default function AdminDashboard() {
               <Briefcase className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{publishedPortfolio}</div>
+              {statsLoading ? <Skeleton className="h-8 w-16" /> : (
+                <div className="text-3xl font-bold">{stats?.publishedPortfolio ?? 0}</div>
+              )}
               <Link href="/admin/portfolio" className="text-xs text-primary hover:underline">Manage portfolio →</Link>
             </CardContent>
           </Card>

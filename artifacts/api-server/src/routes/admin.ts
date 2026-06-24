@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { companiesTable, onboardingSubmissionsTable, workRequestsTable, planSelectionsTable } from "@workspace/db";
+import {
+  companiesTable, onboardingSubmissionsTable, workRequestsTable, planSelectionsTable,
+  crmContactsTable, blogPostsTable, portfolioItemsTable,
+} from "@workspace/db";
 import { eq, count, sql } from "drizzle-orm";
 
 const router = Router();
@@ -28,6 +31,15 @@ router.get("/admin/stats", async (_req, res) => {
       .orderBy(onboardingSubmissionsTable.createdAt)
       .limit(10);
 
+    // CRM / content metrics
+    const [{ totalContacts }] = await db.select({ totalContacts: count() }).from(crmContactsTable);
+    const [{ activeProspects }] = await db.select({ activeProspects: count() }).from(crmContactsTable)
+      .where(sql`stage NOT IN ('won', 'lost')`);
+    const [{ publishedPosts }] = await db.select({ publishedPosts: count() }).from(blogPostsTable)
+      .where(eq(blogPostsTable.status, "published"));
+    const [{ publishedPortfolio }] = await db.select({ publishedPortfolio: count() }).from(portfolioItemsTable)
+      .where(eq(portfolioItemsTable.status, "published"));
+
     res.json({
       totalLeads,
       activeClients,
@@ -38,6 +50,10 @@ router.get("/admin/stats", async (_req, res) => {
       cortexClients,
       completedWorkThisMonth,
       recentOnboardings,
+      totalContacts,
+      activeProspects,
+      publishedPosts,
+      publishedPortfolio,
     });
   } catch (err) {
     console.error(err);

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
 const AUTH_KEY    = "concepful_session";
-const ADMIN_KEY   = "concepful_admin";
 const PRICING_KEY = "concepful_pricing_interest";
 
 export type UserRole = "admin" | "client" | "prospect-hot" | "prospect-cold";
@@ -24,14 +23,11 @@ function readBool(key: string): boolean {
   try { return localStorage.getItem(key) === "true"; } catch { return false; }
 }
 
-function computeIsAdmin(session: AuthSession): boolean {
-  return session?.role === "admin" || readBool(ADMIN_KEY);
-}
-
 export function useAuthState() {
   const [session, setSession]                   = useState<AuthSession>(readSession);
-  const [isAdmin, setIsAdmin]                   = useState(() => computeIsAdmin(readSession()));
   const [hasPricingInterest, setPricingInterest] = useState(() => readBool(PRICING_KEY));
+
+  const isAdmin = session?.role === "admin";
 
   const role: UserRole =
     isAdmin            ? "admin" :
@@ -43,29 +39,16 @@ export function useAuthState() {
     const s: AuthSession = { email, plan, activatedAt: new Date().toISOString(), role: sessionRole };
     localStorage.setItem(AUTH_KEY, JSON.stringify(s));
     setSession(s);
-    setIsAdmin(computeIsAdmin(s));
   }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem(AUTH_KEY);
     setSession(null);
-    setIsAdmin(readBool(ADMIN_KEY));
   }, []);
 
   const markPricingInterest = useCallback(() => {
     localStorage.setItem(PRICING_KEY, "true");
     setPricingInterest(true);
-  }, []);
-
-  const enableAdmin = useCallback(() => {
-    localStorage.setItem(ADMIN_KEY, "true");
-    setIsAdmin(true);
-  }, []);
-
-  const disableAdmin = useCallback(() => {
-    localStorage.removeItem(ADMIN_KEY);
-    const s = readSession();
-    setIsAdmin(s?.role === "admin");
   }, []);
 
   // Cross-tab sync
@@ -74,9 +57,7 @@ export function useAuthState() {
       if (e.key === AUTH_KEY) {
         const s: AuthSession = e.newValue ? JSON.parse(e.newValue) : null;
         setSession(s);
-        setIsAdmin(computeIsAdmin(s));
       }
-      if (e.key === ADMIN_KEY)   setIsAdmin(computeIsAdmin(readSession()));
       if (e.key === PRICING_KEY) setPricingInterest(e.newValue === "true");
     };
     window.addEventListener("storage", onStorage);
@@ -92,7 +73,5 @@ export function useAuthState() {
     login,
     logout,
     markPricingInterest,
-    enableAdmin,
-    disableAdmin,
   };
 }
