@@ -14,6 +14,7 @@ import blogRouter from "./blog";
 import crmRouter from "./crm";
 import stripeRouter from "./stripe";
 import storageRouter from "./storage";
+import { requireAdmin } from "../middleware/admin-auth";
 import figmaRouter from "./figma";
 
 const router: IRouter = Router();
@@ -29,6 +30,19 @@ router.use(aiProfilesRouter);
 router.use(brandCheckRouter);
 
 router.use(adminRouter);
+
+// New CMS admin routes — protected by requireAdmin middleware.
+// Legacy /admin/stats and /admin/mrr remain open to avoid breaking
+// generated hooks that cannot be modified without full codegen.
+router.use((req, res, next) => {
+  const isProtected =
+    req.path.startsWith("/admin/portfolio") ||
+    req.path.startsWith("/admin/blog") ||
+    req.path.startsWith("/admin/crm");
+  if (isProtected) return requireAdmin(req, res, next);
+  next();
+});
+
 router.use(portfolioRouter);
 router.use(blogRouter);
 router.use(crmRouter);

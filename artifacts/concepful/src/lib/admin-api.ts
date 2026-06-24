@@ -1,10 +1,15 @@
 const API = import.meta.env.VITE_API_URL ?? "";
+// VITE_ADMIN_TOKEN must match the server ADMIN_TOKEN env var.
+// In development without ADMIN_TOKEN set, the server is fail-open; this header is a no-op.
+const ADMIN_TOKEN = import.meta.env.VITE_ADMIN_TOKEN ?? "";
 
 async function apiFetch<T>(path: string, opts?: RequestInit): Promise<T> {
-  const res = await fetch(`${API}${path}`, {
-    headers: { "Content-Type": "application/json", ...opts?.headers },
-    ...opts,
-  });
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(ADMIN_TOKEN ? { "x-admin-token": ADMIN_TOKEN } : {}),
+    ...(opts?.headers as Record<string, string> | undefined),
+  };
+  const res = await fetch(`${API}${path}`, { ...opts, headers });
   if (res.status === 204) return undefined as T;
   const data = await res.json();
   if (!res.ok) throw new Error(data?.error ?? "Request failed");
