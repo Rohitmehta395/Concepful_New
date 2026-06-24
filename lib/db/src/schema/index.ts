@@ -146,3 +146,60 @@ export const brandChecksTable = pgTable("brand_checks", {
 export const insertBrandCheckSchema = createInsertSchema(brandChecksTable).omit({ id: true, createdAt: true });
 export type InsertBrandCheck = z.infer<typeof insertBrandCheckSchema>;
 export type BrandCheck = typeof brandChecksTable.$inferSelect;
+
+export const portfolioItemsTable = pgTable("portfolio_items", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  clientName: text("client_name"),
+  type: text("type").notNull(),
+  description: text("description"),
+  coverImageUrl: text("cover_image_url"),
+  featured: boolean("featured").default(false),
+  sortOrder: integer("sort_order").default(0),
+  status: text("status").default("draft").notNull(),
+  tags: jsonb("tags").$type<string[]>().default([]),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertPortfolioItemSchema = createInsertSchema(portfolioItemsTable).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertPortfolioItem = z.infer<typeof insertPortfolioItemSchema>;
+export type PortfolioItem = typeof portfolioItemsTable.$inferSelect;
+
+export const blogPostsTable = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  content: text("content").notNull().default(""),
+  excerpt: text("excerpt"),
+  category: text("category").default("insights").notNull(),
+  status: text("status").default("draft").notNull(),
+  coverImageUrl: text("cover_image_url"),
+  tags: jsonb("tags").$type<string[]>().default([]),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertBlogPostSchema = createInsertSchema(blogPostsTable).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
+export type BlogPost = typeof blogPostsTable.$inferSelect;
+
+export const crmContactsTable = pgTable("crm_contacts", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  company: text("company"),
+  type: text("type").default("prospect").notNull(),
+  stage: text("stage").default("new").notNull(),
+  notes: text("notes"),
+  source: text("source"),
+  assignedTo: text("assigned_to"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertCrmContactSchema = createInsertSchema(crmContactsTable).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertCrmContact = z.infer<typeof insertCrmContactSchema>;
+export type CrmContact = typeof crmContactsTable.$inferSelect;

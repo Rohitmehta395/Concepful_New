@@ -24,6 +24,9 @@ import Messages from "@/pages/dashboard/messages";
 import MediaPage from "@/pages/dashboard/media-page";
 import AdminDashboard from "@/pages/admin/index";
 import Leads from "@/pages/admin/leads";
+import AdminPortfolio from "@/pages/admin/portfolio";
+import AdminBlog from "@/pages/admin/blog";
+import AdminCrm from "@/pages/admin/crm";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +56,9 @@ function Router() {
 
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/leads" component={Leads} />
+      <Route path="/admin/portfolio" component={AdminPortfolio} />
+      <Route path="/admin/blog" component={AdminBlog} />
+      <Route path="/admin/crm" component={AdminCrm} />
       
       <Route component={NotFound} />
     </Switch>
