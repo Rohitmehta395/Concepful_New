@@ -38,7 +38,8 @@ export default function AdminCrm() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Partial<CrmContact>>(BLANK);
   const [isNew, setIsNew] = useState(true);
-  const [filter, setFilter] = useState<string>("all");
+  const [stageFilter, setStageFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
 
   const { data: contacts = [], isLoading } = useQuery({
@@ -84,7 +85,15 @@ export default function AdminCrm() {
     return acc;
   }, {} as Record<string, number>);
 
-  const filtered = filter === "all" ? contacts : contacts.filter(c => c.stage === filter);
+  const typeCounts = TYPES.reduce((acc, t) => {
+    acc[t] = contacts.filter(c => c.type === t).length;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const filtered = contacts.filter(c =>
+    (stageFilter === "all" || c.stage === stageFilter) &&
+    (typeFilter  === "all" || c.type  === typeFilter),
+  );
 
   return (
     <AdminLayout>
@@ -100,27 +109,51 @@ export default function AdminCrm() {
         </div>
 
         {/* Pipeline stage filter bar */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-          <button
-            onClick={() => setFilter("all")}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all border",
-              filter === "all" ? "bg-foreground text-background border-transparent" : "border-border text-muted-foreground hover:border-foreground/30",
-            )}>
-            All <span className="text-[10px]">{contacts.length}</span>
-          </button>
-          {STAGES.map(s => (
-            <button key={s}
-              onClick={() => setFilter(s)}
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mr-1 shrink-0">Stage</span>
+            <button
+              onClick={() => setStageFilter("all")}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all border capitalize",
-                filter === s
-                  ? cn("border-transparent", STAGE_STYLES[s])
-                  : "border-border text-muted-foreground hover:border-foreground/30",
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all border",
+                stageFilter === "all" ? "bg-foreground text-background border-transparent" : "border-border text-muted-foreground hover:border-foreground/30",
               )}>
-              {s} <span className="text-[10px]">{stageCounts[s] ?? 0}</span>
+              All <span className="text-[10px]">{contacts.length}</span>
             </button>
-          ))}
+            {STAGES.map(s => (
+              <button key={s}
+                onClick={() => setStageFilter(s)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all border capitalize",
+                  stageFilter === s
+                    ? cn("border-transparent", STAGE_STYLES[s])
+                    : "border-border text-muted-foreground hover:border-foreground/30",
+                )}>
+                {s} <span className="text-[10px]">{stageCounts[s] ?? 0}</span>
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mr-1 shrink-0">Type</span>
+            <button
+              onClick={() => setTypeFilter("all")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all border",
+                typeFilter === "all" ? "bg-foreground text-background border-transparent" : "border-border text-muted-foreground hover:border-foreground/30",
+              )}>
+              All
+            </button>
+            {TYPES.map(t => (
+              <button key={t}
+                onClick={() => setTypeFilter(t)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all border capitalize",
+                  typeFilter === t ? "bg-foreground text-background border-transparent" : "border-border text-muted-foreground hover:border-foreground/30",
+                )}>
+                {t} <span className="text-[10px]">{typeCounts[t] ?? 0}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {isLoading ? (
@@ -131,9 +164,9 @@ export default function AdminCrm() {
           <div className="text-center py-20 border border-dashed rounded-2xl">
             <UserCheck className="h-10 w-10 text-muted-foreground/25 mx-auto mb-3" />
             <p className="text-muted-foreground font-medium mb-4">
-              {filter === "all" ? "No contacts yet" : `No contacts in "${filter}"`}
+              {stageFilter === "all" && typeFilter === "all" ? "No contacts yet" : "No contacts match this filter"}
             </p>
-            {filter === "all" && <Button variant="outline" onClick={openNew}>Add your first contact</Button>}
+            {stageFilter === "all" && typeFilter === "all" && <Button variant="outline" onClick={openNew}>Add your first contact</Button>}
           </div>
         ) : (
           <div className="bg-card border rounded-2xl overflow-hidden divide-y divide-border/60">

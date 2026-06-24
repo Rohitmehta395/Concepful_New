@@ -13,6 +13,7 @@ import portfolioRouter from "./portfolio";
 import blogRouter from "./blog";
 import crmRouter from "./crm";
 import stripeRouter from "./stripe";
+import { requireAdmin } from "../middleware/admin-auth";
 import storageRouter from "./storage";
 import figmaRouter from "./figma";
 
@@ -27,6 +28,15 @@ router.use(workRouter);
 router.use(brandRouter);
 router.use(aiProfilesRouter);
 router.use(brandCheckRouter);
+
+// Protect all /admin/* routes with the admin token check
+router.use((req, res, next) => {
+  if (req.path.startsWith("/admin/") || req.path === "/admin") {
+    return requireAdmin(req, res, next);
+  }
+  next();
+});
+
 router.use(adminRouter);
 router.use(portfolioRouter);
 router.use(blogRouter);

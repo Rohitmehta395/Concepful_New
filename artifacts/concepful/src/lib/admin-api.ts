@@ -1,8 +1,13 @@
 const API = import.meta.env.VITE_API_URL ?? "";
+const ADMIN_TOKEN = import.meta.env.VITE_ADMIN_TOKEN ?? "concepful-admin-dev";
 
 async function apiFetch<T>(path: string, opts?: RequestInit): Promise<T> {
   const res = await fetch(`${API}${path}`, {
-    headers: { "Content-Type": "application/json", ...opts?.headers },
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-token": ADMIN_TOKEN,
+      ...opts?.headers,
+    },
     ...opts,
   });
   if (res.status === 204) return undefined as T;

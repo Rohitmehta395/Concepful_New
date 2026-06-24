@@ -1,8 +1,9 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
+import { useAuthState } from "@/hooks/use-auth-state";
 
 import Landing from "@/pages/landing";
 import PricingBreakdown from "@/pages/pricing";
@@ -30,6 +31,12 @@ import AdminCrm from "@/pages/admin/crm";
 
 const queryClient = new QueryClient();
 
+function AdminGuard({ children }: { children: React.ReactNode }) {
+  const { isAdmin } = useAuthState();
+  if (!isAdmin) return <Redirect to="/" />;
+  return <>{children}</>;
+}
+
 function Router() {
   return (
     <Switch>
@@ -54,11 +61,21 @@ function Router() {
       <Route path="/dashboard/collateral" component={MediaPage} />
       <Route path="/dashboard/media" component={MediaPage} />
 
-      <Route path="/admin" component={AdminDashboard} />
-      <Route path="/admin/leads" component={Leads} />
-      <Route path="/admin/portfolio" component={AdminPortfolio} />
-      <Route path="/admin/blog" component={AdminBlog} />
-      <Route path="/admin/crm" component={AdminCrm} />
+      <Route path="/admin">
+        <AdminGuard><AdminDashboard /></AdminGuard>
+      </Route>
+      <Route path="/admin/leads">
+        <AdminGuard><Leads /></AdminGuard>
+      </Route>
+      <Route path="/admin/portfolio">
+        <AdminGuard><AdminPortfolio /></AdminGuard>
+      </Route>
+      <Route path="/admin/blog">
+        <AdminGuard><AdminBlog /></AdminGuard>
+      </Route>
+      <Route path="/admin/crm">
+        <AdminGuard><AdminCrm /></AdminGuard>
+      </Route>
       
       <Route component={NotFound} />
     </Switch>
