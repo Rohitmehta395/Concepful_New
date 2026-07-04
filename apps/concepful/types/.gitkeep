@@ -1,0 +1,9 @@
+# types/
+#
+# Shared TypeScript type definitions and interfaces.
+# Types that are specific to a single feature live alongside that feature.
+#
+# Examples (to be added during migration phases):
+#   types/auth.ts      ← AuthSession, UserRole
+#   types/api.ts       ← Re-exports from @workspace/api-client-react
+#   types/common.ts    ← Shared generic types (Nullable<T>, etc.)

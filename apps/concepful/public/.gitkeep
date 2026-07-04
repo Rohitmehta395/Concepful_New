@@ -1,0 +1,10 @@
+# public/
+#
+# Static assets served directly by Next.js at the root URL path.
+#
+# Files to add during migration:
+#   public/favicon.svg      ← (copy from artifacts/concepful/public/favicon.svg)
+#   public/opengraph.jpg    ← (copy from artifacts/concepful/public/opengraph.jpg)
+#   public/robots.txt       ← (copy from artifacts/concepful/public/robots.txt)
+#
+# DO NOT copy assets during Phase S1-1. This is the scaffold only.

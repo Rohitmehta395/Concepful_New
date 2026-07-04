@@ -1,0 +1,10 @@
+# components/
+#
+# Shared presentational components used across multiple pages.
+#
+# Structure (to be populated during page migration):
+#   components/
+#   ├── ui/           ← shadcn/ui primitive components (migrated from existing app)
+#   └── layout/       ← site-wide layout shells (Header, Footer, Sidebar, etc.)
+#
+# DO NOT add components here until the corresponding page migration phase.

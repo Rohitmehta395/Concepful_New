@@ -1,0 +1,17 @@
+# features/
+#
+# Feature-scoped modules. Each subdirectory corresponds to a distinct
+# application domain and contains its own components, hooks, and types.
+#
+# Structure (to be populated during page migration):
+#   features/
+#   ├── dashboard/     ← Dashboard components, hooks, and types
+#   ├── onboarding/    ← Onboarding flow components
+#   ├── pricing/       ← Pricing page components and pricing logic
+#   ├── checkout/      ← Checkout and Stripe Elements components
+#   ├── admin/         ← Admin panel components
+#   ├── brand/         ← Brand Center components
+#   └── work/          ← Portfolio / case study components
+#
+# This co-location pattern keeps feature-specific code self-contained
+# and simplifies future refactoring.

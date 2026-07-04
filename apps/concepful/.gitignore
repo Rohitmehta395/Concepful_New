@@ -1,0 +1,10 @@
+# Next.js build output
+.next/
+out/
+
+# Production build
+dist/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+.env

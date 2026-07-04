@@ -1,0 +1,10 @@
+# providers/
+#
+# React context providers that wrap the application tree.
+# These are "use client" components registered in the root layout.
+#
+# Examples (to be created during migration phases):
+#   providers/query-provider.tsx    ← TanStack QueryClientProvider wrapper
+#   providers/tooltip-provider.tsx  ← Radix TooltipProvider wrapper
+#   providers/theme-provider.tsx    ← next-themes ThemeProvider (if dark mode is needed)
+#   providers/index.tsx             ← Composite provider that wraps all of the above

@@ -1,0 +1,9 @@
+# config/
+#
+# Application-level configuration constants.
+# No secrets here — only public, non-sensitive configuration.
+#
+# Examples (to be added during migration phases):
+#   config/site.ts       ← Site metadata (name, URL, social links)
+#   config/nav.ts        ← Navigation link definitions for header/sidebar
+#   config/pricing.ts    ← Re-export of pricing constants (moved from lib/)

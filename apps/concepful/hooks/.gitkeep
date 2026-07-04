@@ -1,0 +1,9 @@
+# hooks/
+#
+# Shared React hooks used across multiple features or pages.
+# Feature-specific hooks live inside features/<name>/hooks/.
+#
+# Examples of hooks that will live here (migrated from existing app):
+#   hooks/use-auth-state.ts      ← auth session (localStorage → cookie migration needed)
+#   hooks/use-mobile.tsx         ← responsive breakpoint detection
+#   hooks/use-toast.ts           ← toast notification hook

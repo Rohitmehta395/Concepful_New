@@ -1,0 +1,10 @@
+# lib/
+#
+# Framework-agnostic utility modules. No React-specific code here.
+#
+# Examples (to be added during migration phases):
+#   lib/utils.ts         ← cn() helper (clsx + tailwind-merge)
+#   lib/pricing.ts       ← Pricing calculation utilities (TIERS, ADDONS, AI_OPS)
+#   lib/pings.ts         ← Activity feed types and seed data
+#   lib/media.ts         ← Media library types
+#   lib/api.ts           ← API base URL configuration for TanStack Query
