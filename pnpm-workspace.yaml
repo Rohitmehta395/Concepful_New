@@ -165,5 +165,4 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
 
-patchedDependencies:
-  next@15.5.20: patches/next@15.5.20.patch
+
