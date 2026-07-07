@@ -22,6 +22,9 @@ export const metadata: Metadata = {
     template: "%s | Concepful",
   },
   description: "Concepful — Forward Creative Agency",
+  icons: {
+    icon: "/favicon.svg",
+  },
   robots: {
     index: true,
     follow: true,

@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -140,10 +141,11 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             <Link
               href="/"
               className={cn(
-                "font-serif text-xl font-bold tracking-tight shrink-0 transition-colors",
+                "flex items-center gap-2 font-serif text-xl font-bold tracking-tight shrink-0 transition-colors",
                 isTransparent ? "text-white" : "text-black",
               )}
             >
+              <Image src="/Logo.svg" alt="Concepful Logo" width={32} height={32} className="w-8 h-8" />
               Concepful
             </Link>
           </div>
@@ -276,7 +278,8 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             >
               {/* Close */}
               <div className="flex items-center justify-between px-6 h-16 border-b border-white/15">
-                <span className="font-serif text-lg font-bold text-white">
+                <span className="flex items-center gap-2 font-serif text-lg font-bold text-white">
+                  <Image src="/Logo.svg" alt="Concepful Logo" width={24} height={24} className="w-6 h-6" />
                   Concepful
                 </span>
                 <button
