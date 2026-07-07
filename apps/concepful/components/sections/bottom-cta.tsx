@@ -12,6 +12,12 @@ const DISCIPLINES = [
   "Product",
   "Content",
   "Strategy",
+  "Brand",
+  "Web",
+  "Motion",
+  "Product",
+  "Content",
+  "Strategy",
 ];
 
 export function BottomCta() {
