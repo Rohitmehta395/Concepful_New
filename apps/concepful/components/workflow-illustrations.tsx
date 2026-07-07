@@ -37,7 +37,7 @@ const DELIVERABLES: Array<{ label: string; tone: "muted" | "primary" }> = [
 /** Step 1 — a compact request/reply chat card. */
 export function RequestIllustration() {
   return (
-    <div className="w-full max-w-[260px] rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-left">
+    <div className="w-full max-w-full sm:max-w-[260px] rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-left">
       <div className="mb-4 flex items-center gap-2.5">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
           C
@@ -95,7 +95,7 @@ export function CreateAndDeliverIllustration() {
 
       {/* Headline + abstract product visual */}
       <div className="flex flex-col gap-5 px-5 pb-5 pt-4 sm:flex-row sm:items-center">
-        <div className="flex-1">
+        <div className="sm:flex-1">
           <h3 className="text-lg font-bold leading-snug text-neutral-900 sm:text-xl">
             Elevate Your Brand
             <br />
@@ -115,10 +115,10 @@ export function CreateAndDeliverIllustration() {
           </div>
         </div>
 
-        <div className="relative h-24 flex-1 sm:h-28">
+        <div className="relative h-28 w-full sm:h-28 sm:flex-1">
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/25 via-primary/10 to-transparent" />
-          <div className="absolute right-3 top-1 h-20 w-14 rounded-xl border border-primary/20 bg-white shadow-lg" />
-          <div className="absolute bottom-1 right-8 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-white shadow-lg">
+          <div className="absolute right-3 top-2 h-20 w-14 rounded-xl border border-primary/20 bg-white shadow-lg" />
+          <div className="absolute bottom-2 right-8 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-white shadow-lg">
             C
           </div>
         </div>
@@ -173,7 +173,7 @@ function DeliverableChip({
 /** Step 3 — stacked stat cards with sparkline trend lines. */
 export function GrowIllustration() {
   return (
-    <div className="flex w-full max-w-[260px] flex-col gap-2.5 text-left">
+    <div className="flex w-full max-w-full sm:max-w-[260px] flex-col gap-2.5 text-left">
       {GROWTH_STATS.map((stat) => (
         <div
           key={stat.label}

@@ -305,7 +305,7 @@ function TierCard({
         )}
       >
         <CardHeader className="pb-2 pt-7">
-          <div className="font-serif text-2xl font-extrabold">{t.name}</div>
+          <div className="font-serif text-2xl font-bold">{t.name}</div>
           <div className="mt-0.5 text-sm text-muted-foreground">
             {t.tagline}
           </div>
