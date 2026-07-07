@@ -1,40 +1,210 @@
-import { Layers, Palette, Globe, Megaphone, Monitor, PenTool, Lightbulb, FileText, Sparkles } from "lucide-react";
+import Link from "next/link";
+import {
+  Layers,
+  Palette,
+  Globe,
+  Megaphone,
+  Monitor,
+  PenTool,
+  Lightbulb,
+  FileText,
+  Sparkles,
+  ArrowUpRight,
+} from "lucide-react";
 
-const CAPABILITIES = [
-  { icon: Monitor,    label: "Product Design" },
-  { icon: Layers,     label: "UI / UX Design" },
-  { icon: Globe,      label: "Web Design" },
-  { icon: Palette,    label: "Brand Identity" },
-  { icon: Megaphone,  label: "Campaigns" },
-  { icon: FileText,   label: "Presentations" },
-  { icon: PenTool,    label: "Creative Direction" },
-  { icon: Lightbulb,  label: "Concept Development" },
-  { icon: Sparkles,   label: "Marketing Assets" },
+/**
+ * Design plan (so the reasoning is visible, not just the result):
+ *
+ * The old version was nine identical icon-in-a-box cards plus a row of
+ * icon-in-a-circle stats — the single most recognizable "AI-built SaaS page"
+ * pattern. It also wasted the headline's own claim: "Every Creative
+ * Discipline" describes a *range* of capability, but a flat undifferentiated
+ * grid of 9 boxes doesn't actually show range — it shows a list.
+ *
+ * Fix: group the 9 services into the 3 real categories they already fall
+ * into (Design & Product / Brand & Story / Content & Campaigns). That's a
+ * structural device that encodes something true — it shows the shape of
+ * the offering, not just its length — rather than decorative numbering,
+ * which wouldn't fit here since these 9 items aren't a sequence.
+ *
+ * The services themselves drop the card/shadow/rounded-box treatment
+ * entirely — icon, title, description as plain text in a column, separated
+ * by a hairline rule. Quieter on purpose, so the category labels (the part
+ * doing real work) are what stand out, not nine identical boxes competing
+ * for attention.
+ *
+ * The features row becomes a plain stat strip — bold serif numbers/claims
+ * with a caption underneath, no icon circles — since "Unlimited",
+ * "24h turnaround" etc. are strong enough as typography alone.
+ */
+
+// Placeholder links — each points at /work with a per-service anchor so
+// they're easy to find-and-replace individually once real work-page
+// sections/filters exist.
+const SERVICE_GROUPS = [
+  {
+    label: "Design & Product",
+    items: [
+      {
+        icon: Monitor,
+        label: "Product Design",
+        description:
+          "Digital products that are usable, intuitive and built to convert.",
+        href: "/work#product-design",
+      },
+      {
+        icon: Layers,
+        label: "UI / UX Design",
+        description:
+          "Beautiful interfaces and seamless experiences that users love.",
+        href: "/work#ui-ux-design",
+      },
+      {
+        icon: Globe,
+        label: "Web Design",
+        description:
+          "Modern, responsive websites that represent your brand and drive results.",
+        href: "/work#web-design",
+      },
+    ],
+  },
+  {
+    label: "Brand & Story",
+    items: [
+      {
+        icon: Palette,
+        label: "Brand Identity",
+        description:
+          "Logos, style guides and visual systems that build strong, recognizable brands.",
+        href: "/work#brand-identity",
+      },
+      {
+        icon: PenTool,
+        label: "Creative Direction",
+        description:
+          "Clear ideas and creative leadership that align everything with your brand vision.",
+        href: "/work#creative-direction",
+      },
+      {
+        icon: Lightbulb,
+        label: "Concept Development",
+        description:
+          "Original concepts and strategies that turn ideas into impactful solutions.",
+        href: "/work#concept-development",
+      },
+    ],
+  },
+  {
+    label: "Content & Campaigns",
+    items: [
+      {
+        icon: Megaphone,
+        label: "Campaigns",
+        description:
+          "End-to-end campaigns that capture attention and drive engagement.",
+        href: "/work#campaigns",
+      },
+      {
+        icon: Sparkles,
+        label: "Marketing Assets",
+        description:
+          "Social media, ads and digital assets that strengthen your marketing.",
+        href: "/work#marketing-assets",
+      },
+      {
+        icon: FileText,
+        label: "Presentations",
+        description:
+          "Pitch decks and business presentations that inspire confidence and close deals.",
+        href: "/work#presentations",
+      },
+    ],
+  },
+];
+
+const STATS = [
+  { value: "Unlimited", caption: "Add as many requests as you need." },
+  { value: "24 hours", caption: "Most requests delivered within a day." },
+  { value: "Cancel anytime", caption: "No contracts. Total flexibility." },
+  { value: "Dedicated team", caption: "Experts who understand your brand." },
 ];
 
 export function Capabilities() {
   return (
-    <section className="py-16 px-6 border-b border-border/40">
-      <div className="container mx-auto max-w-5xl">
-        <div className="text-center mb-10">
-          <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">What you can build</p>
-          <h2 className="font-serif text-3xl md:text-4xl font-extrabold tracking-tight mb-3">
-            One team. Every creative discipline.
+    <section className="border-b border-slate-200 bg-[#fafafa] px-6 py-24">
+      <div className="container mx-auto max-w-[1200px]">
+        <div className="mx-auto mb-20 max-w-2xl text-center">
+          <p className="mb-4 text-[13px] font-bold uppercase tracking-[0.15em] text-primary">
+            What you can build
+          </p>
+          <h2 className="mb-6 font-serif text-4xl font-bold tracking-tight text-slate-900 md:text-5xl lg:text-6xl">
+            One Team. Every <span className="text-primary">Creative</span>{" "}
+            Discipline.
           </h2>
-          <p className="text-muted-foreground max-w-lg mx-auto">
-            We're not selling deliverables — we're selling creative capability. Your team handles whatever you need, as you need it.
+          <p className="text-lg leading-relaxed font-normal text-slate-500 md:text-md">
+            We're not selling deliverables — we're selling creative capability.
+            Your team handles whatever you need, as you need it.
           </p>
         </div>
-        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-9 gap-3 md:gap-4">
-          {CAPABILITIES.map(({ icon: Icon, label }) => (
+
+        {/* Services, grouped by discipline — three real categories, not nine
+            interchangeable boxes. */}
+        <div className="grid grid-cols-1 gap-x-12 gap-y-12 lg:grid-cols-3 lg:gap-y-0">
+          {SERVICE_GROUPS.map((group, groupIdx) => (
             <div
-              key={label}
-              className="flex flex-col items-center gap-2.5 p-4 rounded-xl border border-border/60 bg-secondary/20 hover:bg-secondary/40 hover:border-primary/30 transition-all text-center group"
+              key={group.label}
+              className={
+                groupIdx > 0
+                  ? "border-t border-slate-200 pt-10 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-12"
+                  : ""
+              }
             >
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-                <Icon className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
-              </div>
-              <p className="text-xs font-medium leading-tight">{label}</p>
+              <p className="mb-7 text-xs font-bold uppercase tracking-[0.15em] text-primary">
+                {group.label}
+              </p>
+              <ul className="flex flex-col gap-2">
+                {group.items.map(({ icon: Icon, label, description, href }) => (
+                  <li key={label}>
+                    <Link
+                      href={href}
+                      className="group -mx-3 flex gap-4 rounded-xl px-3 py-3 transition-colors duration-300 hover:bg-primary/[0.05] focus-visible:bg-primary/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                    >
+                      <Icon
+                        className="mt-0.5 h-5 w-5 shrink-0 text-slate-400 transition-colors duration-300 group-hover:text-primary"
+                        strokeWidth={1.75}
+                        aria-hidden="true"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1 flex items-center gap-1.5">
+                          <p className="font-semibold tracking-tight text-slate-900 transition-colors duration-300 group-hover:text-primary">
+                            {label}
+                          </p>
+                          <ArrowUpRight
+                            className="h-3.5 w-3.5 -translate-x-1 text-primary opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
+                            aria-hidden="true"
+                          />
+                        </div>
+                        <p className="text-[14px] leading-relaxed text-slate-500">
+                          {description}
+                        </p>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Stat strip — plain typography, no icon circles. What these facts
+            claim is strong enough without decoration. */}
+        <div className="mt-20 grid grid-cols-1 gap-10 border-t border-slate-200 pt-12 sm:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-slate-200">
+          {STATS.map((stat, i) => (
+            <div key={stat.value} className={i !== 0 ? "lg:pl-10" : ""}>
+              <p className="mb-1.5 font-serif text-2xl font-medium tracking-tight text-slate-900 md:text-3xl">
+                {stat.value}
+              </p>
+              <p className="text-sm text-slate-500">{stat.caption}</p>
             </div>
           ))}
         </div>
