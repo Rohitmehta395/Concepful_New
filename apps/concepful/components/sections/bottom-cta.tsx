@@ -52,9 +52,9 @@ export function BottomCta() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="grid gap-10 md:grid-cols-12 md:items-end md:gap-8"
+          className="grid gap-10 text-center lg:grid-cols-12 lg:items-end lg:gap-8 lg:text-left"
         >
-          <div className="md:col-span-8">
+          <div className="lg:col-span-8">
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-white/40">
               Ready when you are
             </p>
@@ -84,7 +84,7 @@ export function BottomCta() {
             </h2>
           </div>
 
-          <div className="md:col-span-4 md:border-l md:border-white/10 md:pl-8">
+          <div className="lg:col-span-4 lg:border-l lg:border-white/10 lg:pl-8">
             <p className="mb-6 text-base leading-relaxed text-white/50">
               Add a full creative department to your company. No contracts, no
               overhead. Cancel anytime.
