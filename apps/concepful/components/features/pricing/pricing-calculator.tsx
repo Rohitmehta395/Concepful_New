@@ -55,7 +55,29 @@ export function PricingCalculator() {
   } = usePricingStore();
 
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [highlightSection, setHighlightSection] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Handle hash scrolling after component mounts (since hydration prevents immediate rendering)
+  useEffect(() => {
+    if (mounted && window.location.hash) {
+      const targetId = window.location.hash.substring(1);
+      const el = document.getElementById(targetId);
+      if (el) {
+        // Slight delay to ensure DOM is fully painted
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+          if (targetId === "capabilities") {
+            setHighlightSection(true);
+            setTimeout(() => setHighlightSection(false), 2000);
+          }
+        }, 100);
+      }
+    }
+  }, [mounted]);
 
   const handleProjectToggle = (id: string) =>
     setSelectedProjects(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
@@ -321,7 +343,13 @@ export function PricingCalculator() {
             </section>
 
             {/* Capabilities */}
-            <section>
+            <section 
+              id="capabilities" 
+              className={cn(
+                "scroll-mt-36 rounded-2xl transition-all duration-1000 -mx-4 px-4 -my-[-4px] py-4",
+                highlightSection ? "bg-primary/15 ring-1 ring-primary/30 shadow-lg shadow-primary/5" : "bg-transparent"
+              )}
+            >
               <h2 className="text-xl font-bold font-serif mb-5">Capabilities Included</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {t.capabilities.map(item => (

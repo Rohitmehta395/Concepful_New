@@ -10,37 +10,12 @@ import {
   FileText,
   Sparkles,
   ArrowUpRight,
+  Infinity,
+  Clock,
+  Unlock,
+  Users,
 } from "lucide-react";
 
-/**
- * Design plan (so the reasoning is visible, not just the result):
- *
- * The old version was nine identical icon-in-a-box cards plus a row of
- * icon-in-a-circle stats — the single most recognizable "AI-built SaaS page"
- * pattern. It also wasted the headline's own claim: "Every Creative
- * Discipline" describes a *range* of capability, but a flat undifferentiated
- * grid of 9 boxes doesn't actually show range — it shows a list.
- *
- * Fix: group the 9 services into the 3 real categories they already fall
- * into (Design & Product / Brand & Story / Content & Campaigns). That's a
- * structural device that encodes something true — it shows the shape of
- * the offering, not just its length — rather than decorative numbering,
- * which wouldn't fit here since these 9 items aren't a sequence.
- *
- * The services themselves drop the card/shadow/rounded-box treatment
- * entirely — icon, title, description as plain text in a column, separated
- * by a hairline rule. Quieter on purpose, so the category labels (the part
- * doing real work) are what stand out, not nine identical boxes competing
- * for attention.
- *
- * The features row becomes a plain stat strip — bold serif numbers/claims
- * with a caption underneath, no icon circles — since "Unlimited",
- * "24h turnaround" etc. are strong enough as typography alone.
- */
-
-// Placeholder links — each points at /work with a per-service anchor so
-// they're easy to find-and-replace individually once real work-page
-// sections/filters exist.
 const SERVICE_GROUPS = [
   {
     label: "Design & Product",
@@ -123,10 +98,10 @@ const SERVICE_GROUPS = [
 ];
 
 const STATS = [
-  { value: "Unlimited", caption: "Add as many requests as you need." },
-  { value: "24 hours", caption: "Most requests delivered within a day." },
-  { value: "Cancel anytime", caption: "No contracts. Total flexibility." },
-  { value: "Dedicated team", caption: "Experts who understand your brand." },
+  { icon: Infinity, value: "Unlimited", caption: "Add as many requests as you need." },
+  { icon: Clock, value: "24 hours", caption: "Most requests delivered within a day." },
+  { icon: Unlock, value: "Cancel anytime", caption: "No contracts. Total flexibility." },
+  { icon: Users, value: "Dedicated team", caption: "Experts who understand your brand." },
 ];
 
 export function Capabilities() {
@@ -196,11 +171,11 @@ export function Capabilities() {
           ))}
         </div>
 
-        {/* Stat strip — plain typography, no icon circles. What these facts
-            claim is strong enough without decoration. */}
-        <div className="mt-20 grid grid-cols-1 gap-10 border-t border-slate-200 pt-12 sm:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-slate-200">
+        {/* Stat strip */}
+        <div className="mt-20 grid grid-cols-2 gap-x-6 gap-y-10 border-t border-slate-200 pt-12 md:grid-cols-4 md:gap-10 lg:divide-x lg:divide-slate-200">
           {STATS.map((stat, i) => (
             <div key={stat.value} className={i !== 0 ? "lg:pl-10" : ""}>
+              <stat.icon className="mb-4 h-7 w-7 text-primary" strokeWidth={1.5} />
               <p className="mb-1.5 font-serif text-2xl font-medium tracking-tight text-slate-900 md:text-3xl">
                 {stat.value}
               </p>

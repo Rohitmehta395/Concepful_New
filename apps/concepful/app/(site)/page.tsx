@@ -12,16 +12,22 @@ export default function LandingPage() {
       <div className="flex-1 pb-32">
         <Hero />
         <Capabilities />
-        
+
         {/* ── PLAN SELECTOR ── */}
-        <section id="plan-selector" className="pt-16 pb-10 px-6 scroll-mt-8">
-          <div className="container mx-auto max-w-5xl mb-10 text-center">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">Choose your plan</p>
-            <h2 className="font-serif text-3xl md:text-4xl font-extrabold tracking-tight mb-3">
-              Creative bandwidth that fits your team.
+        <section
+          id="plan-selector"
+          className="scroll-mt-8 px-6 pb-15 pt-10 md:pt-24" 
+        >
+          <div className="container mx-auto mb-14 max-w-2xl text-center">
+            <p className="mb-4 text-[13px] font-bold uppercase tracking-[0.15em] text-primary">
+              Choose your plan
+            </p>
+            <h2 className="mb-5 font-serif text-4xl font-bold tracking-tight md:text-5xl">
+              Creative Bandwidth That Fits Your Team.
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Like selecting a mobile plan — pick the capacity that fits your pace. Upgrade or downgrade anytime.
+            <p className="text-lg leading-relaxed text-muted-foreground">
+              Like selecting a mobile plan — pick the capacity that fits your
+              pace. <br /> Upgrade or downgrade anytime.
             </p>
           </div>
           <PlanSelector />
@@ -31,7 +37,7 @@ export default function LandingPage() {
         <Segments />
         <BottomCta />
       </div>
-      
+
       <FloatingPricingWidget />
     </>
   );
