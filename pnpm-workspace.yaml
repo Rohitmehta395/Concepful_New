@@ -161,8 +161,7 @@ overrides:
   react-dom: "19.1.0"
 
 allowBuilds:
+  '@tsparticles/engine': set this to true or false
   esbuild: true
   sharp: true
   unrs-resolver: true
-
-

@@ -28,12 +28,20 @@ function readBool(key: string): boolean {
 }
 
 export function useAuthState() {
-  const [session, setSession]                   = useState<AuthSession>(readSession);
-  const [hasPricingInterest, setPricingInterest] = useState(() => readBool(PRICING_KEY));
+  const [session, setSession]                   = useState<AuthSession>(null);
+  const [hasPricingInterest, setPricingInterest] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setSession(readSession());
+    setPricingInterest(readBool(PRICING_KEY));
+    setIsMounted(true);
+  }, []);
 
   const isAdmin = session?.role === "admin";
 
   const role: UserRole =
+    !isMounted         ? "prospect-cold" :
     isAdmin            ? "admin" :
     !!session          ? "client" :
     hasPricingInterest ? "prospect-hot" :
