@@ -30,7 +30,7 @@ function AnimatedService() {
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex((current) => (current + 1) % services.length);
-    }, 4000);
+    }, 3000);
     return () => clearInterval(timer);
   }, []);
 

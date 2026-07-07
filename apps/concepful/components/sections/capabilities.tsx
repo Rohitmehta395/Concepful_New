@@ -122,8 +122,7 @@ export function Capabilities() {
           </p>
         </div>
 
-        {/* Services, grouped by discipline — three real categories, not nine
-            interchangeable boxes. */}
+        {/* Services, grouped by discipline — three real categories. */}
         <div className="grid grid-cols-1 gap-x-12 gap-y-12 lg:grid-cols-3 lg:gap-y-0">
           {SERVICE_GROUPS.map((group, groupIdx) => (
             <div
@@ -172,9 +171,9 @@ export function Capabilities() {
         </div>
 
         {/* Stat strip */}
-        <div className="mt-20 grid grid-cols-2 gap-x-6 gap-y-10 border-t border-slate-200 pt-12 md:grid-cols-4 md:gap-10 lg:divide-x lg:divide-slate-200">
+        <div className="mt-20 grid grid-cols-2 gap-x-6 gap-y-10 border-t border-slate-200 pt-12 md:grid-cols-4 md:gap-15 lg:divide-x lg:divide-slate-200">
           {STATS.map((stat, i) => (
-            <div key={stat.value} className={i !== 0 ? "lg:pl-10" : ""}>
+            <div key={stat.value} className={i !== 0 ? "lg:pl-5" : ""}>
               <stat.icon className="mb-4 h-7 w-7 text-primary" strokeWidth={1.5} />
               <p className="mb-1.5 font-serif text-2xl font-medium tracking-tight text-slate-900 md:text-3xl">
                 {stat.value}
