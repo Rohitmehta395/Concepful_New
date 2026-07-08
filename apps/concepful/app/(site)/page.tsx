@@ -9,7 +9,7 @@ import { FloatingPricingWidget } from "@/components/features/pricing/floating-pr
 export default function LandingPage() {
   return (
     <>
-      <div className="flex-1 pb-32">
+      <div className="flex-1">
         <Hero />
         <Capabilities />
 

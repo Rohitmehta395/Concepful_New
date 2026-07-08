@@ -6,20 +6,7 @@ import { Particles } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 import { type ISourceOptions, tsParticles } from "@tsparticles/engine";
 
-/**
- * An ambient, animated particle network in place of a static CSS grid.
- * Connected dots slowly drifting read as a "grid" but with real depth and
- * motion — driven by tsParticles instead of hand-rolled canvas code.
- *
- * Two things that matter for embedding this inside one section of a page
- * rather than a full-page background:
- *   - `fullScreen: { enable: false }` — tsParticles defaults to attaching
- *     itself to <body> and covering the entire viewport, which is almost
- *     never what you want here.
- *   - The engine only initializes once, in an effect, and nothing renders
- *     until it's ready — this is the standard SSR-safe pattern for
- *     Next.js App Router client components.
- */
+
 export function ParticlesBackground() {
   const [engineReady, setEngineReady] = useState(false);
   const prefersReducedMotion = useReducedMotion();

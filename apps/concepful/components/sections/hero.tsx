@@ -1,16 +1,11 @@
 "use client";
 
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
-import type { LucideIcon } from "lucide-react";
-import { ArrowRight, Edit, Layers, TrendingUp } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-  RequestIllustration,
-  CreateAndDeliverIllustration,
-  GrowIllustration,
-} from "@/components/workflow-illustrations";
+import { HeroFloatingComposition } from "@/components/hero-floating-composition";
 import { HeroBackground } from "@/components/hero-background";
 import { JSX, useState, useEffect } from "react";
 
@@ -55,39 +50,6 @@ function AnimatedService() {
 
 // ── Config ───────────────────────────────────────────────────────────────
 
-type WorkflowStep = {
-  title: string;
-  /** Used for screen readers to describe what the illustration depicts. */
-  description: string;
-  icon: LucideIcon;
-  Illustration: () => JSX.Element;
-  /** The center step renders larger and is the visual anchor of the row. */
-  featured?: boolean;
-};
-
-const workflowSteps: WorkflowStep[] = [
-  {
-    title: "You Request",
-    description: "A client submitting a creative request",
-    icon: Edit,
-    Illustration: RequestIllustration,
-  },
-  {
-    title: "We Create & Deliver",
-    description:
-      "The Concepful team designing the work and handing off finished assets",
-    icon: Layers,
-    Illustration: CreateAndDeliverIllustration,
-    featured: true,
-  },
-  {
-    title: "You Grow",
-    description: "Business growth resulting from the work",
-    icon: TrendingUp,
-    Illustration: GrowIllustration,
-  },
-];
-
 export function Hero() {
   const prefersReducedMotion = useReducedMotion();
 
@@ -108,7 +70,7 @@ export function Hero() {
         <motion.div
           {...fadeUp}
           transition={{ duration: 0.6 }}
-          className="max-w-5xl mx-auto"
+          className="max-w-5xl mx-auto relative z-20"
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/15 bg-white/5 text-xs font-semibold uppercase tracking-widest text-white/70 mb-8">
             Creative Department-as-a-Service
@@ -146,76 +108,13 @@ export function Hero() {
           </div>
         </motion.div>
 
-        {/* Workflow section — the middle step is the visual anchor */}
+        {/* Hero centerpiece: request card + floating stat satellites */}
         <motion.div
           {...fadeUpLarge}
           transition={{ delay: 0.6, duration: 0.8 }}
           className="mt-24 md:mt-16 w-full relative z-10"
         >
-          <ol className="flex flex-col items-center gap-10 lg:flex-row lg:items-stretch lg:justify-center lg:gap-6 list-none">
-            {workflowSteps.map((step, idx) => {
-              const isLast = idx === workflowSteps.length - 1;
-              return (
-                <li key={step.title} className="contents">
-                  <div
-                    className={cn(
-                      "flex flex-col items-center",
-                      step.featured
-                        ? "w-full lg:shrink-0 lg:basis-[38%]"
-                        : "w-full lg:shrink-0 lg:basis-[24%]",
-                    )}
-                  >
-                    <div className="flex items-center gap-2 mb-6 lg:mb-8">
-                      <step.icon
-                        className="w-5 h-5 text-primary"
-                        aria-hidden="true"
-                      />
-                      <span className="text-white font-medium text-lg whitespace-nowrap">
-                        {step.title}
-                      </span>
-                    </div>
-
-                    <div
-                      className={cn(
-                        "group relative w-full flex flex-col items-center justify-center flex-1",
-                        !prefersReducedMotion &&
-                          "transition-all duration-500 hover:-translate-y-2",
-                      )}
-                    >
-                      {/* Glow — stronger behind the featured card */}
-                      <div
-                        aria-hidden="true"
-                        className={cn(
-                          "absolute rounded-full blur-[60px] -z-10 transition-opacity duration-500",
-                          step.featured
-                            ? "inset-1/4 bg-primary/40 opacity-80"
-                            : "inset-1/3 bg-primary/20 opacity-0 group-hover:opacity-40",
-                        )}
-                      />
-
-                      <div
-                        role="img"
-                        aria-label={step.description}
-                        className="z-10 flex w-full justify-center drop-shadow-2xl"
-                      >
-                        <step.Illustration />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Connector — same icon, just rotated for the stacked mobile layout */}
-                  {!isLast && (
-                    <div
-                      className="flex items-center justify-center text-primary/70 lg:shrink-0"
-                      aria-hidden="true"
-                    >
-                      <ArrowRight className="h-6 w-6 rotate-90 lg:h-7 lg:w-7 lg:rotate-0" />
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
+          <HeroFloatingComposition />
         </motion.div>
       </div>
     </section>

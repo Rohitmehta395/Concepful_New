@@ -2,14 +2,6 @@
 
 import { cn } from "@/lib/utils";
 
-/**
- * Hand-built illustrations for the workflow section: "You Request" and
- * "You Grow" bookend a single, deliberately larger "We Create & Deliver"
- * card. Design and delivery are one continuous step in how Concepful
- * actually works, so this collapses what used to be two same-size boxes
- * into the one thing that should visually dominate the row.
- */
-
 const GROWTH_STATS = [
   {
     label: "More Conversions",
@@ -37,7 +29,7 @@ const DELIVERABLES: Array<{ label: string; tone: "muted" | "primary" }> = [
 /** Step 1 — a compact request/reply chat card. */
 export function RequestIllustration() {
   return (
-    <div className="w-full max-w-full sm:max-w-[260px] rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-left">
+    <div className="w-full max-w-full sm:max-w-[260px] rounded-2xl border border-white/20 bg-black/60 backdrop-blur-xl shadow-2xl shadow-black/50 p-5 text-left">
       <div className="mb-4 flex items-center gap-2.5">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
           C
@@ -55,11 +47,6 @@ export function RequestIllustration() {
   );
 }
 
-/**
- * Step 2 — the featured card. A browser-window mockup (the design) sitting
- * directly on top of a deliverables strip (the handoff), so the single card
- * visually tells "we create, and here's what actually lands in your inbox."
- */
 export function CreateAndDeliverIllustration() {
   return (
     <div className="w-full max-w-[480px] overflow-hidden rounded-3xl border border-white/10 bg-white text-left shadow-2xl shadow-primary/25">
@@ -177,7 +164,7 @@ export function GrowIllustration() {
       {GROWTH_STATS.map((stat) => (
         <div
           key={stat.label}
-          className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3"
+          className="flex items-center justify-between rounded-xl border border-white/20 bg-black/60 backdrop-blur-xl shadow-lg shadow-black/50 px-4 py-3"
         >
           <div>
             <p className="text-xs text-white/60">{stat.label}</p>
