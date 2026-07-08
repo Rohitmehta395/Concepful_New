@@ -62,10 +62,10 @@ export function Hero() {
     : { initial: { opacity: 0, y: 40 }, animate: { opacity: 1, y: 0 } };
 
   return (
-    <section className="relative overflow-hidden bg-[hsl(232,28%,11%)] h-screen">
+    <section className="relative overflow-hidden bg-[hsl(232,28%,11%)] min-h-[100svh] lg:min-h-screen">
       <HeroBackground />
 
-      <div className="relative container mx-auto px-6 max-w-7xl h-full">
+      <div className="relative container mx-auto px-6 max-w-7xl flex flex-col justify-center min-h-[100svh] lg:min-h-screen">
         {/*
           Two-column grid on desktop (lg+):
             Left  40% — badge, headline, description, CTAs
@@ -73,7 +73,7 @@ export function Hero() {
           Tablet (md): single column, centered — text then visual
           Mobile: stacked, text first
         */}
-        <div className="grid grid-cols-1 lg:grid-cols-[42fr_58fr] gap-0 lg:gap-8 h-full lg:items-center pt-20 pb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[42fr_58fr] gap-0 lg:gap-8 lg:items-center pt-28 pb-10">
 
           {/* ── Left column: copy ── */}
           <motion.div

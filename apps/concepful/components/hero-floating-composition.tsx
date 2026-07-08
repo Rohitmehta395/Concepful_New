@@ -84,7 +84,7 @@ export function HeroFloatingComposition() {
 
       {/* ── Mobile / small tablet: simplified stacked layout ── */}
       <div className="flex flex-col items-center gap-6 lg:hidden">
-        <div className="w-full max-w-[320px]">
+        <div className="w-full">
           <CenterRequestCard />
         </div>
         <div className="grid w-full max-w-[420px] grid-cols-2 gap-3">
