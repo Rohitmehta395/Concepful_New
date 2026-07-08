@@ -137,7 +137,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
       >
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo */}
-          <div className="flex flex-1 justify-start">
+          <div className="flex shrink-0">
             <Link
               href="/"
               className={cn(
@@ -145,103 +145,108 @@ export function SiteLayout({ children }: { children: ReactNode }) {
                 isTransparent ? "text-white" : "text-black",
               )}
             >
-              <Image src="/Logo.svg" alt="Concepful Logo" width={32} height={32} className="w-8 h-8" />
+              <Image
+                src="/Logo.svg"
+                alt="Concepful Logo"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
               Concepful
             </Link>
           </div>
 
-          {/* Desktop nav */}
-          <nav
-            aria-label="Primary"
-            className="hidden sm:flex flex-none items-center justify-center gap-5 text-sm font-medium"
-          >
-            {visibleNavItems.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "transition-colors",
-                  isTransparent
-                    ? "text-white/80 hover:text-white"
-                    : "text-black/70 hover:text-black",
-                )}
-              >
-                {label}
-              </Link>
-            ))}
-
-            {isAdmin && (
-              <Link href="/admin">
-                <span
+          {/* Right section: Nav & Actions */}
+          <div className="flex items-center gap-6">
+            {/* Desktop nav */}
+            <nav
+              aria-label="Primary"
+              className="hidden sm:flex items-center gap-5 text-sm font-medium"
+            >
+              {visibleNavItems.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
                   className={cn(
-                    "inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border transition-colors",
+                    "transition-colors",
                     isTransparent
-                      ? "bg-white/10 text-white border-white/20"
-                      : "bg-amber-400/15 text-amber-600 border-amber-400/30",
+                      ? "text-white/80 hover:text-white"
+                      : "text-black/70 hover:text-black",
                   )}
                 >
-                  <ShieldCheck className="h-3 w-3" aria-hidden="true" /> Admin
-                </span>
-              </Link>
-            )}
-          </nav>
+                  {label}
+                </Link>
+              ))}
 
-          {/* Right section: Auth Buttons & Mobile Menu */}
-          <div className="flex flex-1 justify-end items-center gap-4">
-            <div className="hidden sm:block">
-              {isLoggedIn ? (
-                <Link href="/dashboard">
-                  <Button
-                    size="sm"
-                    variant={isTransparent ? "ghost" : "outline"}
+              {isAdmin && (
+                <Link href="/admin">
+                  <span
                     className={cn(
-                      "h-8 px-4 text-sm font-semibold gap-2 transition-colors",
+                      "inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border transition-colors",
                       isTransparent
-                        ? "text-white hover:bg-white/10 hover:text-white border-white/20 border"
-                        : "border-primary/30 text-primary hover:bg-primary/5 hover:text-primary",
+                        ? "bg-white/10 text-white border-white/20"
+                        : "bg-amber-400/15 text-amber-600 border-amber-400/30",
                     )}
                   >
-                    <LayoutDashboard
-                      className="h-3.5 w-3.5"
-                      aria-hidden="true"
-                    />
-                    {portalLabel}
-                  </Button>
-                </Link>
-              ) : (
-                <Link href="/checkout">
-                  <Button
-                    size="sm"
-                    className={cn(
-                      "h-8 px-4 text-sm font-semibold transition-colors",
-                      isTransparent &&
-                        "bg-white text-primary hover:bg-white/90",
-                    )}
-                  >
-                    Get Started
-                  </Button>
+                    <ShieldCheck className="h-3 w-3" aria-hidden="true" /> Admin
+                  </span>
                 </Link>
               )}
-            </div>
+            </nav>
 
-            {/* Mobile: hamburger */}
-            <button
-              ref={menuButtonRef}
-              type="button"
-              className={cn(
-                "sm:hidden p-2 rounded-lg transition-colors",
-                isTransparent
-                  ? "text-white hover:bg-white/10"
-                  : "text-black hover:bg-gray-100",
-              )}
-              onClick={() => setMobileOpen(true)}
-              aria-haspopup="dialog"
-              aria-expanded={mobileOpen}
-              aria-controls="mobile-nav-panel"
-              aria-label="Open menu"
-            >
-              <Menu className="h-5 w-5" aria-hidden="true" />
-            </button>
+            {/* Right section: Auth Buttons & Mobile Menu */}
+            <div className="flex items-center gap-4">
+              <div className="hidden sm:block">
+                {isLoggedIn ? (
+                  <Link href="/dashboard">
+                    <Button
+                      size="sm"
+                      variant={isTransparent ? "ghost" : "outline"}
+                      className={cn(
+                        "h-8 px-4 text-sm font-semibold gap-2 transition-colors",
+                        isTransparent
+                          ? "text-white hover:bg-white/10 hover:text-white border-white/20 border"
+                          : "border-primary/30 text-primary hover:bg-primary/5 hover:text-primary",
+                      )}
+                    >
+                      <LayoutDashboard
+                        className="h-3.5 w-3.5"
+                        aria-hidden="true"
+                      />
+                      {portalLabel}
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/checkout">
+                    <Button
+                      size="sm"
+                      className="h-8 px-4 text-sm font-semibold transition-colors"
+                    >
+                      Get Started
+                    </Button>
+                  </Link>
+                )}
+              </div>
+
+              {/* Mobile: hamburger */}
+              <button
+                ref={menuButtonRef}
+                type="button"
+                className={cn(
+                  "sm:hidden p-2 rounded-lg transition-colors",
+                  isTransparent
+                    ? "text-white hover:bg-white/10"
+                    : "text-black hover:bg-gray-100",
+                )}
+                onClick={() => setMobileOpen(true)}
+                aria-haspopup="dialog"
+                aria-expanded={mobileOpen}
+                aria-controls="mobile-nav-panel"
+                aria-label="Open menu"
+              >
+                <Menu className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -279,7 +284,13 @@ export function SiteLayout({ children }: { children: ReactNode }) {
               {/* Close */}
               <div className="flex items-center justify-between px-6 h-16 border-b border-white/15">
                 <span className="flex items-center gap-2 font-serif text-lg font-bold text-white">
-                  <Image src="/Logo.svg" alt="Concepful Logo" width={24} height={24} className="w-6 h-6" />
+                  <Image
+                    src="/Logo.svg"
+                    alt="Concepful Logo"
+                    width={24}
+                    height={24}
+                    className="w-6 h-6"
+                  />
                   Concepful
                 </span>
                 <button
