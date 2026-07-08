@@ -136,9 +136,9 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             : "border-b border-gray-200 bg-white shadow-sm",
         )}
       >
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="container mx-auto pl-6 pr-6 sm:pr-0 flex h-[72px] items-stretch justify-between">
           {/* Logo */}
-          <div className="flex shrink-0">
+          <div className="flex shrink-0 items-center">
             <Link
               href="/"
               className="flex items-center shrink-0"
@@ -152,18 +152,18 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           </div>
 
           {/* Right section: Nav & Actions */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-stretch gap-8">
             {/* Desktop nav */}
             <nav
               aria-label="Primary"
-              className="hidden sm:flex items-center gap-5 text-sm font-medium"
+              className="hidden sm:flex items-center gap-8 text-sm font-medium"
             >
               {visibleNavItems.map(({ href, label }) => (
                 <Link
                   key={href}
                   href={href}
                   className={cn(
-                    "transition-colors",
+                    "transition-colors py-2",
                     isTransparent
                       ? "text-white/80 hover:text-white"
                       : "text-black/70 hover:text-black",
@@ -174,7 +174,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
               ))}
 
               {isAdmin && (
-                <Link href="/admin">
+                <Link href="/admin" className="flex items-center">
                   <span
                     className={cn(
                       "inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border transition-colors",
@@ -190,57 +190,54 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             </nav>
 
             {/* Right section: Auth Buttons & Mobile Menu */}
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:block">
+            <div className="flex items-center sm:items-stretch gap-6 sm:gap-0">
+              <div className="hidden sm:flex items-stretch">
                 {isLoggedIn ? (
-                  <Link href="/dashboard">
-                    <Button
-                      size="sm"
-                      variant={isTransparent ? "ghost" : "outline"}
-                      className={cn(
-                        "h-8 px-4 text-sm font-semibold gap-2 transition-colors",
-                        isTransparent
-                          ? "text-white hover:bg-white/10 hover:text-white border-white/20 border"
-                          : "border-primary/30 text-primary hover:bg-primary/5 hover:text-primary",
-                      )}
-                    >
-                      <LayoutDashboard
-                        className="h-3.5 w-3.5"
-                        aria-hidden="true"
-                      />
-                      {portalLabel}
-                    </Button>
+                  <Link
+                    href="/dashboard"
+                    className={cn(
+                      "flex items-center justify-center h-full px-8 text-sm font-semibold gap-2 transition-colors border-l",
+                      isTransparent
+                        ? "text-white hover:bg-white/10 border-white/20"
+                        : "text-primary hover:bg-primary/5 border-border",
+                    )}
+                  >
+                    <LayoutDashboard
+                      className="h-4 w-4"
+                      aria-hidden="true"
+                    />
+                    {portalLabel}
                   </Link>
                 ) : (
-                  <Link href="/checkout">
-                    <Button
-                      size="sm"
-                      className="h-8 px-4 text-sm font-semibold transition-colors"
-                    >
-                      Get Started
-                    </Button>
+                  <Link
+                    href="/checkout"
+                    className="flex items-center justify-center h-full px-10 bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+                  >
+                    Get Started
                   </Link>
                 )}
               </div>
 
               {/* Mobile: hamburger */}
-              <button
-                ref={menuButtonRef}
-                type="button"
-                className={cn(
-                  "sm:hidden p-2 rounded-lg transition-colors",
-                  isTransparent
-                    ? "text-white hover:bg-white/10"
-                    : "text-black hover:bg-gray-100",
-                )}
-                onClick={() => setMobileOpen(true)}
-                aria-haspopup="dialog"
-                aria-expanded={mobileOpen}
-                aria-controls="mobile-nav-panel"
-                aria-label="Open menu"
-              >
-                <Menu className="h-5 w-5" aria-hidden="true" />
-              </button>
+              <div className="flex items-center sm:hidden">
+                <button
+                  ref={menuButtonRef}
+                  type="button"
+                  className={cn(
+                    "p-2 rounded-lg transition-colors",
+                    isTransparent
+                      ? "text-white hover:bg-white/10"
+                      : "text-black hover:bg-gray-100",
+                  )}
+                  onClick={() => setMobileOpen(true)}
+                  aria-haspopup="dialog"
+                  aria-expanded={mobileOpen}
+                  aria-controls="mobile-nav-panel"
+                  aria-label="Open menu"
+                >
+                  <Menu className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

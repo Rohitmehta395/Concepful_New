@@ -74,7 +74,6 @@ export function Hero() {
           Mobile: stacked, text first
         */}
         <div className="grid grid-cols-1 lg:grid-cols-[42fr_58fr] gap-0 lg:gap-8 lg:items-center pt-28 pb-10">
-
           {/* ── Left column: copy ── */}
           <motion.div
             {...fadeUp}
@@ -87,7 +86,7 @@ export function Hero() {
             </div>
 
             {/* Headline */}
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-[3.6rem] xl:text-[4rem] font-medium tracking-tight text-white mb-5 leading-[0.95]">
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-[3.6rem] xl:text-[4rem] font-bold tracking-tight text-white mb-5 leading-[0.95]">
               Your Creative <span className="text-primary">Department,</span>
               <br />
               on Demand.
@@ -106,9 +105,12 @@ export function Hero() {
                 size="lg"
                 className="h-12 px-4 text-base font-semibold bg-primary hover:bg-primary/90"
               >
-                <Link href="#plan-selector">
-                  Start Your Creative Department
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                <Link
+                  href="#plan-selector"
+                  className="inline-flex items-center gap-2"
+                >
+                  <span>Start Your Creative Department</span>
+                  <ArrowRight className="size-5" />
                 </Link>
               </Button>
               <Button
@@ -130,7 +132,6 @@ export function Hero() {
           >
             <HeroFloatingComposition />
           </motion.div>
-
         </div>
       </div>
     </section>
