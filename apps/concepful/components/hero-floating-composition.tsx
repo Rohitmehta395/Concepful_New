@@ -6,29 +6,6 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import heroBg from "@/assets/hero-background.webp";
 
-/**
- * Hero centerpiece: a "New Request" chat card anchoring the layout, with
- * satellite stat cards floating around it — mirrors the layered, off-axis
- * composition style of the reference screenshot, rebuilt with Concepful's
- * own content (creative requests, deliverables, growth, turnaround time,
- * team, rating) instead of generic dashboard stats.
- *
- * Each satellite is split into two nested elements on purpose:
- *   - an outer, plain <div> that owns the static position + rotation
- *     (Tailwind classes only, never touched by Framer Motion)
- *   - an inner <Float> (motion.div) that owns only the vertical bob
- * Framer Motion writes a single computed `transform` style onto whatever
- * element you animate — if that same element also carries a Tailwind
- * `rotate-*`/`translate-*` class, Motion's inline style silently replaces
- * it every frame, which is what caused the jittery float before. Keeping
- * rotation and animation on separate elements avoids that entirely.
- *
- * Desktop/tablet: satellites are absolutely positioned across a wide
- * canvas so they use the horizontal space either side of the center card
- * instead of leaving it empty. Below `lg`, there isn't room for that
- * spread to read cleanly, so satellites drop into a simple grid beneath
- * the center card instead.
- */
 export function HeroFloatingComposition() {
   const prefersReducedMotion = useReducedMotion();
 
@@ -36,9 +13,9 @@ export function HeroFloatingComposition() {
     <div
       role="img"
       aria-label="A creative request being submitted to Concepful, surrounded by stats showing conversion growth, delivered assets, 24-hour turnaround, team size, and client rating."
-      className="relative mx-auto w-full max-w-[900px]"
+      className="relative w-full max-w-[600px] lg:max-w-none"
     >
-      {/* Background Image with faded edges and lower opacity */}
+      {/* Background image with faded edges */}
       <Image
         src={heroBg}
         alt=""
@@ -46,70 +23,71 @@ export function HeroFloatingComposition() {
         priority
       />
 
-      {/* Ambient glow behind the whole composition */}
+      {/* Ambient glow */}
       <div
         aria-hidden="true"
-        className="absolute inset-x-16 inset-y-16 -z-10 rounded-full bg-primary/25 blur-[100px]"
+        className="absolute inset-x-12 inset-y-12 -z-10 rounded-full bg-primary/20 blur-[80px]"
       />
 
-      {/* Desktop / tablet: spread-out layered composition */}
-      <div className="relative hidden lg:block lg:h-[540px]">
-        {/* Center — enlarged */}
-        <div className="absolute left-1/2 top-1/2 z-10 w-[420px] -translate-x-1/2 -translate-y-1/2">
+      {/* ── Desktop: positioned composition ── */}
+      <div className="relative hidden lg:block" style={{ height: 480 }}>
+
+        {/* Center card — slightly left of center to pull toward left column */}
+        <div className="absolute left-1/2 top-1/2 z-10 w-[340px] -translate-x-[55%] -translate-y-1/2">
           <Float delay={0} prefersReducedMotion={prefersReducedMotion}>
             <CenterRequestCard />
           </Float>
         </div>
 
         {/* Top-left */}
-        <div className="absolute left-0 top-6 z-20 w-[190px] -rotate-6">
+        <div className="absolute -left-2 -top-4 z-20 w-[170px] -rotate-6">
           <Float delay={0.4} prefersReducedMotion={prefersReducedMotion}>
             <ConversionStatCard />
           </Float>
         </div>
 
         {/* Top-right */}
-        <div className="absolute right-0 top-2 z-20 w-[200px] rotate-3">
+        <div className="absolute -right-4 top-8 z-20 w-[178px] rotate-3">
           <Float delay={0.8} prefersReducedMotion={prefersReducedMotion}>
             <DeliverablesCard />
           </Float>
         </div>
 
-        {/* Mid-left — new, fills the gap on the left edge */}
-        <div className="absolute left-6 top-[230px] z-20 w-[176px] rotate-2">
+        {/* Mid-left */}
+        <div className="absolute -left-15 top-[210px] z-20 w-[162px] rotate-2">
           <Float delay={1.0} prefersReducedMotion={prefersReducedMotion}>
             <TeamCard />
           </Float>
         </div>
 
-        {/* Mid-right — new, fills the gap on the right edge */}
-        <div className="absolute right-4 top-[220px] z-20 w-[172px] -rotate-3">
+        {/* Mid-right */}
+        <div className="absolute right-2 top-[200px] z-20 w-[158px] -rotate-3">
           <Float delay={1.4} prefersReducedMotion={prefersReducedMotion}>
             <RatingCard />
           </Float>
         </div>
 
         {/* Bottom-left */}
-        <div className="absolute bottom-6 left-16 z-20 w-[186px] rotate-3">
+        <div className="absolute -bottom-14 left-4 z-20 w-[168px] -rotate-3">
           <Float delay={1.2} prefersReducedMotion={prefersReducedMotion}>
             <TurnaroundCard />
           </Float>
         </div>
 
         {/* Bottom-right */}
-        <div className="absolute bottom-2 right-10 z-20 w-[178px] -rotate-6">
+        <div className="absolute bottom-2 right-2 z-20 w-[162px] -rotate-6">
           <Float delay={1.6} prefersReducedMotion={prefersReducedMotion}>
             <SatisfactionCard />
           </Float>
         </div>
       </div>
 
-      {/* Mobile / small tablet: simplified stacked layout */}
+      {/* ── Mobile / small tablet: simplified stacked layout ── */}
       <div className="flex flex-col items-center gap-6 lg:hidden">
-        <div className="w-full max-w-[340px]">
+        <div className="w-full max-w-[320px]">
           <CenterRequestCard />
         </div>
-        <div className="grid w-full max-w-[440px] grid-cols-2 gap-3">
+        <div className="grid w-full max-w-[420px] grid-cols-2 gap-3">
           <ConversionStatCard />
           <DeliverablesCard />
           <TeamCard />
@@ -122,9 +100,7 @@ export function HeroFloatingComposition() {
   );
 }
 
-/* ── Float ───────────────────────────────────────────────────────────────
-   Owns ONLY the vertical bob. Never put a rotate/translate Tailwind class
-   on this element or on the motion.div itself — see note above. */
+/* ── Float ─────────────────────────────────────────────────────────────── */
 
 function Float({
   delay,

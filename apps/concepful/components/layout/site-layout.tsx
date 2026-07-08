@@ -13,6 +13,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { LogoNew } from "@/components/ui/logo-new";
 import { useAuthState } from "@/hooks/use-auth-state";
 import { cn } from "@/lib/utils";
 import {
@@ -140,19 +141,13 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           <div className="flex shrink-0">
             <Link
               href="/"
-              className={cn(
-                "flex items-center gap-2 font-serif text-xl font-bold tracking-tight shrink-0 transition-colors",
-                isTransparent ? "text-white" : "text-black",
-              )}
+              className="flex items-center shrink-0"
+              aria-label="Concepful Home"
             >
-              <Image
-                src="/Logo.svg"
-                alt="Concepful Logo"
-                width={32}
-                height={32}
-                className="w-8 h-8"
+              <LogoNew 
+                className="h-10 w-auto transition-colors" 
+                textColorClass={isTransparent ? "text-white" : "text-black"} 
               />
-              Concepful
             </Link>
           </div>
 
@@ -283,15 +278,11 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             >
               {/* Close */}
               <div className="flex items-center justify-between px-6 h-16 border-b border-white/15">
-                <span className="flex items-center gap-2 font-serif text-lg font-bold text-white">
-                  <Image
-                    src="/Logo.svg"
-                    alt="Concepful Logo"
-                    width={24}
-                    height={24}
-                    className="w-6 h-6"
+                <span className="flex items-center">
+                  <LogoNew 
+                    className="h-8 w-auto" 
+                    textColorClass="text-white" 
                   />
-                  Concepful
                 </span>
                 <button
                   type="button"

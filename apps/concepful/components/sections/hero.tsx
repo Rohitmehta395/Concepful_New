@@ -37,8 +37,8 @@ function AnimatedService() {
       layout
       transition={{ type: "spring", stiffness: 350, damping: 30 }}
       className={cn(
-        "inline-flex items-center justify-center px-4 h-[36px] mx-1 align-middle translate-y-[-2px] overflow-hidden gap-2",
-        "rounded-full border text-sm md:text-[15px] font-medium whitespace-nowrap transition-colors duration-500 text-white",
+        "inline-flex items-center justify-center px-4 h-[34px] mx-1 align-middle translate-y-[-2px] overflow-hidden gap-2",
+        "rounded-full border text-sm font-medium whitespace-nowrap transition-colors duration-500 text-white",
         service.bg
       )}
     >
@@ -53,8 +53,6 @@ function AnimatedService() {
 export function Hero() {
   const prefersReducedMotion = useReducedMotion();
 
-  // When the user has requested reduced motion, render content in its final
-  // state immediately instead of animating in.
   const fadeUp = prefersReducedMotion
     ? { initial: { opacity: 1, y: 0 }, animate: { opacity: 1, y: 0 } }
     : { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } };
@@ -64,58 +62,76 @@ export function Hero() {
     : { initial: { opacity: 0, y: 40 }, animate: { opacity: 1, y: 0 } };
 
   return (
-    <section className="relative overflow-hidden bg-[hsl(232,28%,11%)]">
+    <section className="relative overflow-hidden bg-[hsl(232,28%,11%)] h-screen">
       <HeroBackground />
-      <div className="relative container mx-auto px-6 pt-22 pb-24 max-w-7xl text-center">
-        <motion.div
-          {...fadeUp}
-          transition={{ duration: 0.6 }}
-          className="max-w-5xl mx-auto relative z-20"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/15 bg-white/5 text-xs font-semibold uppercase tracking-widest text-white/70 mb-8">
-            Creative Department-as-a-Service
-          </div>
 
-          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-medium tracking-tight text-white mb-6 leading-[0.95]">
-            Your Creative <span className="text-primary">Department,</span>
-            <br />
-            on Demand.
-          </h1>
+      <div className="relative container mx-auto px-6 max-w-7xl h-full">
+        {/*
+          Two-column grid on desktop (lg+):
+            Left  40% — badge, headline, description, CTAs
+            Right 60% — floating composition visual
+          Tablet (md): single column, centered — text then visual
+          Mobile: stacked, text first
+        */}
+        <div className="grid grid-cols-1 lg:grid-cols-[42fr_58fr] gap-0 lg:gap-8 h-full lg:items-center pt-20 pb-10">
 
-          <p className="text-md md:text-lg text-white/60 max-w-3xl mx-auto leading-relaxed mb-10">
-            Stop juggling freelancers and agencies. Get one expert team for <AnimatedService /> <br /> — ready to start within 24 hours.
-          </p>
+          {/* ── Left column: copy ── */}
+          <motion.div
+            {...fadeUp}
+            transition={{ duration: 0.6 }}
+            className="relative z-20 flex flex-col items-center text-center lg:items-start lg:text-left lg:pr-4 lg:py-20"
+          >
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/15 bg-white/5 text-xs font-semibold uppercase tracking-widest text-white/70 mb-7">
+              Creative Department-as-a-Service
+            </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              asChild
-              size="lg"
-              className="h-14 px-8 text-base font-semibold bg-primary hover:bg-primary/90"
-            >
-              <Link href="#plan-selector">
-                Start Your Creative Department
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="ghost"
-              className="h-14 px-8 text-base text-white/80 hover:text-white hover:bg-white/10 border border-white/15"
-            >
-              <Link href="#how-it-works">See how it works</Link>
-            </Button>
-          </div>
-        </motion.div>
+            {/* Headline */}
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-[3.6rem] xl:text-[4rem] font-medium tracking-tight text-white mb-5 leading-[0.95]">
+              Your Creative <span className="text-primary">Department,</span>
+              <br />
+              on Demand.
+            </h1>
 
-        {/* Hero centerpiece: request card + floating stat satellites */}
-        <motion.div
-          {...fadeUpLarge}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="mt-24 md:mt-16 w-full relative z-10"
-        >
-          <HeroFloatingComposition />
-        </motion.div>
+            {/* Description */}
+            <p className="text-base md:text-lg text-white/60 max-w-[42ch] leading-relaxed mb-9">
+              Stop juggling freelancers and agencies. Get one expert team for{" "}
+              <AnimatedService /> <br /> — ready to start within 24 hours.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                asChild
+                size="lg"
+                className="h-12 px-4 text-base font-semibold bg-primary hover:bg-primary/90"
+              >
+                <Link href="#plan-selector">
+                  Start Your Creative Department
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="ghost"
+                className="h-12 px-4 text-base text-white/80 hover:text-white hover:bg-white/10 border border-white/15"
+              >
+                <Link href="#how-it-works">See how it works</Link>
+              </Button>
+            </div>
+          </motion.div>
+
+          {/* ── Right column: floating composition ── */}
+          <motion.div
+            {...fadeUpLarge}
+            transition={{ delay: 0.4, duration: 0.8 }}
+            className="relative z-10 flex items-center justify-center lg:justify-end mt-12 lg:mt-0"
+          >
+            <HeroFloatingComposition />
+          </motion.div>
+
+        </div>
       </div>
     </section>
   );
