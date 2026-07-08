@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowRight, Check } from "lucide-react";
@@ -44,12 +44,18 @@ export function PlanSelector() {
   const [mobileTierIndex, setMobileTierIndex] = useState(
     TIER_KEYS.indexOf(currentTier),
   );
-  const touchStartX = useRef(0);
+  const [swipeDirection, setSwipeDirection] = useState(0);
 
   // Sync mobileTierIndex if tier changes externally (e.g. from floating widget)
   useEffect(() => {
-    if (mounted) setMobileTierIndex(TIER_KEYS.indexOf(tier));
-  }, [tier, mounted]);
+    if (mounted) {
+      const next = TIER_KEYS.indexOf(tier);
+      if (next !== mobileTierIndex) {
+        setSwipeDirection(next > mobileTierIndex ? 1 : -1);
+        setMobileTierIndex(next);
+      }
+    }
+  }, [tier, mounted, mobileTierIndex]);
 
   const fmt = (v: number) =>
     new Intl.NumberFormat("en-US", {
@@ -60,15 +66,22 @@ export function PlanSelector() {
 
   const handleMobileSwipe = (dir: 1 | -1) => {
     const next = Math.max(0, Math.min(2, mobileTierIndex + dir));
-    setMobileTierIndex(next);
-    setTier(TIER_KEYS[next]);
-    setPricingMode("retainer");
+    if (next !== mobileTierIndex) {
+      setSwipeDirection(dir);
+      setMobileTierIndex(next);
+      setTier(TIER_KEYS[next]);
+      setPricingMode("retainer");
+    }
   };
 
   const handleTierSelect = (key: TierKey) => {
-    setTier(key);
-    setMobileTierIndex(TIER_KEYS.indexOf(key));
-    setPricingMode("retainer");
+    const next = TIER_KEYS.indexOf(key);
+    if (next !== mobileTierIndex) {
+      setSwipeDirection(next > mobileTierIndex ? 1 : -1);
+      setTier(key);
+      setMobileTierIndex(next);
+      setPricingMode("retainer");
+    }
   };
 
   const handleTierContinue = (key: TierKey) => {
@@ -127,38 +140,61 @@ export function PlanSelector() {
       </div>
 
       {/* Mobile carousel */}
-      <div
-        className="relative mb-4 px-4 md:hidden"
-        onTouchStart={(e) => {
-          touchStartX.current = e.touches[0].clientX;
-        }}
-        onTouchEnd={(e) => {
-          const delta = touchStartX.current - e.changedTouches[0].clientX;
-          if (delta > 40) handleMobileSwipe(1);
-          else if (delta < -40) handleMobileSwipe(-1);
-        }}
-      >
+      <div className="relative mb-4 px-4 md:hidden touch-pan-y">
         <div className="overflow-visible pt-3">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={mobileTierIndex}
-              initial={{ opacity: 0, x: 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -40 }}
-              transition={{ duration: 0.22, ease: "easeInOut" }}
-            >
-              <TierCard
-                tierKey={TIER_KEYS[mobileTierIndex]}
-                isSelected={currentTier === TIER_KEYS[mobileTierIndex]}
-                billing={currentBilling}
-                onSelect={handleTierSelect}
-                onContinue={handleTierContinue}
-                onViewCapabilities={handleViewCapabilities}
-                fmt={fmt}
-                bandwidthLabels={BANDWIDTH_LABELS}
-              />
-            </motion.div>
-          </AnimatePresence>
+          <div className="grid">
+            <AnimatePresence initial={false} custom={swipeDirection}>
+              <motion.div
+                key={mobileTierIndex}
+                custom={swipeDirection}
+                variants={{
+                  enter: (dir: number) => ({
+                    x: dir > 0 ? "100%" : "-100%",
+                    opacity: 0,
+                  }),
+                  center: {
+                    x: 0,
+                    opacity: 1,
+                    zIndex: 1,
+                  },
+                  exit: (dir: number) => ({
+                    x: dir > 0 ? "-100%" : "100%",
+                    opacity: 0,
+                    zIndex: 0,
+                  })
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={1}
+                onDragEnd={(e, { offset, velocity }) => {
+                  const swipeVelocity = velocity.x;
+                  const swipeOffset = offset.x;
+                  
+                  if (swipeOffset < -50 || swipeVelocity < -500) {
+                    handleMobileSwipe(1);
+                  } else if (swipeOffset > 50 || swipeVelocity > 500) {
+                    handleMobileSwipe(-1);
+                  }
+                }}
+                className="col-start-1 row-start-1 w-full"
+              >
+                <TierCard
+                  tierKey={TIER_KEYS[mobileTierIndex]}
+                  isSelected={currentTier === TIER_KEYS[mobileTierIndex]}
+                  billing={currentBilling}
+                  onSelect={handleTierSelect}
+                  onContinue={handleTierContinue}
+                  onViewCapabilities={handleViewCapabilities}
+                  fmt={fmt}
+                  bandwidthLabels={BANDWIDTH_LABELS}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
 
         <div className="mt-4 flex items-center justify-between">
