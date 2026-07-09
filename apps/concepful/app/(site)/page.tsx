@@ -32,6 +32,7 @@ export default function LandingPage() {
           </div>
           <PlanSelector />
         </section>
+        <hr />
 
         <HowItWorks />
         <Segments />
