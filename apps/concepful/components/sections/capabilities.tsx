@@ -118,7 +118,7 @@ export function Capabilities() {
           </h2>
           <p className="text-lg leading-relaxed font-normal text-slate-500 md:text-md">
             We're not selling deliverables — we're selling creative capability.
-            Your team handles whatever you need, as you need it.
+            Screens, hardware, brands, campaigns: one team, any surface.
           </p>
         </div>
 
@@ -174,7 +174,10 @@ export function Capabilities() {
         <div className="mt-20 grid grid-cols-2 gap-x-6 gap-y-10 border-t border-slate-200 pt-12 md:grid-cols-4 md:gap-15 lg:divide-x lg:divide-slate-200">
           {STATS.map((stat, i) => (
             <div key={stat.value} className={i !== 0 ? "lg:pl-5" : ""}>
-              <stat.icon className="mb-4 h-7 w-7 text-primary" strokeWidth={1.5} />
+              <stat.icon
+                className="mb-4 h-7 w-7 text-primary"
+                strokeWidth={1.5}
+              />
               <p className="mb-1.5 font-serif text-2xl font-medium tracking-tight text-slate-900 md:text-3xl">
                 {stat.value}
               </p>
