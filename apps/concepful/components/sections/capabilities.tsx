@@ -24,13 +24,13 @@ const SERVICE_GROUPS = [
   {
     label: "Product & Interface",
     items: [
-      {
-        icon: Lightbulb,
-        label: "Product Concepts",
-        description:
-          "New products, features, and form factors — from napkin sketch to validated concept.",
-        href: "/work#product-concepts",
-      },
+      // {
+      //   icon: Lightbulb,
+      //   label: "Product Concepts",
+      //   description:
+      //     "New products, features, and form factors — from napkin sketch to validated concept.",
+      //   href: "/work#product-concepts",
+      // },
       {
         icon: LayoutTemplate,
         label: "Digital Product & UI/UX",
@@ -52,13 +52,13 @@ const SERVICE_GROUPS = [
           "Touchscreens, control panels, kiosks, and device UIs — designed for the hand as much as the eye.",
         href: "/work#physical-interfaces",
       },
-      {
-        icon: Globe,
-        label: "Web Design",
-        description:
-          "Modern, responsive websites that represent your brand and drive results.",
-        href: "/work#web-design",
-      },
+      // {
+      //   icon: Globe,
+      //   label: "Web Design",
+      //   description:
+      //     "Modern, responsive websites that represent your brand and drive results.",
+      //   href: "/work#web-design",
+      // },
     ],
   },
   {
@@ -111,13 +111,13 @@ const SERVICE_GROUPS = [
           "Social media, ads and digital assets that strengthen your marketing.",
         href: "/work#marketing-assets",
       },
-      {
-        icon: Presentation,
-        label: "Presentations",
-        description:
-          "Pitch decks and business presentations that inspire confidence and close deals.",
-        href: "/work#presentations",
-      },
+      // {
+      //   icon: Presentation,
+      //   label: "Presentations",
+      //   description:
+      //     "Pitch decks and business presentations that inspire confidence and close deals.",
+      //   href: "/work#presentations",
+      // },
     ],
   },
 ];
