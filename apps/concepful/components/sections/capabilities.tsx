@@ -1,38 +1,56 @@
 import Link from "next/link";
 import {
-  Layers,
+  LayoutTemplate,
   Palette,
   Globe,
   Megaphone,
-  Monitor,
-  PenTool,
   Lightbulb,
   FileText,
-  Sparkles,
+  Presentation,
   ArrowUpRight,
   Infinity,
   Clock,
   Unlock,
   Users,
+  Hammer,
+  TabletSmartphone,
+  Compass,
+  WandSparkles,
+  Target,
+  Images,
 } from "lucide-react";
 
 const SERVICE_GROUPS = [
   {
-    label: "Design & Product",
+    label: "Product & Interface",
     items: [
       {
-        icon: Monitor,
-        label: "Product Design",
+        icon: Lightbulb,
+        label: "Product Concepts",
         description:
-          "Digital products that are usable, intuitive and built to convert.",
-        href: "/work#product-design",
+          "New products, features, and form factors — from napkin sketch to validated concept.",
+        href: "/work#product-concepts",
       },
       {
-        icon: Layers,
-        label: "UI / UX Design",
+        icon: LayoutTemplate,
+        label: "Digital Product & UI/UX",
         description:
-          "Beautiful interfaces and seamless experiences that users love.",
-        href: "/work#ui-ux-design",
+          "Apps, platforms, and interfaces that are intuitive, beautiful, and built to convert.",
+        href: "/work#digital-product",
+      },
+      {
+        icon: Hammer,
+        label: "MVP Build",
+        description:
+          "The last mile from prototype to product. We take AI-assisted and vibe-coded builds and harden them into something you can ship, charge for, and scale.",
+        href: "/work#mvp-build",
+      },
+      {
+        icon: TabletSmartphone,
+        label: "Physical Interfaces & HMI",
+        description:
+          "Touchscreens, control panels, kiosks, and device UIs — designed for the hand as much as the eye.",
+        href: "/work#physical-interfaces",
       },
       {
         icon: Globe,
@@ -54,17 +72,17 @@ const SERVICE_GROUPS = [
         href: "/work#brand-identity",
       },
       {
-        icon: PenTool,
+        icon: Compass,
         label: "Creative Direction",
         description:
           "Clear ideas and creative leadership that align everything with your brand vision.",
         href: "/work#creative-direction",
       },
       {
-        icon: Lightbulb,
+        icon: WandSparkles,
         label: "Concept Development",
         description:
-          "Original concepts and strategies that turn ideas into impactful solutions.",
+          "Original concepts — products, experiences, campaigns — that turn ideas into things you can ship.",
         href: "/work#concept-development",
       },
     ],
@@ -73,6 +91,13 @@ const SERVICE_GROUPS = [
     label: "Content & Campaigns",
     items: [
       {
+        icon: Target,
+        label: "Go-to-Market Strategy",
+        description:
+          "Positioning, messaging, pricing narrative, and channel plan — the launch thinking that makes the launch assets work.",
+        href: "/work#go-to-market",
+      },
+      {
         icon: Megaphone,
         label: "Campaigns",
         description:
@@ -80,14 +105,14 @@ const SERVICE_GROUPS = [
         href: "/work#campaigns",
       },
       {
-        icon: Sparkles,
+        icon: Images,
         label: "Marketing Assets",
         description:
           "Social media, ads and digital assets that strengthen your marketing.",
         href: "/work#marketing-assets",
       },
       {
-        icon: FileText,
+        icon: Presentation,
         label: "Presentations",
         description:
           "Pitch decks and business presentations that inspire confidence and close deals.",
@@ -98,10 +123,26 @@ const SERVICE_GROUPS = [
 ];
 
 const STATS = [
-  { icon: Infinity, value: "Unlimited", caption: "Add as many requests as you need." },
-  { icon: Clock, value: "48 hours", caption: "Most requests delivered within two days." },
-  { icon: Unlock, value: "Cancel anytime", caption: "No contracts. Total flexibility." },
-  { icon: Users, value: "Dedicated team", caption: "Experts who understand your brand." },
+  {
+    icon: Infinity,
+    value: "Unlimited",
+    caption: "Add as many requests as you need.",
+  },
+  {
+    icon: Clock,
+    value: "48 hours",
+    caption: "Most requests delivered within two days.",
+  },
+  {
+    icon: Unlock,
+    value: "Cancel anytime",
+    caption: "No contracts. Total flexibility.",
+  },
+  {
+    icon: Users,
+    value: "Dedicated team",
+    caption: "Experts who understand your brand.",
+  },
 ];
 
 export function Capabilities() {
