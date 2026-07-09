@@ -152,11 +152,11 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           </div>
 
           {/* Right section: Nav & Actions */}
-          <div className="flex items-stretch gap-8">
+          <div className="flex items-stretch gap-3">
             {/* Desktop nav */}
             <nav
               aria-label="Primary"
-              className="hidden sm:flex items-center gap-8 text-sm font-medium"
+              className="hidden sm:flex items-center gap-6 text-sm font-semibold"
             >
               {visibleNavItems.map(({ href, label }) => (
                 <Link
@@ -193,28 +193,34 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             <div className="flex items-center sm:items-stretch gap-6 sm:gap-0">
               <div className="hidden sm:flex items-stretch">
                 {isLoggedIn ? (
-                  <Link
-                    href="/dashboard"
-                    className={cn(
-                      "flex items-center justify-center h-full px-8 text-sm font-semibold gap-2 transition-colors border-l",
-                      isTransparent
-                        ? "text-white hover:bg-white/10 border-white/20"
-                        : "text-primary hover:bg-primary/5 border-border",
-                    )}
-                  >
-                    <LayoutDashboard
-                      className="h-4 w-4"
-                      aria-hidden="true"
-                    />
-                    {portalLabel}
-                  </Link>
+                  <div className="flex items-center px-6 border-l border-transparent">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className={cn(
+                        "gap-2 bg-transparent",
+                        isTransparent
+                          ? "text-white border-white/20 hover:bg-white/10 hover:text-white"
+                          : "text-primary border-primary hover:bg-primary/5 hover:text-primary",
+                      )}
+                    >
+                      <Link href="/dashboard">
+                        <LayoutDashboard
+                          className="h-4 w-4"
+                          aria-hidden="true"
+                        />
+                        {portalLabel}
+                      </Link>
+                    </Button>
+                  </div>
                 ) : (
-                  <Link
-                    href="/checkout"
-                    className="flex items-center justify-center h-full px-10 bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
-                  >
-                    Get Started
-                  </Link>
+                  <div className="flex items-center px-6 border-l border-transparent">
+                    <Button asChild>
+                      <Link href="/checkout">
+                        Get Started
+                      </Link>
+                    </Button>
+                  </div>
                 )}
               </div>
 
@@ -328,24 +334,18 @@ export function SiteLayout({ children }: { children: ReactNode }) {
               {/* CTA */}
               <div className="px-4 pb-8">
                 {isLoggedIn ? (
-                  <Link href="/dashboard" onClick={closeMobile}>
-                    <button
-                      type="button"
-                      className="w-full flex items-center justify-center gap-2 bg-white text-primary font-semibold px-4 py-3.5 rounded-xl hover:bg-white/90 transition-colors text-sm"
-                    >
+                  <Button asChild className="w-full bg-white text-primary hover:bg-white/90 py-6 rounded-xl">
+                    <Link href="/dashboard" onClick={closeMobile}>
                       <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
                       {portalLabel}
-                    </button>
-                  </Link>
+                    </Link>
+                  </Button>
                 ) : (
-                  <Link href="/checkout" onClick={closeMobile}>
-                    <button
-                      type="button"
-                      className="w-full bg-white text-primary font-semibold px-4 py-3.5 rounded-xl hover:bg-white/90 transition-colors text-sm"
-                    >
+                  <Button asChild className="w-full bg-white text-primary hover:bg-white/90 py-6 rounded-xl">
+                    <Link href="/checkout" onClick={closeMobile}>
                       Get Started
-                    </button>
-                  </Link>
+                    </Link>
+                  </Button>
                 )}
               </div>
             </motion.div>
