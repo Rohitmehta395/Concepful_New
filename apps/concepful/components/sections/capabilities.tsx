@@ -99,7 +99,7 @@ const SERVICE_GROUPS = [
 
 const STATS = [
   { icon: Infinity, value: "Unlimited", caption: "Add as many requests as you need." },
-  { icon: Clock, value: "24 hours", caption: "Most requests delivered within a day." },
+  { icon: Clock, value: "48 hours", caption: "Most requests delivered within two days." },
   { icon: Unlock, value: "Cancel anytime", caption: "No contracts. Total flexibility." },
   { icon: Users, value: "Dedicated team", caption: "Experts who understand your brand." },
 ];

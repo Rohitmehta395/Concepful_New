@@ -4,7 +4,7 @@ export const TIERS = {
     subtitle: "Creative Foundation",
     tagline: "For solo founders & early-stage teams",
     monthly: 2500,
-    annualDiscount: 0.10,
+    annualDiscount: 0.1,
     highlight: false,
     badge: null as string | null,
     bandwidth: {
@@ -94,25 +94,29 @@ export const MONTHLY_ADDONS = [
   {
     id: "motion_graphics",
     label: "Motion Graphics",
-    description: "Extended animation, motion design & video asset production beyond plan scope.",
+    description:
+      "Extended animation, motion design & video asset production beyond plan scope.",
     price: 2000,
   },
   {
     id: "three_d_art",
     label: "3D Art & Visualization",
-    description: "3D modeling, rendering & visual effects for campaigns, product renders, and spatial content.",
+    description:
+      "3D modeling, rendering & visual effects for campaigns, product renders, and spatial content.",
     price: 3000,
   },
   {
     id: "product_design",
     label: "Product Design Sprint",
-    description: "Deep-dive UX/UI product design, user research synthesis & interactive prototype iterations.",
+    description:
+      "Deep-dive UX/UI product design, user research synthesis & interactive prototype iterations.",
     price: 2500,
   },
   {
     id: "illustration",
     label: "Custom Illustration",
-    description: "Bespoke illustration sets, editorial art, icon systems & branded character design.",
+    description:
+      "Bespoke illustration sets, editorial art, icon systems & branded character design.",
     price: 1500,
   },
   {
@@ -126,49 +130,102 @@ export const MONTHLY_ADDONS = [
 export const AI_OPS = {
   none: {
     label: "Baseline AI Services",
-    description: "High-level AI across every workflow in your tier — concept generation, copy assistance, and asset variations. Included in all plans at no extra cost.",
+    description:
+      "High-level AI across every workflow in your tier — concept generation, copy assistance, and asset variations. Included in all plans at no extra cost.",
     compute: null as string | null,
     price: 0,
   },
   integration: {
     label: "AI Workflow Integration",
-    description: "Embed AI agents into your existing creative and marketing stack — covering agent-driven briefing, scheduling, and approval loops.",
+    description:
+      "Embed AI agents into your existing creative and marketing stack — covering agent-driven briefing, scheduling, and approval loops.",
     compute: "~50K tokens / mo",
     price: 2500,
   },
   brand_command: {
     label: "AI Brand Command Center",
-    description: "Real-time brand monitoring, competitive signal ingestion, auto-brief generation, and trend intelligence dashboards.",
+    description:
+      "Real-time brand monitoring, competitive signal ingestion, auto-brief generation, and trend intelligence dashboards.",
     compute: "~150K tokens / mo",
     price: 4000,
   },
   intelligence: {
     label: "AI Intelligence System",
-    description: "Fully custom AI workflow: brand memory, multi-model content pipelines, automated quality assurance, and agentic publishing.",
+    description:
+      "Fully custom AI workflow: brand memory, multi-model content pipelines, automated quality assurance, and agentic publishing.",
     compute: "~250K tokens / mo + dedicated compute",
     price: 6000,
   },
   robotics: {
     label: "AI Robotics Assistance",
-    description: "Interface AI with physical hardware for creative robotics, spatial computing, or interactive physical installations.",
+    description:
+      "Interface AI with physical hardware for creative robotics, spatial computing, or interactive physical installations.",
     compute: "Custom GPU / edge compute",
     price: 12000,
   },
 };
 
 export const PROJECT_ADDONS = [
-  { id: "brand_identity", label: "Brand Identity System",           price: 15000, hours: "60–80 hrs",  weeks: "4–6 wks" },
-  { id: "website",        label: "Website Design & Build",          price: 20000, hours: "80–120 hrs", weeks: "6–8 wks" },
-  { id: "campaign",       label: "Campaign System",                 price: 12000, hours: "40–60 hrs",  weeks: "3–5 wks" },
-  { id: "pitch_deck",     label: "Pitch Deck / Investor Materials", price:  8000, hours: "20–35 hrs",  weeks: "2–3 wks" },
-  { id: "product_ui",     label: "Product UI/UX Design",            price: 18000, hours: "70–100 hrs", weeks: "5–8 wks" },
-  { id: "video",          label: "Video Creative Direction",        price: 10000, hours: "30–50 hrs",  weeks: "3–4 wks" },
-  { id: "ai_workflow",    label: "AI Workflow Customization",       price: 12000, hours: "40–60 hrs",  weeks: "3–5 wks" },
-  { id: "innovation",     label: "Innovation Sprint",               price:  6000, hours: "20–30 hrs",  weeks: "1–2 wks" },
+  {
+    id: "brand_identity",
+    label: "Brand Identity System",
+    price: 15000,
+    hours: "60–80 hrs",
+    weeks: "4–6 wks",
+  },
+  {
+    id: "website",
+    label: "Website Design & Build",
+    price: 20000,
+    hours: "80–120 hrs",
+    weeks: "6–8 wks",
+  },
+  {
+    id: "campaign",
+    label: "Campaign System",
+    price: 12000,
+    hours: "40–60 hrs",
+    weeks: "3–5 wks",
+  },
+  {
+    id: "pitch_deck",
+    label: "Pitch Deck / Investor Materials",
+    price: 8000,
+    hours: "20–35 hrs",
+    weeks: "2–3 wks",
+  },
+  {
+    id: "product_ui",
+    label: "Product UI/UX Design",
+    price: 18000,
+    hours: "70–100 hrs",
+    weeks: "5–8 wks",
+  },
+  {
+    id: "video",
+    label: "Video Creative Direction",
+    price: 10000,
+    hours: "30–50 hrs",
+    weeks: "3–4 wks",
+  },
+  {
+    id: "ai_workflow",
+    label: "AI Workflow Customization",
+    price: 12000,
+    hours: "40–60 hrs",
+    weeks: "3–5 wks",
+  },
+  {
+    id: "innovation",
+    label: "Innovation Sprint",
+    price: 6000,
+    hours: "20–30 hrs",
+    weeks: "1–2 wks",
+  },
 ];
 
-export type TierKey   = keyof typeof TIERS;
-export type AiOpsKey  = keyof typeof AI_OPS;
+export type TierKey = keyof typeof TIERS;
+export type AiOpsKey = keyof typeof AI_OPS;
 
 export function calcMonthlyTotal(
   tier: TierKey,

@@ -29,11 +29,28 @@ const STEPS = [
 ];
 
 const TIMELINE = [
-  { at: "9:00 AM", label: "You send the brief", pct: 4 },
-  { at: "11:30 AM", label: "SOW signed, payment confirmed", pct: 16 },
-  { at: "2:00 PM", label: "Team assembled — kickoff", pct: 28 },
-  { at: "6:00 PM – 6:00 AM", label: "Overnight production, abroad", pct: 55, night: true },
-  { at: "9:00 AM +1", label: "Director-reviewed work in your inbox", pct: 96 },
+  { at: "9:00 AM", label: "You send the brief", pct: 3 },
+  { at: "11:30 AM", label: "SOW signed, payment confirmed", pct: 15 },
+  { at: "2:00 PM", label: "Team assembled — kickoff", pct: 27 },
+  {
+    at: "6:00 PM – 6:00 AM",
+    label: "Your project moves into production.",
+    pct: 40,
+    night: true,
+  },
+  { at: "9:00 AM +1", label: "Director review — revisions scoped", pct: 55 },
+  {
+    at: "6:00 PM – 6:00 AM",
+    label: "Revisions and final refinements",
+    pct: 73,
+    night: true,
+  },
+  { at: "9:00 AM +2", label: "Director-reviewed work in your inbox", pct: 95 },
+];
+
+const NIGHT_BANDS = [
+  { left: "33%", width: "14%" },
+  { left: "66%", width: "14%" },
 ];
 
 const TRUST = [
@@ -108,10 +125,10 @@ export function HowItWorks() {
       <div className="mt-[72px] rounded-2xl border border-border bg-[#F7F7F8] p-7 pb-5 dark:bg-muted/50">
         <div className="mb-9 flex flex-wrap items-baseline justify-between gap-2">
           <span className="text-base font-bold uppercase tracking-[-0.01em]">
-            One brief, 24 hours
+            One brief, forty-eight hours
           </span>
           <span className="text-[13px] text-muted-foreground">
-            A typical Sprint kickoff, hour by hour
+            A typical Sprint, kickoff to first delivery
           </span>
         </div>
 
@@ -119,24 +136,27 @@ export function HowItWorks() {
         <div
           className="relative hidden h-[150px] sm:block"
           role="img"
-          aria-label="Timeline from kickoff to day two"
+          aria-label="Timeline from brief at 9 AM to director-reviewed delivery at 9 AM two days later, with two overnight production windows abroad"
         >
           <div className="absolute left-0 right-0 top-[74px] h-[2px] bg-border" />
-          <div
-            className="absolute top-[62px] flex h-[26px] items-center justify-center rounded-full bg-[#1B1B2E] opacity-90"
-            style={{ left: "42%", width: "38%" }}
-          >
-            <span className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.04em] text-[#C9C9DE]">
-              production continues overnight
-            </span>
-          </div>
+          {NIGHT_BANDS.map((b, i) => (
+            <div
+              key={i}
+              className="absolute top-[62px] flex h-[26px] items-center justify-center rounded-full bg-[#1B1B2E] opacity-90"
+              style={{ left: b.left, width: b.width }}
+            >
+              <span className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.06em] text-[#C9C9DE]">
+                Production Phase
+              </span>
+            </div>
+          ))}
           {TIMELINE.map((t) => (
             <div
               key={t.label}
-              className="absolute bottom-0 top-0 flex w-[150px] -translate-x-1/2 flex-col items-center text-center"
+              className="absolute bottom-0 top-0 flex w-[116px] -translate-x-1/2 flex-col items-center text-center"
               style={{ left: t.pct + "%" }}
             >
-              <span className="order-1 mt-8 font-sans text-xs font-bold tabular-nums text-foreground">
+              <span className="order-1 mt-8 font-sans text-[11.5px] font-bold tabular-nums text-foreground whitespace-nowrap">
                 {t.at}
               </span>
               <span
@@ -146,7 +166,7 @@ export function HowItWorks() {
                     : "bg-primary ring-primary"
                 }`}
               />
-              <span className="order-3 mt-[54px] max-w-[140px] text-xs leading-[1.4] text-muted-foreground">
+              <span className="order-3 mt-[54px] max-w-[110px] text-[11px] leading-[1.35] text-muted-foreground text-balance">
                 {t.label}
               </span>
             </div>
@@ -207,7 +227,7 @@ export function HowItWorks() {
       {/* ---------- CTA ---------- */}
       <div className="mt-16 flex flex-wrap items-center justify-between gap-5 border-t border-border pt-8">
         <p className="text-[17px] font-semibold tracking-[-0.01em]">
-          Scope your first project today — kickoff within 24 hours.
+          Scope your first project today — kickoff within 48 hours.
         </p>
         <Button
           size="lg"

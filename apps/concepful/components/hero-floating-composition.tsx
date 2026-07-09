@@ -12,7 +12,7 @@ export function HeroFloatingComposition() {
   return (
     <div
       role="img"
-      aria-label="A creative request being submitted to Concepful, surrounded by stats showing conversion growth, delivered assets, 24-hour turnaround, team size, and client rating."
+      aria-label="A creative request being submitted to Concepful, surrounded by stats showing conversion growth, delivered assets, 48-hour turnaround, team size, and client rating."
       className="relative w-full max-w-[600px] lg:max-w-none"
     >
       {/* Background image with faded edges */}
@@ -277,9 +277,9 @@ function TurnaroundCard() {
     <SatelliteShell>
       <div className="flex items-center gap-1.5 text-[11px] font-medium text-neutral-400">
         <Zap className="h-3 w-3 text-primary" aria-hidden="true" />
-        Ready to Start
+        Turnaround
       </div>
-      <p className="mt-1 text-xl font-bold text-neutral-900">24 hrs</p>
+      <p className="mt-1 text-xl font-bold text-neutral-900">48 hrs</p>
       <div className="mt-2 flex -space-x-1.5" aria-hidden="true">
         {["bg-blue-400", "bg-purple-400", "bg-amber-400"].map((c, i) => (
           <span

@@ -95,7 +95,7 @@ export function Hero() {
             {/* Description */}
             <p className="text-base md:text-lg text-white/60 max-w-[42ch] leading-relaxed mb-9">
               Stop juggling freelancers and agencies. Get one expert team for{" "}
-              <AnimatedService /> <br /> — ready to start within 24 hours.
+              <AnimatedService /> <br /> — ready to start within 48 hours.
             </p>
 
             {/* CTAs */}
