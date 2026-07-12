@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowRight, Check } from "lucide-react";
 import { TIERS, TierKey } from "@/lib/pricing";
@@ -265,14 +266,14 @@ export function PlanSelector() {
       </div>
 
       <p className="text-center text-md text-muted-foreground">
-        Not sure?{" "}
-        <button
-          onClick={() => handleTierContinue("pulse")}
+        Not sure which fits?{" "}
+        <Link
+          href="/contact"
           className="font-medium text-primary hover:underline hover:cursor-pointer"
         >
-          Start with Studio
-        </button>{" "}
-        — our most popular plan. Switch anytime.
+          Describe the work
+        </Link>{" "}
+        — we&apos;ll point you to the right tier in one reply.
       </p>
 
       <p className="mt-3 text-center text-md text-muted-foreground">

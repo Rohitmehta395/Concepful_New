@@ -55,6 +55,7 @@
     "drizzle-orm": "catalog:",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "catalog:",
+    "gsap": "^3.15.0",
     "input-otp": "^1.4.2",
     "lucide-react": "catalog:",
     "next": "^15.3.4",

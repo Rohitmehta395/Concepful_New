@@ -26,8 +26,8 @@ export default function LandingPage() {
               Creative Bandwidth That Fits Your Team.
             </h2>
             <p className="text-lg leading-relaxed text-muted-foreground">
-              Like selecting a mobile plan — pick the capacity that fits your
-              pace. <br /> Upgrade or downgrade anytime.
+              Pick the capacity that fits your
+              pace. Upgrade or downgrade anytime.
             </p>
           </div>
           <PlanSelector />
