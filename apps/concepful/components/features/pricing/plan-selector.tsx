@@ -2,146 +2,83 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, ArrowRight, Check } from "lucide-react";
-import { TIERS, TierKey } from "@/lib/pricing";
-import { usePricingStore } from "@/hooks/use-pricing-store";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardFooter,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { fmtPrice, getTierDisplayPrice } from "@/lib/pricing-builder";
+import { BUILDER_TIERS } from "@/data/pricing/builder-tiers";
+import type { BuilderTierId, BillingMode } from "@/types/pricing-builder";
+import { Button } from "@/components/ui/button";
 
-const TIER_KEYS: TierKey[] = ["signal", "pulse", "cortex"];
-
-const BANDWIDTH_LABELS: Record<string, string> = {
-  concurrent: "Active projects",
-  requests: "Monthly requests",
-  sla: "Turnaround",
-  strategy: "Strategy time",
-  revisions: "Revisions",
-  team: "Your team",
-};
+// Import the specific styling for this builder
+import "@/components/features/pricing/architect/pricing-builder.css";
 
 export function PlanSelector() {
   const router = useRouter();
-  const { tier, setTier, billing, setBilling, setPricingMode } =
-    usePricingStore();
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
-  // Use a default for SSR to avoid hydration mismatch, update on mount
-  const currentTier = mounted ? tier : "signal";
-  const currentBilling = mounted ? billing : "monthly";
-
-  const [mobileTierIndex, setMobileTierIndex] = useState(
-    TIER_KEYS.indexOf(currentTier),
-  );
+  const [billing, setBilling] = useState<BillingMode>("monthly");
+  
+  // Default to expedition which is index 1
+  const [selectedTier, setSelectedTier] = useState<BuilderTierId | null>("expedition");
+  const [mobileTierIndex, setMobileTierIndex] = useState(1);
   const [swipeDirection, setSwipeDirection] = useState(0);
 
-  // Sync mobileTierIndex if tier changes externally (e.g. from floating widget)
-  useEffect(() => {
-    if (mounted) {
-      const next = TIER_KEYS.indexOf(tier);
-      if (next !== mobileTierIndex) {
-        setSwipeDirection(next > mobileTierIndex ? 1 : -1);
-        setMobileTierIndex(next);
-      }
-    }
-  }, [tier, mounted, mobileTierIndex]);
-
-  const fmt = (v: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(v);
-
-  const handleMobileSwipe = (dir: 1 | -1) => {
-    const next = Math.max(0, Math.min(2, mobileTierIndex + dir));
-    if (next !== mobileTierIndex) {
-      setSwipeDirection(dir);
-      setMobileTierIndex(next);
-      setTier(TIER_KEYS[next]);
-      setPricingMode("retainer");
-    }
-  };
-
-  const handleTierSelect = (key: TierKey) => {
-    const next = TIER_KEYS.indexOf(key);
-    if (next !== mobileTierIndex) {
-      setSwipeDirection(next > mobileTierIndex ? 1 : -1);
-      setTier(key);
-      setMobileTierIndex(next);
-      setPricingMode("retainer");
-    }
-  };
-
-  const handleTierContinue = (key: TierKey) => {
-    handleTierSelect(key);
-    // markPricingInterest omitted until auth migration
-    router.push("/pricing");
-  };
-
-  const handleViewCapabilities = (key: TierKey) => {
-    handleTierSelect(key);
-    router.push("/pricing#capabilities");
-  };
+  useEffect(() => setMounted(true), []);
 
   if (!mounted) {
     return (
       <div className="flex min-h-[500px] items-center justify-center">
-        {/* Placeholder to prevent layout shift */}
         <span className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
   }
 
+  const handleSelect = (id: BuilderTierId) => {
+    setSelectedTier(id);
+    const next = BUILDER_TIERS.findIndex(t => t.id === id);
+    if (next !== -1 && next !== mobileTierIndex) {
+      setSwipeDirection(next > mobileTierIndex ? 1 : -1);
+      setMobileTierIndex(next);
+    }
+  };
+
+  const handleMobileSwipe = (dir: 1 | -1) => {
+    const next = Math.max(0, Math.min(BUILDER_TIERS.length - 1, mobileTierIndex + dir));
+    if (next !== mobileTierIndex) {
+      setSwipeDirection(dir);
+      setMobileTierIndex(next);
+      setSelectedTier(BUILDER_TIERS[next].id);
+    }
+  };
+
+  const handleContinue = (tierId: BuilderTierId) => {
+    router.push(`/pricing?tier=${tierId}`);
+  };
+
   return (
-    <>
-      <div className="mb-12 flex justify-center">
-        <div className="flex items-center gap-3 rounded-full border border-border/60 bg-secondary/60 px-4 py-2.5 shadow-sm">
-          <Label
-            className={cn(
-              "cursor-pointer text-sm transition-colors",
-              currentBilling === "monthly"
-                ? "font-semibold text-foreground"
-                : "text-muted-foreground",
-            )}
+    <div className="pa" style={{ padding: 0 }}>
+      <div className="pa-toggle-row" style={{ justifyContent: "center", marginTop: 0, marginBottom: "32px", flexDirection: "column", gap: "12px" }}>
+        <div className="pa-toggle">
+          <button
+            className={billing === "monthly" ? "on" : ""}
+            onClick={() => setBilling("monthly")}
           >
             Monthly
-          </Label>
-          <Switch
-            checked={currentBilling === "annual"}
-            onCheckedChange={(c) => setBilling(c ? "annual" : "monthly")}
-            data-testid="billing-toggle"
-          />
-          <Label
-            className={cn(
-              "flex cursor-pointer items-center gap-2 text-sm transition-colors",
-              currentBilling === "annual"
-                ? "font-semibold text-foreground"
-                : "text-muted-foreground",
-            )}
+          </button>
+          <button
+            className={billing === "annual" ? "on" : ""}
+            onClick={() => setBilling("annual")}
           >
-            Annual
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-              Save 10–15%
-            </span>
-          </Label>
+            Annual <em>save 10%</em>
+          </button>
         </div>
+        <span className="pa-toggle-note" style={{ textAlign: "center" }}>
+          Applies to Expedition &amp; Department Augmentation. Sprints are one-time.
+        </span>
       </div>
 
       {/* Mobile carousel */}
-      <div className="relative mb-4 px-4 md:hidden touch-pan-y">
+      <div className="relative mb-4 md:hidden touch-pan-y">
         <div className="overflow-visible pt-3">
           <div className="grid">
             <AnimatePresence initial={false} custom={swipeDirection}>
@@ -162,7 +99,7 @@ export function PlanSelector() {
                     x: dir > 0 ? "-100%" : "100%",
                     opacity: 0,
                     zIndex: 0,
-                  })
+                  }),
                 }}
                 initial="enter"
                 animate="center"
@@ -174,7 +111,7 @@ export function PlanSelector() {
                 onDragEnd={(e, { offset, velocity }) => {
                   const swipeVelocity = velocity.x;
                   const swipeOffset = offset.x;
-                  
+
                   if (swipeOffset < -50 || swipeVelocity < -500) {
                     handleMobileSwipe(1);
                   } else if (swipeOffset > 50 || swipeVelocity > 500) {
@@ -183,15 +120,12 @@ export function PlanSelector() {
                 }}
                 className="col-start-1 row-start-1 w-full"
               >
-                <TierCard
-                  tierKey={TIER_KEYS[mobileTierIndex]}
-                  isSelected={currentTier === TIER_KEYS[mobileTierIndex]}
-                  billing={currentBilling}
-                  onSelect={handleTierSelect}
-                  onContinue={handleTierContinue}
-                  onViewCapabilities={handleViewCapabilities}
-                  fmt={fmt}
-                  bandwidthLabels={BANDWIDTH_LABELS}
+                <BuilderTierCard
+                  t={BUILDER_TIERS[mobileTierIndex]}
+                  billing={billing}
+                  isSelected={selectedTier === BUILDER_TIERS[mobileTierIndex].id}
+                  onSelect={handleSelect}
+                  onContinue={handleContinue}
                 />
               </motion.div>
             </AnimatePresence>
@@ -209,12 +143,11 @@ export function PlanSelector() {
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">
-            {TIER_KEYS.map((k, i) => (
+            {BUILDER_TIERS.map((t, i) => (
               <button
-                key={k}
+                key={t.id}
                 onClick={() => {
-                  setMobileTierIndex(i);
-                  handleTierSelect(k);
+                  handleSelect(t.id);
                 }}
                 className={cn(
                   "rounded-full transition-all duration-300",
@@ -222,7 +155,6 @@ export function PlanSelector() {
                     ? "h-2.5 w-8 bg-primary"
                     : "h-2.5 w-2.5 bg-border hover:bg-muted-foreground",
                 )}
-                data-testid={`tier-dot-${k}`}
               />
             ))}
           </div>
@@ -230,200 +162,112 @@ export function PlanSelector() {
             variant="ghost"
             size="icon"
             onClick={() => handleMobileSwipe(1)}
-            disabled={mobileTierIndex === 2}
+            disabled={mobileTierIndex === BUILDER_TIERS.length - 1}
             className="rounded-full"
           >
             <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
-        <p className="mt-2 text-center text-md text-muted-foreground">
-          {mobileTierIndex + 1} of 3 — swipe or tap arrows to compare
+        <p className="mt-2 text-center text-sm text-muted-foreground">
+          {mobileTierIndex + 1} of {BUILDER_TIERS.length} — swipe or tap arrows to compare
         </p>
       </div>
 
-      {/* Desktop 3-col grid */}
-      <div className="container mx-auto mb-8 hidden max-w-5xl grid-cols-3 gap-5 px-6 pt-3 md:grid">
-        {TIER_KEYS.map((key, i) => (
-          <motion.div
-            key={key}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: i * 0.07 }}
-            className="h-full"
-          >
-            <TierCard
-              tierKey={key}
-              isSelected={currentTier === key}
-              billing={currentBilling}
-              onSelect={handleTierSelect}
-              onContinue={handleTierContinue}
-              onViewCapabilities={handleViewCapabilities}
-              fmt={fmt}
-              bandwidthLabels={BANDWIDTH_LABELS}
+      {/* Desktop Grid */}
+      <div className="hidden md:block">
+        <div className="pa-tiers">
+          {BUILDER_TIERS.map((t) => (
+            <BuilderTierCard
+              key={t.id}
+              t={t}
+              billing={billing}
+              isSelected={selectedTier === t.id}
+              onSelect={handleSelect}
+              onContinue={handleContinue}
             />
-          </motion.div>
-        ))}
+          ))}
+        </div>
       </div>
-
-      <p className="text-center text-md text-muted-foreground">
+      
+      <p className="pa-help" style={{ textAlign: "center", marginTop: "48px" }}>
         Not sure which fits?{" "}
-        <Link
+        <a
           href="/contact"
-          className="font-medium text-primary hover:underline hover:cursor-pointer"
+          style={{
+            color: "var(--accent)",
+            textDecoration: "underline",
+            textUnderlineOffset: "2px",
+            fontWeight: 600,
+          }}
         >
           Describe the work
-        </Link>{" "}
-        — we&apos;ll point you to the right tier in one reply.
+        </a>{" "}
+        — we’ll point you to the right tier in one reply.
       </p>
-
-      <p className="mt-3 text-center text-md text-muted-foreground">
-        Not ready for a retainer?{" "}
-        <button
-          onClick={() => {
-            setPricingMode("oneTime");
-            router.push("/pricing");
-          }}
-          className="font-medium text-primary hover:underline hover:cursor-pointer"
-        >
-          Browse one-time projects →
-        </button>
-      </p>
-    </>
+    </div>
   );
 }
 
-/* ── Tier Card ── */
-function TierCard({
-  tierKey,
-  isSelected,
+function BuilderTierCard({
+  t,
   billing,
+  isSelected,
   onSelect,
   onContinue,
-  onViewCapabilities,
-  fmt,
-  bandwidthLabels,
 }: {
-  tierKey: TierKey;
+  t: typeof BUILDER_TIERS[0];
+  billing: BillingMode;
   isSelected: boolean;
-  billing: "monthly" | "annual";
-  onSelect: (k: TierKey) => void;
-  onContinue: (k: TierKey) => void;
-  onViewCapabilities: (k: TierKey) => void;
-  fmt: (v: number) => string;
-  bandwidthLabels: Record<string, string>;
+  onSelect: (id: BuilderTierId) => void;
+  onContinue: (id: BuilderTierId) => void;
 }) {
-  const t = TIERS[tierKey];
-  const price =
-    billing === "annual" ? t.monthly * (1 - t.annualDiscount) : t.monthly;
+  const isMo = t.billing === "monthly";
+  const displayPrice = getTierDisplayPrice(t.id, billing);
 
   return (
-    <div className="relative h-full">
-      {/* The one badge that survives — a single floating pill for the plan
-          actually meant to stand out, not a scattering of same-weight tags. */}
-      {t.badge && (
-        <div className="absolute inset-x-0 top-0 z-10 flex -translate-y-1/2 justify-center">
-          <span className="whitespace-nowrap rounded-full bg-primary px-3.5 py-1 text-[11px] font-semibold text-primary-foreground shadow-md shadow-primary/25">
-            {t.badge}
-          </span>
-        </div>
-      )}
-
-      <Card
-        data-testid={`tier-card-${tierKey}`}
-        onClick={() => onSelect(tierKey)}
-        className={cn(
-          "flex h-full cursor-pointer flex-col rounded-2xl border-2 transition-all duration-200",
-          isSelected
-            ? "border-primary shadow-xl shadow-primary/10 ring-2 ring-primary/15"
-            : "border-border/60 hover:border-primary/40 hover:shadow-md",
-          t.highlight &&
-            !isSelected &&
-            "border-primary/30 shadow-md shadow-primary/5",
-        )}
-      >
-        <CardHeader className="pb-2 pt-7">
-          <div className="font-serif text-2xl font-bold">{t.name}</div>
-          <div className="mt-0.5 text-sm text-muted-foreground">
-            {t.tagline}
-          </div>
-
-          <div className="mt-5 flex items-baseline gap-1">
-            <span className="text-4xl font-bold tracking-tight">
-              {fmt(price)}
-            </span>
-            <span className="text-sm text-muted-foreground">/mo</span>
-          </div>
-          {billing === "annual" && (
-            <p className="mt-1 text-xs font-medium text-primary">
-              {fmt(price * 12)}/yr · save {Math.round(t.annualDiscount * 100)}%
-            </p>
-          )}
-        </CardHeader>
-
-        <CardContent className="flex-1 pb-2 pt-4">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Creative Bandwidth
-          </p>
-          <div className="space-y-2.5">
-            {Object.entries(t.bandwidth).map(([key, value]) => (
-              <div
-                key={key}
-                className="flex items-center justify-between text-sm"
-              >
-                <span className="text-muted-foreground">
-                  {bandwidthLabels[key]}
-                </span>
-                <span className="text-right font-medium text-foreground">
-                  {value}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-5 border-t border-border/60 pt-4">
-            <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Capabilities included
-            </p>
-            <ul className="space-y-1.5">
-              {t.capabilities.slice(0, 5).map((cap) => (
-                <li
-                  key={cap}
-                  className="flex items-start gap-2 text-sm text-muted-foreground"
-                >
-                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                  {cap}
-                </li>
-              ))}
-              {t.capabilities.length > 5 && (
-                <li 
-                  className="pl-5 text-xs font-medium text-primary hover:underline cursor-pointer transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onViewCapabilities(tierKey);
-                  }}
-                >
-                  +{t.capabilities.length - 5} more included
-                </li>
-              )}
-            </ul>
-          </div>
-        </CardContent>
-
-        <CardFooter className="pb-5 pt-2">
-          <Button
-            variant={isSelected ? "default" : "outline"}
-            className="group w-full gap-2"
-            onClick={(e) => {
-              e.stopPropagation();
-              onContinue(tierKey);
-            }}
-            data-testid={`select-tier-${tierKey}`}
-          >
-            {isSelected ? "Continue with this plan" : "Select & customize"}
-            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-          </Button>
-        </CardFooter>
-      </Card>
+    <div
+      role="button"
+      tabIndex={0}
+      className={"pa-tier cursor-pointer h-full" + (isSelected ? " pop" : "")}
+      onClick={() => onSelect(t.id)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect(t.id);
+        }
+      }}
+    >
+      {t.popular && <span className="pa-badge">Most popular</span>}
+      <span className="pa-tier-name">{t.name}</span>
+      <span className="pa-tier-tag">{t.tagline}</span>
+      <span className="pa-tier-price">
+        from {fmtPrice(displayPrice)}
+        {isMo ? "/mo" : ""}
+      </span>
+      <span className="pa-tier-note">
+        {isMo && billing === "annual" ? "billed annually · " : ""}
+        {t.priceNote}
+      </span>
+      <ul className="mb-4">
+        {t.points.map((p) => (
+          <li key={p}>{p}</li>
+        ))}
+      </ul>
+      <div className="mt-auto pt-2">
+        <Button
+          className="w-full"
+          variant={isSelected ? "default" : "outline"}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!isSelected) {
+              onSelect(t.id);
+            }
+            onContinue(t.id);
+          }}
+        >
+          {t.cta} &rarr;
+        </Button>
+      </div>
     </div>
   );
 }

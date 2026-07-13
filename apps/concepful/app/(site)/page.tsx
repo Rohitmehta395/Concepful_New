@@ -16,7 +16,7 @@ export default function LandingPage() {
         {/* ── PLAN SELECTOR ── */}
         <section
           id="plan-selector"
-          className="scroll-mt-8 px-6 pb-15 pt-10 md:pt-24" 
+          className="scroll-mt-8 px-6 pb-15 pt-10 md:pt-24"
         >
           <div className="container mx-auto mb-14 max-w-2xl text-center">
             <p className="mb-4 text-[13px] font-bold uppercase tracking-[0.15em] text-primary">
@@ -26,8 +26,8 @@ export default function LandingPage() {
               Creative Bandwidth That Fits Your Team.
             </h2>
             <p className="text-lg leading-relaxed text-muted-foreground">
-              Pick the capacity that fits your
-              pace. Upgrade or downgrade anytime.
+              Pick the capacity that fits your pace. Upgrade or downgrade
+              anytime.
             </p>
           </div>
           <PlanSelector />

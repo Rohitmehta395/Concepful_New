@@ -43,7 +43,6 @@ const NAV_ITEMS: NavItem[] = [
   {
     href: "/pricing",
     label: "Breakdown",
-    show: ({ showBreakdown }) => showBreakdown,
   },
   { href: "/contact", label: "Contact" },
 ];
@@ -64,7 +63,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  const showBreakdown = role !== "prospect-cold"; // hot prospect, client, or admin
+
 
   const isHome = pathname === "/";
   const isTransparent = isHome && !scrolled;
@@ -76,9 +75,9 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   const visibleNavItems = useMemo(
     () =>
       NAV_ITEMS.filter(
-        (item) => !item.show || item.show({ showBreakdown, isAdmin }),
+        (item) => !item.show || item.show({ showBreakdown: true, isAdmin }),
       ),
-    [showBreakdown, isAdmin],
+    [isAdmin],
   );
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
