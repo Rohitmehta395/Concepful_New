@@ -27,7 +27,7 @@ export const BUILDER_TIERS: readonly BuilderTier[] = [
     points: [
       "1–3 months, research built in",
       "Weekly working sessions",
-      "Product concepts, MVP builds, brand platforms",
+      "Application design, UI/UX, experimental projects",
       "Everything a Sprint includes, sustained",
     ],
     cta: "Plan an Expedition",

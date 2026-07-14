@@ -232,7 +232,7 @@ export function StepRenderer({
             <input type="file" multiple onChange={handleFiles} />
             <span className="pa-drop-big">Drop files or tap to upload</span>
             <span className="pa-drop-small">
-              Brief, decks, sketches, brand files, links doc — anything that helps us quote accurately.
+              Brief, decks, sketches, reference files, links doc — anything that helps us quote accurately.
             </span>
           </label>
           {files.length > 0 && (

@@ -67,8 +67,8 @@ export const BUILDER_ADDONS: readonly BuilderAddon[] = [
   },
   {
     id: "ai_command",
-    label: "AI Brand Command Center",
-    blurb: "Live brand & competitive monitoring.",
+    label: "AI Command Center",
+    blurb: "Live project & competitive monitoring.",
     oneTime: null,
     monthly: 4000,
     tiers: ["expedition", "cdaas"],
@@ -76,7 +76,7 @@ export const BUILDER_ADDONS: readonly BuilderAddon[] = [
   {
     id: "ai_system",
     label: "AI Intelligence System",
-    blurb: "Brand memory, multi-model pipeline, auto-QA.",
+    blurb: "Project memory, multi-model pipeline, auto-QA.",
     oneTime: null,
     monthly: 6000,
     tiers: ["expedition", "cdaas"],

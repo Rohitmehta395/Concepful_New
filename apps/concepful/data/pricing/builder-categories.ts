@@ -13,75 +13,59 @@ export interface FocusCategory {
 
 export const FOCUS_CATEGORIES: readonly FocusCategory[] = [
   {
-    id: "brand",
-    label: "Brand",
-    subs: ["New Identity", "Brand Refresh", "Guidelines", "Naming", "Unsure"],
+    id: "content_creation",
+    label: "Content Creation",
+    subs: ["Copywriting", "Presentations", "Motion & Video", "Illustration", "Unsure"],
   },
   {
-    id: "website",
-    label: "Website",
-    subs: [
-      "New Website",
-      "Landing Page",
-      "Existing Refresh",
-      "Dashboard",
-      "Ecommerce",
-      "Documentation",
-      "Unsure",
-    ],
+    id: "marketing_collateral",
+    label: "Marketing Collateral",
+    subs: ["Social Media Assets", "Email Campaigns", "Ads & Banners", "Sales Materials", "Unsure"],
   },
   {
-    id: "product",
-    label: "Product",
-    subs: [
-      "Product Concept",
-      "Digital Product / UI-UX",
-      "MVP Build",
-      "Physical Interface / HMI",
-      "Unsure",
-    ],
+    id: "product_service_design",
+    label: "Product / Service Design",
+    subs: ["MVP Design", "Product Strategy", "Service Blueprint", "Product Concept", "Unsure"],
   },
   {
-    id: "marketing",
-    label: "Marketing",
-    subs: ["Campaign", "GTM Strategy", "Sales Deck", "Ads & Social", "Unsure"],
+    id: "ui_design",
+    label: "UI Design",
+    subs: ["Landing Pages", "Web App UI", "Mobile App UI", "Dashboard UI", "Unsure"],
   },
   {
-    id: "content",
-    label: "Content",
-    subs: [
-      "Copywriting",
-      "Presentations",
-      "Motion & Video",
-      "Illustration",
-      "Unsure",
-    ],
+    id: "gtm_ideation",
+    label: "Go-to-Market Ideation",
+    subs: ["Launch Strategy", "Positioning", "Messaging", "Growth Campaign", "Unsure"],
   },
   {
-    id: "ai",
-    label: "AI & Automation",
-    subs: [
-      "Workflow Integration",
-      "Brand Command Center",
-      "Custom AI System",
-      "Robotics / Hardware",
-      "Unsure",
-    ],
+    id: "ux_design",
+    label: "User Experience Design",
+    subs: ["User Flows", "Wireframes", "UX Audit", "Customer Journey", "Unsure"],
   },
   {
-    id: "strategy",
-    label: "Strategy",
-    subs: [
-      "Positioning & Messaging",
-      "GTM Plan",
-      "Creative Direction",
-      "Unsure",
-    ],
+    id: "application_design",
+    label: "Application Design",
+    subs: ["SaaS Platform", "AI Application", "Internal Tool", "Mobile App", "Unsure"],
+  },
+  {
+    id: "experimental",
+    label: "Experimental",
+    subs: ["AI Prototype", "R&D Concept", "Interactive Demo", "Innovation Sprint", "Unsure"],
+  },
+  {
+    id: "storyboards",
+    label: "Storyboards",
+    subs: ["Commercial", "Explainer Video", "Animation", "Product Demo", "Unsure"],
+  },
+  {
+    id: "story_character_dev",
+    label: "Story / Character Development",
+    subs: ["Character Design", "World Building", "Script Writing", "Narrative Development", "Unsure"],
   },
   {
     id: "else",
     label: "Something Else",
-    subs: ["We'll describe it in the brief"],
+    subs: ["Not Listed", "Need Guidance", "Custom Project", "Not Sure Yet", "Let's Discuss"],
   },
 ] as const;
 
@@ -94,15 +78,15 @@ export const OUTCOMES = [
   "Raise funding",
   "Generate leads",
   "Simplify an experience",
-  "Modernize our brand",
+  "Elevate our visual direction",
   "Other",
 ] as const;
 
 export const READINESS = [
   "We have nothing yet",
-  "We have a logo",
-  "We have some assets",
-  "We have full brand guidelines",
+  "We have some early concepts",
+  "We have reference materials",
+  "We have a clear direction",
   "We'd like Concepful to define this",
 ] as const;
 

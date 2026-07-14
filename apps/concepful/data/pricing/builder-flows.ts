@@ -26,7 +26,7 @@ export const BUILDER_FLOWS: Readonly<
       id: "focus",
       type: "focus",
       title: "What are we building?",
-      sub: "Pick the category — then the specific slice. Multi-select if the work spans areas.",
+      sub: "Tell us broadly what you're trying to build. Multi-select if the work spans areas.",
     },
     {
       id: "outcome",
@@ -61,7 +61,7 @@ export const BUILDER_FLOWS: Readonly<
       id: "focus",
       type: "focus",
       title: "What are we building?",
-      sub: "Pick the category — then the specific slice. Multi-select if the work spans areas.",
+      sub: "Tell us broadly what you're trying to build. Multi-select if the work spans areas.",
     },
     {
       id: "outcome_driver",
@@ -98,7 +98,7 @@ export const BUILDER_FLOWS: Readonly<
       id: "streams",
       type: "streams",
       title: "What will we own?",
-      sub: "Select the ongoing streams your department covers. You can adjust these any month.",
+      sub: "Tell us broadly what you'd like us to handle. You can adjust these any month.",
     },
     {
       id: "month",
