@@ -255,8 +255,11 @@ function BuilderTierCard({
       </ul>
       <div className="mt-auto pt-2">
         <Button
-          className="w-full"
-          variant={isSelected ? "default" : "outline"}
+          className={cn(
+            "w-full transition-all duration-300",
+            isSelected ? "shadow-[inset_0_0_0_999px_rgba(0,0,0,0.15)] scale-[0.98]" : ""
+          )}
+          variant="default"
           onClick={(e) => {
             e.stopPropagation();
             if (!isSelected) {
