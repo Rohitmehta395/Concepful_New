@@ -25,7 +25,7 @@ export const BUILDER_FLOWS: Readonly<
     {
       id: "focus",
       type: "focus",
-      title: "What are we building?",
+      title: "What is the work about?",
       sub: "Tell us broadly what you're trying to build. Multi-select if the work spans areas.",
     },
     {
@@ -60,7 +60,7 @@ export const BUILDER_FLOWS: Readonly<
     {
       id: "focus",
       type: "focus",
-      title: "What are we building?",
+      title: "What is the work about?",
       sub: "Tell us broadly what you're trying to build. Multi-select if the work spans areas.",
     },
     {

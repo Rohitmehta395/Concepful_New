@@ -1,5 +1,6 @@
 "use client";
 
+import { BUILDER_SCOPES } from "@/data/pricing/builder-categories";
 import { fmtPrice } from "@/lib/pricing-builder";
 import type {
   BuilderTier,
@@ -31,7 +32,7 @@ export function QuoteScreen({
   onCheckout,
 }: QuoteScreenProps) {
   const focusLabels = focus
-    .map((f) => (f.includes(" · ") ? f.split(" · ")[1] : f))
+    .map((id) => BUILDER_SCOPES.find(s => s.id === id)?.label || id)
     .join(" · ");
   
   const outcome = answers["outcome"] as string | undefined;

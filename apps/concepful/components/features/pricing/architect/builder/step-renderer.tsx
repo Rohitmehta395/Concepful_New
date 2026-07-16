@@ -2,7 +2,7 @@
 
 import { fmtPrice } from "@/lib/pricing-builder";
 import { BUILDER_ADDONS } from "@/data/pricing/builder-addons";
-import { FOCUS_CATEGORIES } from "@/data/pricing/builder-categories";
+import { BUILDER_CATEGORIES, BUILDER_SCOPES } from "@/data/pricing/builder-categories";
 import type { 
   StepConfig, 
   BuilderTierId, 
@@ -17,7 +17,7 @@ interface StepRendererProps {
   activeCat: string | null;
   onCatChange: (id: string | null) => void;
   focus: string[];
-  onToggleFocus: (cat: string, sub: string) => void;
+  onToggleFocus: (scopeId: string) => void;
   onToggleStream: (label: string) => void;
   answers: BuilderAnswers;
   onSelect: (key: string, val: string) => void;
@@ -66,33 +66,36 @@ export function StepRenderer({
       {step.type === "focus" && (
         <>
           <div className="pa-cats">
-            {FOCUS_CATEGORIES.map((c) => (
-              <button
-                key={c.id}
-                className={
-                  "pa-cat" +
-                  (activeCat === c.id ? " on" : "") +
-                  (focus.some((f) => f.startsWith(c.label + " ·")) ? " has" : "")
-                }
-                onClick={() => onCatChange(activeCat === c.id ? null : c.id)}
-              >
-                {c.label}
-              </button>
-            ))}
+            {BUILDER_CATEGORIES.map((c) => {
+              const categoryScopes = BUILDER_SCOPES.filter((s) => s.categoryIds.includes(c.id));
+              const hasSelection = categoryScopes.some((s) => focus.includes(s.id));
+              return (
+                <button
+                  key={c.id}
+                  className={
+                    "pa-cat" +
+                    (activeCat === c.id ? " on" : "") +
+                    (hasSelection ? " has" : "")
+                  }
+                  onClick={() => onCatChange(activeCat === c.id ? null : c.id)}
+                >
+                  {c.label}
+                </button>
+              );
+            })}
           </div>
           {activeCat && (
             <div className="pa-subs">
-              {FOCUS_CATEGORIES.find((c) => c.id === activeCat)?.subs.map((s) => {
-                const cat = FOCUS_CATEGORIES.find((c) => c.id === activeCat)!.label;
-                const on = focus.includes(cat + " · " + s);
+              {BUILDER_SCOPES.filter((s) => s.categoryIds.includes(activeCat)).map((s) => {
+                const on = focus.includes(s.id);
                 return (
                   <button
-                    key={s}
+                    key={s.id}
                     className={"pa-chip" + (on ? " on" : "")}
-                    onClick={() => onToggleFocus(cat, s)}
+                    onClick={() => onToggleFocus(s.id)}
                   >
                     {on ? "✓ " : ""}
-                    {s}
+                    {s.label}
                   </button>
                 );
               })}
@@ -103,13 +106,13 @@ export function StepRenderer({
 
       {step.type === "streams" && (
         <div className="pa-cats">
-          {FOCUS_CATEGORIES.filter((c) => c.id !== "else").map((c) => (
+          {BUILDER_CATEGORIES.filter((c) => c.id !== "else").map((c) => (
             <button
               key={c.id}
-              className={"pa-cat" + (focus.includes(c.label) ? " on" : "")}
-              onClick={() => onToggleStream(c.label)}
+              className={"pa-cat" + (focus.includes(c.id) ? " on" : "")}
+              onClick={() => onToggleStream(c.id)}
             >
-              {focus.includes(c.label) ? "✓ " : ""}
+              {focus.includes(c.id) ? "✓ " : ""}
               {c.label}
             </button>
           ))}

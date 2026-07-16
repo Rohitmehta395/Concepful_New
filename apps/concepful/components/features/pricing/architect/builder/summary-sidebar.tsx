@@ -1,5 +1,6 @@
 "use client";
 
+import { BUILDER_CATEGORIES, BUILDER_SCOPES } from "@/data/pricing/builder-categories";
 import { fmtPrice } from "@/lib/pricing-builder";
 import type {
   BuilderTier,
@@ -57,11 +58,16 @@ export function SummarySidebar({
       {focus.length > 0 && (
         <div className="pa-s-block">
           <div className="pa-s-label">{tierId === "cdaas" ? "Streams" : "Focus"}</div>
-          {focus.map((f) => (
-            <div className="pa-s-item" key={f}>
-              ✓ {f.includes(" · ") ? f.split(" · ")[1] : f}
-            </div>
-          ))}
+          {focus.map((id) => {
+            const label = tierId === "cdaas"
+              ? BUILDER_CATEGORIES.find(c => c.id === id)?.label || id
+              : BUILDER_SCOPES.find(s => s.id === id)?.label || id;
+            return (
+              <div className="pa-s-item" key={id}>
+                ✓ {label}
+              </div>
+            );
+          })}
         </div>
       )}
 

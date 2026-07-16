@@ -105,18 +105,17 @@ export function useBuilder() {
 
   // ── Toggle handlers (stable refs via useCallback) ─────────────
 
-  /** Toggle a subcategory chip in the focus step. */
-  const toggleFocus = useCallback((catLabel: string, sub: string) => {
-    const key = `${catLabel} · ${sub}`;
+  /** Toggle a scope by id. */
+  const toggleFocus = useCallback((scopeId: string) => {
     setFocus((prev) =>
-      prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key],
+      prev.includes(scopeId) ? prev.filter((x) => x !== scopeId) : [...prev, scopeId],
     );
   }, []);
 
-  /** Toggle a stream in the CDaaS streams step (uses category label as key). */
-  const toggleStream = useCallback((label: string) => {
+  /** Toggle a stream in the CDaaS streams step (uses category id as key). */
+  const toggleStream = useCallback((categoryId: string) => {
     setFocus((prev) =>
-      prev.includes(label) ? prev.filter((x) => x !== label) : [...prev, label],
+      prev.includes(categoryId) ? prev.filter((x) => x !== categoryId) : [...prev, categoryId],
     );
   }, []);
 
