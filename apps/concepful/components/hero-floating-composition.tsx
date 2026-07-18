@@ -31,7 +31,6 @@ export function HeroFloatingComposition() {
 
       {/* ── Desktop: positioned composition ── */}
       <div className="relative hidden lg:block" style={{ height: 480 }}>
-
         {/* Center card — slightly left of center to pull toward left column */}
         <div className="absolute left-1/2 top-1/2 z-10 w-[340px] -translate-x-[55%] -translate-y-1/2">
           <Float delay={0} prefersReducedMotion={prefersReducedMotion}>

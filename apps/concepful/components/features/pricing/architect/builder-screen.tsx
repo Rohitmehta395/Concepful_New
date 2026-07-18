@@ -74,7 +74,10 @@ export function BuilderScreen({
         </button>
         <h1 className="pa-h1">
           Let’s architect your{" "}
-          {tierData.name === "Department Augmentation" ? "department" : "project"}.
+          {tierData.name === "Department Augmentation"
+            ? "department"
+            : "project"}
+          .
         </h1>
         <p className="pa-sub">
           Five decisions, no jargon. Your answers write the brief — and the
