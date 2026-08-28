@@ -20,7 +20,7 @@ export const Categories: CollectionConfig = {
       type: 'text',
       required: true,
       unique: true,
-      validate: (val) => {
+      validate: (val: any) => {
         if (!val) return 'Slug is required.';
         if (typeof val !== 'string') return 'Slug must be a string.';
         

@@ -36,7 +36,7 @@ export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || 'fallback-secret',
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URL.replace('?sslmode=require', ''),
+      connectionString: (process.env.DATABASE_URL || '').replace('?sslmode=require', ''),
       ssl: {
         ca: fs.readFileSync(path.resolve(dirname, 'supabase-ca.crt')),
       },
