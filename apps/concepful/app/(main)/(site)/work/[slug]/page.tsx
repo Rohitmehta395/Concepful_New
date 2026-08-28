@@ -48,14 +48,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
       <section className="px-6 pt-10 pb-16">
         <div className="container mx-auto max-w-3xl">
           {/* Category pill */}
-          <span
-            className="inline-block text-[11px] font-bold uppercase tracking-[0.15em] px-3 py-1.5 rounded-full border mb-6"
-            style={{
-              color: cs.accentColor,
-              borderColor: `${cs.accentColor}40`,
-              backgroundColor: `${cs.accentColor}12`,
-            }}
-          >
+          <span className="inline-block text-[11px] font-bold uppercase tracking-[0.15em] px-3 py-1.5 rounded-full border border-primary/20 bg-primary/10 text-primary mb-6">
             {cs.categoryLabel}
           </span>
 
@@ -71,12 +64,10 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
         </div>
       </section>
 
-      {/* Hero gradient card */}
+      {/* Hero card */}
       <section className="px-6 mb-16">
         <div className="container mx-auto max-w-3xl">
           <AnimatedHeroCard
-            gradient={cs.gradient}
-            accentColor={cs.accentColor}
             tags={cs.tags}
           />
         </div>
@@ -91,7 +82,6 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                 key={m.label}
                 label={m.label}
                 value={m.value}
-                accentColor={cs.accentColor}
                 index={i}
               />
             ))}
@@ -118,10 +108,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
             <ul className="space-y-5">
               {cs.challenges.map((c, i) => (
                 <li key={i} className="flex gap-4">
-                  <span
-                    className="mt-1 h-5 w-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold"
-                    style={{ backgroundColor: `${cs.accentColor}20`, color: cs.accentColor }}
-                  >
+                  <span className="mt-1 h-5 w-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold bg-primary/10 text-primary">
                     {i + 1}
                   </span>
                   <p className="text-base leading-relaxed text-foreground/80">{c}</p>
@@ -139,7 +126,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
             <ul className="space-y-3">
               {cs.deliverables.map((d, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" style={{ color: cs.accentColor }} />
+                  <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
                   <span className="text-sm leading-relaxed">{d}</span>
                 </li>
               ))}

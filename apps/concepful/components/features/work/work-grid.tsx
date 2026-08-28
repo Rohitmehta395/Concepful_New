@@ -9,25 +9,6 @@ import { ArrowUpRight } from "lucide-react";
 
 const MotionLink = (motion as any).create ? (motion as any).create(Link) : (motion as any)(Link);
 
-/** Converts a hex color (e.g. "#F97316") to an rgba() string at the given alpha. */
-function hexToRgba(hex: string, alpha: number) {
-  const clean = hex.replace("#", "");
-  const full =
-    clean.length === 3
-      ? clean
-          .split("")
-          .map((c) => c + c)
-          .join("")
-      : clean;
-  const parsed = parseInt(full, 16);
-  if (full.length !== 6 || Number.isNaN(parsed))
-    return `rgba(120, 120, 130, ${alpha})`;
-  const r = (parsed >> 16) & 255;
-  const g = (parsed >> 8) & 255;
-  const b = parsed & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
 interface WorkGridProps {
   caseStudies: CaseStudy[];
 }
@@ -70,13 +51,7 @@ export function WorkGrid({ caseStudies }: WorkGridProps) {
               >
                 {/* Image Container - Minimalist framing */}
                 <div 
-                  className="relative w-full aspect-[4/3] rounded-md overflow-hidden bg-muted mb-5 transition-all duration-500 ease-out group-hover:-translate-y-1"
-                  style={{
-                    boxShadow: `0 2px 12px -4px ${hexToRgba(cs.accentColor, 0.18)}, 0 28px 56px -24px ${hexToRgba(
-                      cs.accentColor,
-                      0.34,
-                    )}, 0 8px 20px -10px rgba(15, 15, 20, 0.12)`,
-                  }}
+                  className="relative w-full aspect-[4/3] rounded-md overflow-hidden bg-muted mb-5 shadow-sm transition-all duration-500 ease-out group-hover:-translate-y-1 group-hover:shadow-md"
                 >
                   <img 
                     src={cs.image || "/placeholder.svg"} 
@@ -109,7 +84,7 @@ export function WorkGrid({ caseStudies }: WorkGridProps) {
                   </div>
                   
                   <div className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    <span style={{ color: cs.accentColor }}>{cs.client}</span>
+                    <span>{cs.client}</span>
                     <span className="h-[1px] w-8 bg-border/80" />
                     <span className="opacity-60 transition-opacity duration-300 group-hover:opacity-100">View Project</span>
                   </div>

@@ -37,6 +37,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@payload-config": [
+        "./payload.config.ts"
       ]
     },
     "incremental": true,

@@ -7,6 +7,8 @@
   },
   "scripts": {
     "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
+    "test": "pnpm --filter \"@workspace/concepful-next\" --filter \"@workspace/db\" test",
+    "dev": "pnpm --filter \"@workspace/concepful-next\" dev",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./apps/**\" --filter \"./scripts\" --if-present run typecheck"
@@ -14,7 +16,8 @@
   "private": true,
   "devDependencies": {
     "prettier": "^3.9.5",
-    "typescript": "~5.7.3"
+    "typescript": "~5.7.3",
+    "vitest": "^3.2.7"
   },
   "dependencies": {
     "@tailwindcss/oxide-win32-x64-msvc": "^4.3.2",

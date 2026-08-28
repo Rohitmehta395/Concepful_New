@@ -10,25 +10,6 @@ interface WorkHeroProps {
   caseStudies?: CaseStudy[];
 }
 
-/** Converts a hex color (e.g. "#F97316") to an rgba() string at the given alpha. */
-function hexToRgba(hex: string, alpha: number) {
-  const clean = hex.replace("#", "");
-  const full =
-    clean.length === 3
-      ? clean
-          .split("")
-          .map((c) => c + c)
-          .join("")
-      : clean;
-  const parsed = parseInt(full, 16);
-  if (full.length !== 6 || Number.isNaN(parsed))
-    return `rgba(120, 120, 130, ${alpha})`;
-  const r = (parsed >> 16) & 255;
-  const g = (parsed >> 8) & 255;
-  const b = parsed & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
 export function WorkHero({ caseStudies = [] }: WorkHeroProps) {
   const shouldReduceMotion = useReducedMotion();
   const previews = caseStudies.slice(0, 3);
@@ -36,10 +17,7 @@ export function WorkHero({ caseStudies = [] }: WorkHeroProps) {
 
   return (
     <section className="relative px-6 pt-16 pb-10 md:pt-16 md:pb-12 md:min-h-screen">
-      <HeroBackdrop
-        previews={previews}
-        shouldReduceMotion={shouldReduceMotion ?? false}
-      />
+      <HeroBackdrop shouldReduceMotion={shouldReduceMotion ?? false} />
 
       <div className="container relative z-10 mx-auto max-w-6xl">
         <div className="grid grid-cols-1 items-center gap-16 md:grid-cols-12 md:gap-8">
@@ -109,22 +87,15 @@ export function WorkHero({ caseStudies = [] }: WorkHeroProps) {
 /* ———————————————————————————————————————————————— */
 
 function HeroBackdrop({
-  previews,
   shouldReduceMotion,
 }: {
-  previews: CaseStudy[];
   shouldReduceMotion: boolean;
 }) {
-  const colors = previews.length
-    ? previews.map((p) => p.accentColor)
-    : ["#6366F1", "#F97316"];
-
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-      {/* Studio light — a soft color mesh pulled from the work itself, not decoration */}
+      {/* Studio light — subtle ambient glow */}
       <motion.div
-        className="absolute -top-24 right-[-12%] h-[520px] w-[520px] rounded-full blur-[110px] md:right-[2%]"
-        style={{ background: hexToRgba(colors[0], 0.28) }}
+        className="absolute -top-24 right-[-12%] h-[520px] w-[520px] rounded-full bg-primary/5 blur-[110px] md:right-[2%]"
         animate={
           !shouldReduceMotion ? { x: [0, 24, 0], y: [0, -16, 0] } : undefined
         }
@@ -135,8 +106,7 @@ function HeroBackdrop({
         }
       />
       <motion.div
-        className="absolute bottom-[-12%] right-[16%] h-[380px] w-[380px] rounded-full blur-[100px]"
-        style={{ background: hexToRgba(colors[1] ?? colors[0], 0.22) }}
+        className="absolute bottom-[-12%] right-[16%] h-[380px] w-[380px] rounded-full bg-muted/40 blur-[100px]"
         animate={
           !shouldReduceMotion ? { x: [0, -18, 0], y: [0, 14, 0] } : undefined
         }
@@ -147,11 +117,11 @@ function HeroBackdrop({
         }
       />
 
-      {/* Animated particle field — drifting motes tinted from the work's accents */}
+      {/* Animated particle field — neutral drifting motes */}
       <ParticleField
-        colors={colors}
+        colors={["#94a3b8", "#cbd5e1"]}
         shouldReduceMotion={shouldReduceMotion}
-        className="absolute inset-0 h-full w-full opacity-70"
+        className="absolute inset-0 h-full w-full opacity-60"
       />
 
       {/* Print-registration grid — confined to the stage, kept visible rather than faded to nothing */}
@@ -226,7 +196,6 @@ function WorkBoard({
   shouldReduceMotion: boolean;
 }) {
   const isHero = index === 0;
-  const accent = study.accentColor;
 
   return (
     <motion.div
@@ -246,21 +215,14 @@ function WorkBoard({
         href={`/work/${study.slug}`}
         aria-label={`View ${study.title} case study`}
         className={cn(
-          "group flex h-full flex-col rounded-lg border border-border/60 bg-card p-3",
-          "transition-all duration-500 ease-out hover:-translate-y-1",
+          "group flex h-full flex-col rounded-lg border border-border/60 bg-card p-3 shadow-sm",
+          "transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-md hover:border-border",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         )}
-        style={{
-          boxShadow: `0 2px 10px -4px ${hexToRgba(accent, 0.18)}, 0 20px 44px -22px ${hexToRgba(
-            accent,
-            0.32,
-          )}, 0 6px 16px -8px rgba(15, 15, 20, 0.12)`,
-        }}
       >
-        {/* Category accent bar — the one spot of committed color per board */}
+        {/* Category accent bar */}
         <span
-          className="mb-3 block h-[3px] w-9 rounded-full"
-          style={{ backgroundColor: accent }}
+          className="mb-3 block h-[3px] w-9 rounded-full bg-primary"
           aria-hidden="true"
         />
 
@@ -271,12 +233,7 @@ function WorkBoard({
             alt={study.title}
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />
-          <div
-            className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-            style={{
-              background: `linear-gradient(180deg, transparent 55%, ${hexToRgba(accent, 0.28)} 100%)`,
-            }}
-          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
           <span className="absolute left-3 top-3 rounded-full bg-black/45 px-2 py-0.5 font-mono text-[10px] font-medium tracking-wide text-white backdrop-blur-sm">
             {String(index + 1).padStart(2, "0")}
           </span>
@@ -290,10 +247,7 @@ function WorkBoard({
         {/* Footer — category, title, hover reveal */}
         <div className="flex items-end justify-between gap-3 px-0.5 pt-3">
           <div className="min-w-0">
-            <p
-              className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em]"
-              style={{ color: accent }}
-            >
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
               {study.categoryLabel}
             </p>
             <p
