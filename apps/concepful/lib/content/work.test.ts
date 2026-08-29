@@ -78,7 +78,7 @@ function publishedCsData(opts: {
     teaser: 'Test teaser.',
     brief: 'Test brief.',
     outcome: 'Test outcome.',
-    theme: 'blue',
+    theme: 'rose',
     challenges: [{ text: 'Test challenge' }],
     deliverables: [{ text: 'Test deliverable' }],
     tools: [{ text: 'Test tool' }],

@@ -11,13 +11,7 @@ const arrayHasItems: Validate = (val, { siblingData }) => {
 };
 
 const THEME_OPTIONS = [
-  { label: 'Blue', value: 'blue' },
-  { label: 'Amber', value: 'amber' },
-  { label: 'Purple', value: 'purple' },
-  { label: 'Emerald', value: 'emerald' },
-  { label: 'Cyan', value: 'cyan' },
-  { label: 'Indigo', value: 'indigo' },
-  { label: 'Violet', value: 'violet' },
+  { label: 'Rose', value: 'rose' },
 ];
 
 const VALID_THEMES = THEME_OPTIONS.map(o => o.value);
