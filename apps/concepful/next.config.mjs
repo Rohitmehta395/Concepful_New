@@ -30,15 +30,6 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'storage.googleapis.com',
-        pathname: `/${process.env.GCS_BUCKET || '<your-bucket-name>'}/**`,
-      },
-    ],
-  },
 };
 
 export default withPayload(nextConfig);
