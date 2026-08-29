@@ -5,6 +5,7 @@ import { buildConfig } from 'payload';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { Users } from './collections/Users';
 import { Categories } from './collections/Categories';
 import { Media } from './collections/Media';
 import { CaseStudies } from './collections/CaseStudies';
@@ -20,14 +21,7 @@ export default buildConfig({
     admin: '/payload-admin',
   },
   collections: [
-    {
-      slug: 'users',
-      auth: true,
-      admin: {
-        useAsTitle: 'email',
-      },
-      fields: [],
-    },
+    Users,
     Categories,
     Media,
     CaseStudies,
