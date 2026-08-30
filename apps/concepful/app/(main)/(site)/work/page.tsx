@@ -5,24 +5,26 @@ import { WorkCTA } from "@/components/features/work/work-cta";
 import {
   getAllCaseStudies,
   getFeaturedCaseStudies,
-  getCategoryFilters,
-} from "@/data/work-data";
+} from "@/lib/content/work";
+import { getCategories } from "@/lib/content/categories";
 
 export const metadata = {
   title: "Work | Concepful",
   description: "What we build for our clients.",
 };
 
-export default function WorkPage() {
-  const featuredCaseStudies = getFeaturedCaseStudies();
-  const allCaseStudies = getAllCaseStudies();
-  const categoryFilters = getCategoryFilters();
+export default async function WorkPage() {
+  const [featuredCaseStudies, allCaseStudies, categories] = await Promise.all([
+    getFeaturedCaseStudies(),
+    getAllCaseStudies(),
+    getCategories(),
+  ]);
 
   return (
     <div className="flex-1 overflow-x-clip">
       <WorkHero caseStudies={featuredCaseStudies} />
       <WorkFeatured caseStudies={featuredCaseStudies} />
-      <WorkMosaic caseStudies={allCaseStudies} categories={categoryFilters} />
+      <WorkMosaic caseStudies={allCaseStudies} categories={categories} />
       <WorkCTA />
     </div>
   );

@@ -232,6 +232,23 @@ export async function getAdjacentCaseStudy(current: CaseStudy): Promise<CaseStud
     }
   }
 
-  // No adjacent item found — no wrap-around (product decision deferred to Phase 12)
+  // Priority 3: Wrap-around to the first published case study (lowest sortOrder)
+  const wrapResult = await (payload as any).find({
+    collection: 'case-studies',
+    where: {
+      and: [
+        PUBLISHED_WHERE,
+        { id: { not_equals: current.id } },
+      ],
+    },
+    sort: ['sortOrder', '-createdAt'],
+    limit: 1,
+    depth: 1,
+    overrideAccess: true,
+  })
+  if (wrapResult.docs && wrapResult.docs.length > 0) {
+    return mapCaseStudy(wrapResult.docs[0])
+  }
+
   return null
 }

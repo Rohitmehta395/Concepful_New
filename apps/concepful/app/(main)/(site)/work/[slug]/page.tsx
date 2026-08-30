@@ -1,36 +1,40 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CheckCircle2, Wrench, ArrowUpRight } from "lucide-react";
-import { CASE_STUDIES } from "@/data/case-studies";
+import {
+  getAllCaseStudies,
+  getCaseStudyBySlug,
+  getAdjacentCaseStudy,
+} from "@/lib/content/work";
 import { AnimatedHeroCard } from "@/components/features/work/animated-hero-card";
 import { AnimatedMetricCard } from "@/components/features/work/animated-metric-card";
 
-export function generateStaticParams() {
-  return CASE_STUDIES.map((cs) => ({
+export async function generateStaticParams() {
+  const caseStudies = await getAllCaseStudies();
+  return caseStudies.map((cs) => ({
     slug: cs.slug,
   }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const cs = CASE_STUDIES.find(c => c.slug === slug);
+  const cs = await getCaseStudyBySlug(slug);
   if (!cs) return { title: "Not Found" };
   return {
-    title: `${cs.title} | Concepful`,
+    title: cs.title,
     description: cs.teaser,
   };
 }
 
 export default async function CaseStudyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const cs = CASE_STUDIES.find(c => c.slug === slug);
+  const cs = await getCaseStudyBySlug(slug);
   
   if (!cs) {
     notFound();
   }
   
-  const currentIdx = CASE_STUDIES.findIndex(c => c.slug === slug);
-  const next = CASE_STUDIES[(currentIdx + 1) % CASE_STUDIES.length];
+  const next = await getAdjacentCaseStudy(cs);
 
   return (
     <>
@@ -49,7 +53,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
         <div className="container mx-auto max-w-3xl">
           {/* Category pill */}
           <span className="inline-block text-[11px] font-bold uppercase tracking-[0.15em] px-3 py-1.5 rounded-full border border-primary/20 bg-primary/10 text-primary mb-6">
-            {cs.categoryLabel}
+            {cs.category?.name || "Project"}
           </span>
 
           <h1 className="font-serif text-4xl md:text-5xl font-bold tracking-tight leading-[1.08] mb-4">
@@ -159,28 +163,30 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
       </section>
 
       {/* Next project */}
-      <section className="border-t border-border/40 px-6 py-10">
-        <div className="container mx-auto max-w-3xl flex items-center justify-between gap-6">
-          <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Next project</p>
-            <Link
-              href={`/work/${next.slug}`}
-              className="font-serif text-xl font-bold hover:text-primary transition-colors flex items-center gap-2 group w-fit"
-            >
-              {next.title}
-              <ArrowRight className="h-4 w-4 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-            </Link>
-            <p className="text-sm text-muted-foreground mt-0.5">{next.client} · {next.categoryLabel}</p>
-          </div>
+      {next && (
+        <section className="border-t border-border/40 px-6 py-10">
+          <div className="container mx-auto max-w-3xl flex items-center justify-between gap-6">
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Next project</p>
+              <Link
+                href={`/work/${next.slug}`}
+                className="font-serif text-xl font-bold hover:text-primary transition-colors flex items-center gap-2 group w-fit"
+              >
+                {next.title}
+                <ArrowRight className="h-4 w-4 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+              </Link>
+              <p className="text-sm text-muted-foreground mt-0.5">{next.client} · {next.category?.name || "Project"}</p>
+            </div>
 
-          <Link
-            href="/"
-            className="shrink-0 inline-flex items-center gap-2 text-sm font-semibold border border-primary/30 text-primary px-4 py-2 rounded-xl hover:bg-primary/5 transition-colors"
-          >
-            See plans <ArrowUpRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-      </section>
+            <Link
+              href="/"
+              className="shrink-0 inline-flex items-center gap-2 text-sm font-semibold border border-primary/30 text-primary px-4 py-2 rounded-xl hover:bg-primary/5 transition-colors"
+            >
+              See plans <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </section>
+      )}
     </>
   );
 }

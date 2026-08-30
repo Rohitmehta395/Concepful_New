@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Briefcase, BookOpen, UserCheck } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_SECTIONS = [
@@ -17,7 +17,6 @@ const NAV_SECTIONS = [
   {
     label: "Content",
     items: [
-      { name: "Portfolio", href: "/admin/portfolio", icon: Briefcase },
       { name: "Blog", href: "/admin/blog", icon: BookOpen },
     ],
   },

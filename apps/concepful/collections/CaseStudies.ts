@@ -1,5 +1,34 @@
-import type { CollectionConfig, Validate } from 'payload';
+import type { CollectionConfig, Validate, CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload';
 import { validations } from 'payload/shared';
+import { revalidatePath } from 'next/cache';
+
+const revalidateCaseStudy: CollectionAfterChangeHook = ({ doc, previousDoc }) => {
+  try {
+    revalidatePath('/work');
+    if (doc?.slug) {
+      revalidatePath(`/work/${doc.slug}`);
+    }
+    if (previousDoc?.slug && previousDoc.slug !== doc.slug) {
+      revalidatePath(`/work/${previousDoc.slug}`);
+    }
+  } catch (err) {
+    // In background workers or isolated contexts without Next.js cache context
+    console.error('Failed to revalidate cache:', err);
+  }
+  return doc;
+};
+
+const revalidateDeleteCaseStudy: CollectionAfterDeleteHook = ({ doc }) => {
+  try {
+    revalidatePath('/work');
+    if (doc?.slug) {
+      revalidatePath(`/work/${doc.slug}`);
+    }
+  } catch (err) {
+    console.error('Failed to revalidate cache on delete:', err);
+  }
+  return doc;
+};
 
 const arrayHasItems: Validate = (val, { siblingData }) => {
   if (siblingData?._status === 'published') {
@@ -120,6 +149,10 @@ export const CaseStudies: CollectionConfig = {
   slug: 'case-studies',
   admin: {
     useAsTitle: 'title',
+  },
+  hooks: {
+    afterChange: [revalidateCaseStudy],
+    afterDelete: [revalidateDeleteCaseStudy],
   },
   versions: {
     drafts: true,

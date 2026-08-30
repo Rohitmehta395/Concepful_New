@@ -1,26 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import type { CaseStudy } from "@/data/case-studies";
+import type { CaseStudy, Category } from "@/lib/content/types";
 import { WorkFilters } from "./work-filters";
 import { WorkGrid } from "./work-grid";
 
 export interface WorkMosaicProps {
   caseStudies: CaseStudy[];
-  categories: { id: string; label: string }[];
+  categories: Category[];
 }
 
 export function WorkMosaic({ caseStudies, categories }: WorkMosaicProps) {
   const [activeFilter, setActiveFilter] = useState("all");
 
+  const filterOptions = [
+    { id: "all", label: "All Work" },
+    ...categories.map((c) => ({ id: c.slug, label: c.name })),
+  ];
+
   const filtered = caseStudies.filter(
-    (cs) => activeFilter === "all" || cs.category === activeFilter
+    (cs) => activeFilter === "all" || cs.category?.slug === activeFilter
   );
 
   return (
     <>
       <WorkFilters
-        filters={categories}
+        filters={filterOptions}
         caseStudies={caseStudies}
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}

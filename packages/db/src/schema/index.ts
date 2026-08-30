@@ -147,24 +147,6 @@ export const insertBrandCheckSchema = createInsertSchema(brandChecksTable).omit(
 export type InsertBrandCheck = z.infer<typeof insertBrandCheckSchema>;
 export type BrandCheck = typeof brandChecksTable.$inferSelect;
 
-export const portfolioItemsTable = pgTable("portfolio_items", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  clientName: text("client_name"),
-  type: text("type").notNull(),
-  description: text("description"),
-  coverImageUrl: text("cover_image_url"),
-  featured: boolean("featured").default(false),
-  sortOrder: integer("sort_order").default(0),
-  status: text("status").default("draft").notNull(),
-  tags: jsonb("tags").$type<string[]>().default([]),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const insertPortfolioItemSchema = createInsertSchema(portfolioItemsTable).omit({ id: true, createdAt: true, updatedAt: true });
-export type InsertPortfolioItem = z.infer<typeof insertPortfolioItemSchema>;
-export type PortfolioItem = typeof portfolioItemsTable.$inferSelect;
 
 export const blogPostsTable = pgTable("blog_posts", {
   id: serial("id").primaryKey(),

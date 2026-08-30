@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { CaseStudy } from "@/data/case-studies";
+import type { CaseStudy } from "@/lib/content/types";
 import { cn } from "@/lib/utils";
 import { ArrowUpRight } from "lucide-react";
 
@@ -53,10 +54,12 @@ export function WorkGrid({ caseStudies }: WorkGridProps) {
                 <div 
                   className="relative w-full aspect-[4/3] rounded-md overflow-hidden bg-muted mb-5 shadow-sm transition-all duration-500 ease-out group-hover:-translate-y-1 group-hover:shadow-md"
                 >
-                  <img 
-                    src={cs.image || "/placeholder.svg"} 
-                    alt={cs.title} 
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.2s] ease-[0.16,1,0.3,1] group-hover:scale-[1.05]" 
+                  <Image 
+                    src={cs.coverImage?.url || "/placeholder.svg"} 
+                    alt={cs.coverImage?.alt || cs.title} 
+                    fill
+                    className="object-cover transition-transform duration-[1.2s] ease-[0.16,1,0.3,1] group-hover:scale-[1.05]"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
                   
                   {/* Subtle darkening overlay on hover to draw attention to typography */}
@@ -67,7 +70,7 @@ export function WorkGrid({ caseStudies }: WorkGridProps) {
                     <span 
                       className="block px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.25em] bg-background/95 backdrop-blur-sm text-foreground shadow-sm rounded-sm transform translate-y-full opacity-0 transition-all duration-500 ease-[0.16,1,0.3,1] group-hover:translate-y-0 group-hover:opacity-100"
                     >
-                      {cs.categoryLabel}
+                      {cs.category?.name || "Project"}
                     </span>
                   </div>
                 </div>

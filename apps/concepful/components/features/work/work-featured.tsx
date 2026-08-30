@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { CaseStudy } from "@/data/case-studies";
+import Image from "next/image";
+import type { CaseStudy } from "@/lib/content/types";
 
 interface WorkFeaturedProps {
   caseStudies: CaseStudy[];
@@ -52,10 +53,13 @@ function LeadCard({ study }: { study: CaseStudy }) {
       className="group grid grid-cols-1 overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-md hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:grid-cols-2"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-muted md:aspect-auto">
-        <img
-          src={study.image}
-          alt={study.title}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+        <Image
+          src={study.coverImage?.url || "/placeholder.svg"}
+          alt={study.coverImage?.alt || study.title}
+          fill
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+          sizes="(max-width: 768px) 100vw, 50vw"
+          priority
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
         <span className="absolute left-4 top-4 rounded-full bg-black/45 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur-sm">
@@ -69,7 +73,7 @@ function LeadCard({ study }: { study: CaseStudy }) {
           aria-hidden="true"
         />
         <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
-          {study.categoryLabel}
+          {study.category?.name || "Project"}
         </p>
         <h3 className="mb-2 font-serif text-2xl font-bold leading-snug text-foreground md:text-3xl">
           {study.title}
@@ -110,10 +114,12 @@ function SecondaryCard({ study, index }: { study: CaseStudy; index: number }) {
       className="group flex gap-4 rounded-lg border border-border/60 bg-card p-3 shadow-sm transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-md hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
       <div className="relative aspect-square w-24 shrink-0 overflow-hidden rounded-md bg-muted sm:w-28">
-        <img
-          src={study.image}
-          alt={study.title}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+        <Image
+          src={study.coverImage?.url || "/placeholder.svg"}
+          alt={study.coverImage?.alt || study.title}
+          fill
+          className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+          sizes="(max-width: 640px) 96px, 112px"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
         <span className="absolute left-1.5 top-1.5 rounded-full bg-black/45 px-1.5 py-0.5 font-mono text-[8px] font-medium text-white backdrop-blur-sm">
@@ -123,7 +129,7 @@ function SecondaryCard({ study, index }: { study: CaseStudy; index: number }) {
 
       <div className="flex min-w-0 flex-1 flex-col justify-center py-1">
         <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.18em] text-primary">
-          {study.categoryLabel}
+          {study.category?.name || "Project"}
         </p>
         <h3 className="mb-0.5 truncate font-serif text-base font-semibold leading-snug text-foreground">
           {study.title}

@@ -1,4 +1,4 @@
-import type { CaseStudy } from "@/data/case-studies";
+import type { CaseStudy } from "@/lib/content/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,7 +44,7 @@ export function WorkFilters({
                 const isAll = f.id === "all";
                 const count = isAll
                   ? caseStudies.length
-                  : caseStudies.filter((cs) => cs.category === f.id).length;
+                  : caseStudies.filter((cs) => cs.category?.slug === f.id).length;
                 const isSelected = activeFilter === f.id;
 
                 return (

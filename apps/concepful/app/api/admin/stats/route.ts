@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@workspace/db";
 import {
   companiesTable, onboardingSubmissionsTable, workRequestsTable, planSelectionsTable,
-  crmContactsTable, blogPostsTable, portfolioItemsTable,
+  crmContactsTable, blogPostsTable,
 } from "@workspace/db";
 import { eq, count, sql } from "drizzle-orm";
 
@@ -35,8 +35,6 @@ export async function GET(request: NextRequest) {
       .where(sql`stage NOT IN ('won', 'lost')`);
     const [{ publishedPosts }] = await db.select({ publishedPosts: count() }).from(blogPostsTable)
       .where(eq(blogPostsTable.status, "published"));
-    const [{ publishedPortfolio }] = await db.select({ publishedPortfolio: count() }).from(portfolioItemsTable)
-      .where(eq(portfolioItemsTable.status, "published"));
 
     return NextResponse.json({
       totalLeads,
@@ -51,7 +49,6 @@ export async function GET(request: NextRequest) {
       totalContacts,
       activeProspects,
       publishedPosts,
-      publishedPortfolio,
     });
   } catch (err) {
     console.error(err);

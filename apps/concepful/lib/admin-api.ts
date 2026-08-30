@@ -16,11 +16,6 @@ async function apiFetch<T>(path: string, opts?: RequestInit): Promise<T> {
   return data as T;
 }
 
-export type PortfolioItem = {
-  id: number; title: string; clientName: string | null; type: string;
-  description: string | null; coverImageUrl: string | null; featured: boolean;
-  sortOrder: number; status: string; tags: string[]; createdAt: string; updatedAt: string;
-};
 
 export type BlogPost = {
   id: number; title: string; slug: string; content: string; excerpt: string | null;
@@ -34,13 +29,6 @@ export type CrmContact = {
   source: string | null; assignedTo: string | null; createdAt: string; updatedAt: string;
 };
 
-export const portfolioApi = {
-  list: () => apiFetch<PortfolioItem[]>("/api/admin/portfolio"),
-  get: (id: number) => apiFetch<PortfolioItem>(`/api/admin/portfolio/${id}`),
-  create: (data: Partial<PortfolioItem>) => apiFetch<PortfolioItem>("/api/admin/portfolio", { method: "POST", body: JSON.stringify(data) }),
-  update: (id: number, data: Partial<PortfolioItem>) => apiFetch<PortfolioItem>(`/api/admin/portfolio/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
-  remove: (id: number) => apiFetch<void>(`/api/admin/portfolio/${id}`, { method: "DELETE" }),
-};
 
 export const blogApi = {
   list: () => apiFetch<BlogPost[]>("/api/admin/blog"),

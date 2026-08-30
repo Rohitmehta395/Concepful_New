@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
-import { CaseStudy } from "@/data/case-studies";
+import type { CaseStudy } from "@/lib/content/types";
 import { ParticleField } from "./particle-field";
 import { cn } from "@/lib/utils";
 
@@ -228,10 +229,13 @@ function WorkBoard({
 
         {/* Artwork — full color, no dimming overlay */}
         <div className="relative min-h-0 flex-1 aspect-[4/3] overflow-hidden rounded-md bg-muted md:aspect-auto">
-          <img
-            src={study.image || "/placeholder.svg"}
-            alt={study.title}
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+          <Image
+            src={study.coverImage?.url || "/placeholder.svg"}
+            alt={study.coverImage?.alt || study.title}
+            fill
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority={isHero}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
           <span className="absolute left-3 top-3 rounded-full bg-black/45 px-2 py-0.5 font-mono text-[10px] font-medium tracking-wide text-white backdrop-blur-sm">
@@ -248,7 +252,7 @@ function WorkBoard({
         <div className="flex items-end justify-between gap-3 px-0.5 pt-3">
           <div className="min-w-0">
             <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
-              {study.categoryLabel}
+              {study.category?.name || "Project"}
             </p>
             <p
               className={cn(

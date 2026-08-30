@@ -19,7 +19,6 @@ type ExtendedStats = {
   totalContacts: number;
   activeProspects: number;
   publishedPosts: number;
-  publishedPortfolio: number;
 };
 
 export function DashboardClient() {
@@ -127,18 +126,7 @@ export function DashboardClient() {
             <Link href="/admin/blog" className="text-xs text-primary hover:underline">Manage blog →</Link>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Portfolio Items</CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {statsLoading ? <Skeleton className="h-8 w-16" /> : (
-              <div className="text-3xl font-bold">{stats?.publishedPortfolio ?? 0}</div>
-            )}
-            <Link href="/admin/portfolio" className="text-xs text-primary hover:underline">Manage portfolio →</Link>
-          </CardContent>
-        </Card>
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
