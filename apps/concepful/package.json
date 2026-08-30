@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "generate:importmap": "payload generate:importmap",
-    "generate:types": "payload generate:types"
+    "generate:types": "payload generate:types",
+    "payload:migrate": "payload migrate",
+    "payload:migrate:status": "payload migrate:status"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

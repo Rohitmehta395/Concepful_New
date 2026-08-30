@@ -9,6 +9,7 @@ import { Users } from './collections/Users';
 import { Categories } from './collections/Categories';
 import { Media } from './collections/Media';
 import { CaseStudies } from './collections/CaseStudies';
+import { migrations } from './migrations';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -36,7 +37,8 @@ export default buildConfig({
       },
     },
     schemaName: 'payload',
-    push: true,
+    push: false,
+    prodMigrations: migrations,
   }),
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
