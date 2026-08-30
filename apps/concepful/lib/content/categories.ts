@@ -41,13 +41,18 @@ function mapCategory(doc: any): Category {
  * correctness, not optional cleanup.
  */
 export async function getCategories(): Promise<Category[]> {
-  const payload = await getPayloadInstance()
-  const result = await (payload as any).find({
-    collection: 'categories',
-    sort: ['sortOrder', 'name'],
-    pagination: false,
-    depth: 0,
-    overrideAccess: true,
-  })
-  return (result.docs as any[]).map(mapCategory)
+  try {
+    const payload = await getPayloadInstance()
+    const result = await (payload as any).find({
+      collection: 'categories',
+      sort: ['sortOrder', 'name'],
+      pagination: false,
+      depth: 0,
+      overrideAccess: true,
+    })
+    return (result.docs as any[]).map(mapCategory)
+  } catch (error) {
+    console.error('[getCategories] Error querying categories:', error)
+    return []
+  }
 }

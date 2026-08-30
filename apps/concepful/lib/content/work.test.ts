@@ -40,19 +40,29 @@ const FIXTURE_CAT_SLUG = 'test-p7-work-fixture-cat'
 /** Alt text for the fixture media doc (used as identifier for cleanup). */
 const FIXTURE_MEDIA_ALT = 'test-p7-work-fixture-media'
 
+const CS_SORT = {
+  A: -9_000_010,
+  B: -9_000_009,
+  C: -9_000_008,
+  D: -9_000_007,
+  E: -9_000_006,
+  F_EXTRA: -9_000_005,
+  TIE: -9_000_001,
+}
+
 // ─── IDs captured from beforeAll ─────────────────────────────────────────────
 
 let testCategoryId: any
 let testMediaId: any
-let csAId: string   // published, non-featured, sortOrder=9_000_001
-let csBId: string   // published, non-featured, sortOrder=9_000_002, no related
-let csCId: string   // published, featured=true, sortOrder=9_000_003
-let csDId: string   // published, featured=true, sortOrder=9_000_004
-let csEId: string   // published, featured=true, sortOrder=9_000_005
-let csFExtraId: string // published, featured=true, sortOrder=9_000_006 (4th featured → tests slice)
+let csAId: string   // published, non-featured, sortOrder=CS_SORT.A
+let csBId: string   // published, non-featured, sortOrder=CS_SORT.B, no related
+let csCId: string   // published, featured=true, sortOrder=CS_SORT.C
+let csDId: string   // published, featured=true, sortOrder=CS_SORT.D
+let csEId: string   // published, featured=true, sortOrder=CS_SORT.E
+let csFExtraId: string // published, featured=true, sortOrder=CS_SORT.F_EXTRA (4th featured → tests slice)
 let csDraftId: string  // draft, featured=true → must NEVER appear in public reads
-let csTieOlderId: string // published, sortOrder=9_000_010, created earlier
-let csTieNewerId: string // published, sortOrder=9_000_010, created later (tests -createdAt tiebreaker)
+let csTieOlderId: string // published, sortOrder=CS_SORT.TIE, created earlier
+let csTieNewerId: string // published, sortOrder=CS_SORT.TIE, created later (tests -createdAt tiebreaker)
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -184,7 +194,7 @@ beforeAll(async () => {
   const csA = await (payload as any).create({
     collection: 'case-studies',
     data: {
-      ...publishedCsData({ slugSuffix: 'cs-a', featured: false, sortOrder: 9_000_001 }),
+      ...publishedCsData({ slugSuffix: 'cs-a', featured: false, sortOrder: CS_SORT.A }),
       category: testCategoryId,
       coverImage: testMediaId,
     },
@@ -195,7 +205,7 @@ beforeAll(async () => {
   const csB = await (payload as any).create({
     collection: 'case-studies',
     data: {
-      ...publishedCsData({ slugSuffix: 'cs-b', featured: false, sortOrder: 9_000_002 }),
+      ...publishedCsData({ slugSuffix: 'cs-b', featured: false, sortOrder: CS_SORT.B }),
       category: testCategoryId,
       coverImage: testMediaId,
     },
@@ -206,7 +216,7 @@ beforeAll(async () => {
   const csC = await (payload as any).create({
     collection: 'case-studies',
     data: {
-      ...publishedCsData({ slugSuffix: 'cs-c', featured: true, sortOrder: 9_000_003 }),
+      ...publishedCsData({ slugSuffix: 'cs-c', featured: true, sortOrder: CS_SORT.C }),
       category: testCategoryId,
       coverImage: testMediaId,
     },
@@ -217,7 +227,7 @@ beforeAll(async () => {
   const csD = await (payload as any).create({
     collection: 'case-studies',
     data: {
-      ...publishedCsData({ slugSuffix: 'cs-d', featured: true, sortOrder: 9_000_004 }),
+      ...publishedCsData({ slugSuffix: 'cs-d', featured: true, sortOrder: CS_SORT.D }),
       category: testCategoryId,
       coverImage: testMediaId,
     },
@@ -228,7 +238,7 @@ beforeAll(async () => {
   const csE = await (payload as any).create({
     collection: 'case-studies',
     data: {
-      ...publishedCsData({ slugSuffix: 'cs-e', featured: true, sortOrder: 9_000_005 }),
+      ...publishedCsData({ slugSuffix: 'cs-e', featured: true, sortOrder: CS_SORT.E }),
       category: testCategoryId,
       coverImage: testMediaId,
     },
@@ -241,7 +251,7 @@ beforeAll(async () => {
   const csFExtra = await (payload as any).create({
     collection: 'case-studies',
     data: {
-      ...publishedCsData({ slugSuffix: 'cs-fextra', featured: true, sortOrder: 9_000_006 }),
+      ...publishedCsData({ slugSuffix: 'cs-fextra', featured: true, sortOrder: CS_SORT.F_EXTRA }),
       category: testCategoryId,
       coverImage: testMediaId,
     },
@@ -267,13 +277,13 @@ beforeAll(async () => {
   csDraftId = String(csDraft.id)
 
   // ── Step 6: Create tiebreaker fixtures (equal sortOrder) ───────────────────
-  // Both have sortOrder: 9_000_010.
+  // Both have sortOrder: CS_SORT.TIE.
   // csTieOlder is created first, then a delay, then csTieNewer.
   // Secondary sort ('-createdAt' DESC) must place csTieNewer BEFORE csTieOlder.
   const csTieOlder = await (payload as any).create({
     collection: 'case-studies',
     data: {
-      ...publishedCsData({ slugSuffix: 'cs-tie-older', featured: false, sortOrder: 9_000_010 }),
+      ...publishedCsData({ slugSuffix: 'cs-tie-older', featured: false, sortOrder: CS_SORT.TIE }),
       category: testCategoryId,
       coverImage: testMediaId,
     },
@@ -286,7 +296,7 @@ beforeAll(async () => {
   const csTieNewer = await (payload as any).create({
     collection: 'case-studies',
     data: {
-      ...publishedCsData({ slugSuffix: 'cs-tie-newer', featured: false, sortOrder: 9_000_010 }),
+      ...publishedCsData({ slugSuffix: 'cs-tie-newer', featured: false, sortOrder: CS_SORT.TIE }),
       category: testCategoryId,
       coverImage: testMediaId,
     },
@@ -482,7 +492,7 @@ describe('getCaseStudyBySlug()', () => {
 
   it('returns sortOrder correctly', async () => {
     const cs = await getCaseStudyBySlug(`${CS_PREFIX}cs-c`)
-    expect(cs!.sortOrder).toBe(9_000_003)
+    expect(cs!.sortOrder).toBe(CS_SORT.C)
   })
 })
 
@@ -502,7 +512,7 @@ describe('getAdjacentCaseStudy()', () => {
   })
 
   it('Priority 1 overrides sortOrder ordering: related (csC) wins over next-by-sortOrder (csB)', async () => {
-    // csA.sortOrder=9_000_001 → ordering-based next would be csB (9_000_002)
+    // csA.sortOrder=CS_SORT.A → ordering-based next would be csB (CS_SORT.B)
     // but csA.relatedCaseStudy=csC — relatedCaseStudy must take priority
     const csA = await getCaseStudyBySlug(`${CS_PREFIX}cs-a`)
     const adjacent = await getAdjacentCaseStudy(csA!)
@@ -512,12 +522,12 @@ describe('getAdjacentCaseStudy()', () => {
   })
 
   it('Priority 2: falls back to sortOrder when relatedCaseStudy is not set', async () => {
-    // csB has no relatedCaseStudy, sortOrder=9_000_002
-    // The next published doc with sortOrder > 9_000_002 is csC (9_000_003)
+    // csB has no relatedCaseStudy, sortOrder=CS_SORT.B
+    // The next published doc with sortOrder > CS_SORT.B is csC (CS_SORT.C)
     const csB = await getCaseStudyBySlug(`${CS_PREFIX}cs-b`)
     expect(csB).not.toBeNull()
     expect(csB!.relatedCaseStudyId).toBeNull()
-    expect(csB!.sortOrder).toBe(9_000_002)
+    expect(csB!.sortOrder).toBe(CS_SORT.B)
 
     const adjacent = await getAdjacentCaseStudy(csB!)
     expect(adjacent).not.toBeNull()

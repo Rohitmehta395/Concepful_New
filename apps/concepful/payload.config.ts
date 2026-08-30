@@ -36,6 +36,7 @@ export default buildConfig({
       },
     },
     schemaName: 'payload',
+    push: true,
   }),
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),

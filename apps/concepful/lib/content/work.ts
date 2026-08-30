@@ -106,16 +106,21 @@ const PUBLISHED_WHERE = { _status: { equals: 'published' } }
  * replication of current site behavior — flagged explicitly per Step 2 review.
  */
 export async function getAllCaseStudies(): Promise<CaseStudy[]> {
-  const payload = await getPayloadInstance()
-  const result = await (payload as any).find({
-    collection: 'case-studies',
-    where: PUBLISHED_WHERE,
-    sort: ['sortOrder', '-createdAt'],
-    pagination: false,
-    depth: 1,
-    overrideAccess: true,
-  })
-  return (result.docs as any[]).map(mapCaseStudy)
+  try {
+    const payload = await getPayloadInstance()
+    const result = await (payload as any).find({
+      collection: 'case-studies',
+      where: PUBLISHED_WHERE,
+      sort: ['sortOrder', '-createdAt'],
+      pagination: false,
+      depth: 1,
+      overrideAccess: true,
+    })
+    return (result.docs as any[]).map(mapCaseStudy)
+  } catch (error) {
+    console.error('[getAllCaseStudies] Error querying case studies:', error)
+    return []
+  }
 }
 
 /**
@@ -130,18 +135,23 @@ export async function getAllCaseStudies(): Promise<CaseStudy[]> {
  * enforces the cap if more are ever marked featured.
  */
 export async function getFeaturedCaseStudies(): Promise<CaseStudy[]> {
-  const payload = await getPayloadInstance()
-  const result = await (payload as any).find({
-    collection: 'case-studies',
-    where: {
-      and: [PUBLISHED_WHERE, { featured: { equals: true } }],
-    },
-    sort: ['sortOrder', '-createdAt'],
-    limit: 3,
-    depth: 1,
-    overrideAccess: true,
-  })
-  return (result.docs as any[]).map(mapCaseStudy)
+  try {
+    const payload = await getPayloadInstance()
+    const result = await (payload as any).find({
+      collection: 'case-studies',
+      where: {
+        and: [PUBLISHED_WHERE, { featured: { equals: true } }],
+      },
+      sort: ['sortOrder', '-createdAt'],
+      limit: 3,
+      depth: 1,
+      overrideAccess: true,
+    })
+    return (result.docs as any[]).map(mapCaseStudy)
+  } catch (error) {
+    console.error('[getFeaturedCaseStudies] Error querying featured case studies:', error)
+    return []
+  }
 }
 
 /**
@@ -149,18 +159,23 @@ export async function getFeaturedCaseStudies(): Promise<CaseStudy[]> {
  * or not published (including drafts, which are treated as not-found).
  */
 export async function getCaseStudyBySlug(slug: string): Promise<CaseStudy | null> {
-  const payload = await getPayloadInstance()
-  const result = await (payload as any).find({
-    collection: 'case-studies',
-    where: {
-      and: [PUBLISHED_WHERE, { slug: { equals: slug } }],
-    },
-    depth: 1,
-    limit: 1,
-    overrideAccess: true,
-  })
-  if (!result.docs || result.docs.length === 0) return null
-  return mapCaseStudy(result.docs[0])
+  try {
+    const payload = await getPayloadInstance()
+    const result = await (payload as any).find({
+      collection: 'case-studies',
+      where: {
+        and: [PUBLISHED_WHERE, { slug: { equals: slug } }],
+      },
+      depth: 1,
+      limit: 1,
+      overrideAccess: true,
+    })
+    if (!result.docs || result.docs.length === 0) return null
+    return mapCaseStudy(result.docs[0])
+  } catch (error) {
+    console.error(`[getCaseStudyBySlug] Error querying case study "${slug}":`, error)
+    return null
+  }
 }
 
 /**
@@ -191,64 +206,51 @@ export async function getCaseStudyBySlug(slug: string): Promise<CaseStudy | null
  *   full chain against real seeded content where sortOrder is set.
  */
 export async function getAdjacentCaseStudy(current: CaseStudy): Promise<CaseStudy | null> {
-  const payload = await getPayloadInstance()
+  try {
+    const payload = await getPayloadInstance()
 
-  // Priority 1: editor-set relatedCaseStudy
-  if (current.relatedCaseStudyId) {
-    const result = await (payload as any).find({
-      collection: 'case-studies',
-      where: {
-        and: [
-          PUBLISHED_WHERE,
-          { id: { equals: current.relatedCaseStudyId } },
-        ],
-      },
-      depth: 1,
-      limit: 1,
-      overrideAccess: true,
-    })
-    if (result.docs && result.docs.length > 0) {
-      return mapCaseStudy(result.docs[0])
+    // Priority 1: editor-set relatedCaseStudy
+    if (current.relatedCaseStudyId) {
+      const result = await (payload as any).find({
+        collection: 'case-studies',
+        where: {
+          and: [
+            PUBLISHED_WHERE,
+            { id: { equals: current.relatedCaseStudyId } },
+          ],
+        },
+        depth: 1,
+        limit: 1,
+        overrideAccess: true,
+      })
+      if (result.docs && result.docs.length > 0) {
+        return mapCaseStudy(result.docs[0])
+      }
     }
-  }
 
-  // Priority 2: next by sortOrder
-  if (current.sortOrder !== null && current.sortOrder !== undefined) {
-    const result = await (payload as any).find({
-      collection: 'case-studies',
-      where: {
-        and: [
-          PUBLISHED_WHERE,
-          { sortOrder: { greater_than: current.sortOrder } },
-        ],
-      },
-      sort: 'sortOrder',
-      limit: 1,
-      depth: 1,
-      overrideAccess: true,
-    })
-    if (result.docs && result.docs.length > 0) {
-      return mapCaseStudy(result.docs[0])
+    // Priority 2: next by sortOrder
+    if (current.sortOrder !== null && current.sortOrder !== undefined) {
+      const result = await (payload as any).find({
+        collection: 'case-studies',
+        where: {
+          and: [
+            PUBLISHED_WHERE,
+            { sortOrder: { greater_than: current.sortOrder } },
+          ],
+        },
+        sort: 'sortOrder',
+        limit: 1,
+        depth: 1,
+        overrideAccess: true,
+      })
+      if (result.docs && result.docs.length > 0) {
+        return mapCaseStudy(result.docs[0])
+      }
     }
-  }
 
-  // Priority 3: Wrap-around to the first published case study (lowest sortOrder)
-  const wrapResult = await (payload as any).find({
-    collection: 'case-studies',
-    where: {
-      and: [
-        PUBLISHED_WHERE,
-        { id: { not_equals: current.id } },
-      ],
-    },
-    sort: ['sortOrder', '-createdAt'],
-    limit: 1,
-    depth: 1,
-    overrideAccess: true,
-  })
-  if (wrapResult.docs && wrapResult.docs.length > 0) {
-    return mapCaseStudy(wrapResult.docs[0])
+    return null
+  } catch (error) {
+    console.error('[getAdjacentCaseStudy] Error querying adjacent case study:', error)
+    return null
   }
-
-  return null
 }
