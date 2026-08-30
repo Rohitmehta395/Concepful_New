@@ -20,7 +20,7 @@ interface BuilderScreenProps {
   activeCat: string | null;
   onCatChange: (id: string | null) => void;
   focus: string[];
-  onToggleFocus: (cat: string, sub: string) => void;
+  onToggleFocus: (scopeId: string) => void;
   onToggleStream: (label: string) => void;
   answers: BuilderAnswers;
   onSelect: (key: string, val: string) => void;

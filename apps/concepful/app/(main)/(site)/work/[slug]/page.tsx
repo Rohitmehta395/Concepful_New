@@ -10,10 +10,15 @@ import { AnimatedHeroCard } from "@/components/features/work/animated-hero-card"
 import { AnimatedMetricCard } from "@/components/features/work/animated-metric-card";
 
 export async function generateStaticParams() {
-  const caseStudies = await getAllCaseStudies();
-  return caseStudies.map((cs) => ({
-    slug: cs.slug,
-  }));
+  try {
+    const caseStudies = await getAllCaseStudies();
+    return caseStudies.map((cs) => ({
+      slug: cs.slug,
+    }));
+  } catch (error) {
+    console.warn("[generateStaticParams] Could not fetch case studies during build:", error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {

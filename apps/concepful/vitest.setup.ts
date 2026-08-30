@@ -58,5 +58,5 @@ parseEnvFile(resolve(appDir, '.env.local'), true)
 // pushDevSchema is completely bypassed without affecting other runtime checks.
 process.env.PAYLOAD_MIGRATING = 'true'
 if (!process.env.NODE_ENV) {
-  process.env.NODE_ENV = 'test'
+  (process.env as Record<string, string | undefined>).NODE_ENV = 'test'
 }

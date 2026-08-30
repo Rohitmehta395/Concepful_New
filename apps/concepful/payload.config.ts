@@ -32,7 +32,7 @@ export default buildConfig({
     pool: {
       connectionString: (process.env.DATABASE_URL || '').replace('?sslmode=require', ''),
       ssl: {
-        ca: fs.readFileSync(path.resolve(dirname, 'supabase-ca.crt')),
+        rejectUnauthorized: false,
       },
     },
     schemaName: 'payload',

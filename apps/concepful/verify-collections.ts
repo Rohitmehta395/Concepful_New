@@ -12,8 +12,8 @@ async function run() {
       data: { name: 'Valid Cat', slug: 'valid-cat' },
     });
     console.log('SUCCESS: Created valid category:', validCategory.id);
-  } catch(e) {
-    console.error('FAIL:', e.message);
+  } catch(e: any) {
+    console.error('FAIL:', e?.message || e);
   }
 
   console.log('\n--- TEST 2: Duplicate category ---');
@@ -23,8 +23,8 @@ async function run() {
       data: { name: 'Valid Cat', slug: 'valid-cat' },
     });
     console.error('FAIL: Should have rejected duplicate.');
-  } catch(e) {
-    console.log('SUCCESS: Rejected duplicate category:', e.message);
+  } catch(e: any) {
+    console.log('SUCCESS: Rejected duplicate category:', e?.message || e);
   }
 
   console.log('\n--- TEST 3: Invalid slug ---');
@@ -34,8 +34,8 @@ async function run() {
       data: { name: 'Invalid Cat', slug: 'Invalid Slug!' },
     });
     console.error('FAIL: Should have rejected invalid slug.');
-  } catch(e) {
-    console.log('SUCCESS: Rejected invalid slug:', e.message);
+  } catch(e: any) {
+    console.log('SUCCESS: Rejected invalid slug:', e?.message || e);
   }
 
   console.log('\n--- TEST 4: Create valid media ---');
@@ -52,8 +52,8 @@ async function run() {
       }
     });
     console.log('SUCCESS: Created valid media:', validMedia.id);
-  } catch(e) {
-    console.error('FAIL:', e.message);
+  } catch(e: any) {
+    console.error('FAIL:', e?.message || e);
   }
 
   console.log('\n--- TEST 5: Create media WITHOUT alt ---');
@@ -69,8 +69,8 @@ async function run() {
       }
     });
     console.error('FAIL: Should have rejected missing alt.');
-  } catch(e) {
-    console.log('SUCCESS: Rejected missing alt:', e.message);
+  } catch(e: any) {
+    console.log('SUCCESS: Rejected missing alt:', e?.message || e);
   }
 
   console.log('\n--- TEST 6: Non-image upload ---');
@@ -87,8 +87,8 @@ async function run() {
       }
     });
     console.error('FAIL: Should have rejected text file.');
-  } catch(e) {
-    console.log('SUCCESS: Rejected text file:', e.message);
+  } catch(e: any) {
+    console.log('SUCCESS: Rejected text file:', e?.message || e);
   }
 
   console.log('\nDONE');
