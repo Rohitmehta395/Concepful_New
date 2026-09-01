@@ -12,7 +12,7 @@ export function WorkFeatured({ caseStudies }: WorkFeaturedProps) {
   const [lead, ...rest] = caseStudies;
 
   return (
-    <section className="border-b border-border/40 px-6 py-20 md:py-16">
+    <section id="featured-projects" className="border-b border-border/40 px-6 py-20 md:py-16 scroll-mt-12">
       <div className="container mx-auto max-w-6xl">
         <div className="mb-4 flex items-center gap-3">
           <span
