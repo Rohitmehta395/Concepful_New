@@ -19,9 +19,18 @@ export default async function WorkPage() {
     getCategories(),
   ]);
 
+  // If there are no featured case studies, fall back to the top 3 case studies
+  const heroCaseStudies =
+    featuredCaseStudies.length > 0
+      ? featuredCaseStudies
+      : allCaseStudies.slice(0, 3);
+
   return (
     <div className="flex-1 overflow-x-clip">
-      <WorkHero caseStudies={featuredCaseStudies} />
+      <WorkHero
+        caseStudies={heroCaseStudies}
+        fallbackCaseStudies={allCaseStudies}
+      />
       <WorkMosaic caseStudies={allCaseStudies} categories={categories} />
       <WorkCTA />
     </div>

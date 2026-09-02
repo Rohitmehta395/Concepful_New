@@ -10,16 +10,24 @@ import { cn } from "@/lib/utils";
 
 interface WorkHeroProps {
   caseStudies?: CaseStudy[];
+  fallbackCaseStudies?: CaseStudy[];
 }
 
-export function WorkHero({ caseStudies = [] }: WorkHeroProps) {
+export function WorkHero({
+  caseStudies = [],
+  fallbackCaseStudies = [],
+}: WorkHeroProps) {
   const shouldReduceMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Fallback if no case studies available
-  const featuredList = caseStudies.length > 0 ? caseStudies : [];
-  const currentStudy = featuredList[activeIndex] || null;
+  // Fallback to top 3 case studies if no featured case studies are provided
+  const featuredList =
+    caseStudies.length > 0
+      ? caseStudies
+      : fallbackCaseStudies.slice(0, 3);
+  const safeIndex = activeIndex < featuredList.length ? activeIndex : 0;
+  const currentStudy = featuredList[safeIndex] || null;
 
   // Auto-rotate every 6 seconds if not paused and more than 1 study
   const nextSlide = useCallback(() => {
@@ -141,7 +149,7 @@ export function WorkHero({ caseStudies = [] }: WorkHeroProps) {
                 aria-label="Featured case studies carousel navigation"
               >
                 {featuredList.map((study, idx) => {
-                  const isActive = idx === activeIndex;
+                  const isActive = idx === safeIndex;
                   return (
                     <button
                       key={study.id || study.slug}
