@@ -69,6 +69,7 @@ function mapCaseStudy(doc: any): CaseStudy {
       value: m.value ?? '',
     })),
     featured: doc.featured ?? false,
+    ctaText: doc.ctaText ?? null,
     sortOrder: doc.sortOrder ?? null,
     // relatedCaseStudy is expanded to a full object at depth:1 — extract ID only
     relatedCaseStudyId: doc.relatedCaseStudy

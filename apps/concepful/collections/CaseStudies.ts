@@ -279,6 +279,15 @@ export const CaseStudies: CollectionConfig = {
       },
     },
     {
+      name: 'ctaText',
+      label: 'CTA Text',
+      type: 'text',
+      admin: {
+        description: 'Dynamic highlight text displayed in the Work page hero ("We build [CTA Text] for our clients.") when this case study is featured.',
+        condition: (data) => Boolean(data?.featured),
+      },
+    },
+    {
       name: 'sortOrder',
       type: 'number',
       admin: {

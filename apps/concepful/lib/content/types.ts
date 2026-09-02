@@ -82,6 +82,7 @@ export type CaseStudy = {
   outcome: string
   outcomeMetrics: OutcomeMetric[]
   featured: boolean
+  ctaText?: string | null
   /**
    * Explicit manual ordering override for adjacency and listing order.
    * null/undefined until Phase 8/9 seeding populates it.
