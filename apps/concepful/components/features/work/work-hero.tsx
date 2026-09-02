@@ -48,17 +48,17 @@ export function WorkHero({
     <section
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="relative overflow-hidden w-full min-h-screen flex items-center pt-0 pb-12 lg:py-0 lg:-mt-8"
+      className="relative overflow-hidden w-full min-h-0 lg:min-h-screen flex items-center pt-0 pb-8 sm:pb-12 lg:py-0 lg:-mt-8"
     >
       {/* Subtle ambient lighting */}
       <div className="pointer-events-none absolute -top-20 left-1/4 h-[420px] w-[600px] rounded-full bg-gradient-to-b from-primary/10 via-primary/5 to-transparent blur-3xl" />
 
-      <div className="w-full grid grid-cols-1 lg:grid-cols-2 min-h-screen items-stretch">
+      <div className="w-full grid grid-cols-1 lg:grid-cols-2 lg:min-h-screen items-stretch">
         {/* Left Column: Hero headline & Case Study Details */}
-        <div className="flex flex-col justify-center px-6 sm:px-12 lg:pl-16 xl:pl-24 lg:pr-12 py-16 lg:py-0 lg:-translate-y-4">
+        <div className="flex flex-col justify-center px-6 sm:px-12 lg:pl-16 xl:pl-24 lg:pr-12 pt-14 pb-6 sm:py-16 lg:py-0 lg:-translate-y-4">
           <div className="max-w-xl w-full mx-auto lg:ml-auto lg:mr-0">
             {/* Dynamic Hero Headline */}
-            <h1 className="mb-12 sm:mb-14 lg:mb-20 font-sans text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-[4.25rem] leading-[1.06]">
+            <h1 className="mb-10 sm:mb-14 lg:mb-20 font-sans text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-[4.25rem] leading-[1.06]">
               <span className="block text-foreground">We build</span>
               <span className="relative block h-[1.18em] overflow-hidden my-0.5">
                 <AnimatePresence mode="wait">
@@ -144,7 +144,7 @@ export function WorkHero({
             {/* Rotation Carousel Indicators */}
             {featuredList.length > 1 && (
               <div
-                className="mt-8 flex items-center gap-2.5"
+                className="mt-8 sm:mt-8 flex items-center gap-2.5"
                 role="tablist"
                 aria-label="Featured case studies carousel navigation"
               >
@@ -173,7 +173,7 @@ export function WorkHero({
         </div>
 
         {/* Right Column: Featured Case Study Image taking full 50% right side at ~80% height */}
-        <div className="w-full h-full min-h-[420px] sm:min-h-[500px] lg:min-h-screen relative flex items-center justify-center">
+        <div className="pt-10 sm:mt-0 w-full h-full min-h-0 sm:min-h-[500px] lg:min-h-screen relative flex items-center justify-center">
           {currentStudy && (
             <AnimatePresence mode="wait">
               <motion.div
@@ -190,12 +190,12 @@ export function WorkHero({
                     : { opacity: 0 }
                 }
                 transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                className="w-full h-[400px] sm:h-[480px] lg:h-[80vh] relative"
+                className="w-full h-[320px] sm:h-[480px] lg:h-[80vh] relative"
               >
                 <Link
                   href={`/work/${currentStudy.slug}`}
                   aria-label={`View ${currentStudy.title}`}
-                  className="relative block w-full h-full p-4 sm:p-6 lg:p-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="relative block w-full h-full p-3 sm:p-6 lg:p-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <div className="relative w-full h-full overflow-hidden rounded-2xl">
                     <Image
