@@ -9,7 +9,11 @@ interface AnimatedMetricCardProps {
   index: number;
 }
 
-export function AnimatedMetricCard({ label, value, index }: AnimatedMetricCardProps) {
+export function AnimatedMetricCard({
+  label,
+  value,
+  index,
+}: AnimatedMetricCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}

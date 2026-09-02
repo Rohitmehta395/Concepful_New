@@ -1,6 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CheckCircle2, Wrench, ArrowUpRight } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Wrench,
+  ArrowUpRight,
+} from "lucide-react";
 import {
   getAllCaseStudies,
   getCaseStudyBySlug,
@@ -16,12 +22,19 @@ export async function generateStaticParams() {
       slug: cs.slug,
     }));
   } catch (error) {
-    console.warn("[generateStaticParams] Could not fetch case studies during build:", error);
+    console.warn(
+      "[generateStaticParams] Could not fetch case studies during build:",
+      error,
+    );
     return [];
   }
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const cs = await getCaseStudyBySlug(slug);
   if (!cs) return { title: "Not Found" };
@@ -31,14 +44,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function CaseStudyPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function CaseStudyPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const cs = await getCaseStudyBySlug(slug);
-  
+
   if (!cs) {
     notFound();
   }
-  
+
   const next = await getAdjacentCaseStudy(cs);
 
   return (
@@ -76,9 +93,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
       {/* Hero card */}
       <section className="px-6 mb-16">
         <div className="container mx-auto max-w-3xl">
-          <AnimatedHeroCard
-            tags={cs.tags}
-          />
+          <AnimatedHeroCard tags={cs.tags} />
         </div>
       </section>
 
@@ -101,11 +116,14 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
       {/* Body content */}
       <section className="px-6 pb-20">
         <div className="container mx-auto max-w-3xl space-y-16">
-
           {/* The brief */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground mb-4">The Brief</p>
-            <p className="text-lg leading-relaxed text-foreground/85">{cs.brief}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground mb-4">
+              The Brief
+            </p>
+            <p className="text-lg leading-relaxed text-foreground/85">
+              {cs.brief}
+            </p>
           </div>
 
           {/* Divider */}
@@ -113,14 +131,18 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
 
           {/* Challenges */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground mb-6">The Challenges</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground mb-6">
+              The Challenges
+            </p>
             <ul className="space-y-5">
               {cs.challenges.map((c, i) => (
                 <li key={i} className="flex gap-4">
                   <span className="mt-1 h-5 w-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold bg-primary/10 text-primary">
                     {i + 1}
                   </span>
-                  <p className="text-base leading-relaxed text-foreground/80">{c}</p>
+                  <p className="text-base leading-relaxed text-foreground/80">
+                    {c}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -131,7 +153,9 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
 
           {/* What we made */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground mb-6">What We Made</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground mb-6">
+              What We Made
+            </p>
             <ul className="space-y-3">
               {cs.deliverables.map((d, i) => (
                 <li key={i} className="flex items-start gap-3">
@@ -144,7 +168,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
             {/* Tools */}
             <div className="mt-8 flex items-center gap-3 flex-wrap">
               <Wrench className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              {cs.tools.map(t => (
+              {cs.tools.map((t) => (
                 <span
                   key={t}
                   className="text-xs font-medium px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground border border-border/50"
@@ -160,10 +184,13 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
 
           {/* Outcome */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground mb-4">The Outcome</p>
-            <p className="text-lg leading-relaxed text-foreground/85">{cs.outcome}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground mb-4">
+              The Outcome
+            </p>
+            <p className="text-lg leading-relaxed text-foreground/85">
+              {cs.outcome}
+            </p>
           </div>
-
         </div>
       </section>
 
@@ -172,7 +199,9 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
         <section className="border-t border-border/40 px-6 py-10">
           <div className="container mx-auto max-w-3xl flex items-center justify-between gap-6">
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Next project</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">
+                Next project
+              </p>
               <Link
                 href={`/work/${next.slug}`}
                 className="font-serif text-xl font-bold hover:text-primary transition-colors flex items-center gap-2 group w-fit"
@@ -180,7 +209,9 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                 {next.title}
                 <ArrowRight className="h-4 w-4 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
               </Link>
-              <p className="text-sm text-muted-foreground mt-0.5">{next.client} · {next.category?.name || "Project"}</p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {next.client} · {next.category?.name || "Project"}
+              </p>
             </div>
 
             <Link
