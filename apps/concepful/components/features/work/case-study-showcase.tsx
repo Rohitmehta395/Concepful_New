@@ -42,7 +42,7 @@ export function CaseStudyShowcase({ study }: CaseStudyShowcaseProps) {
           {hasCoverImage ? (
             <div className="relative aspect-[16/10] sm:aspect-[16/9] md:aspect-[21/9] w-full overflow-hidden bg-muted">
               <Image
-                src={study.coverImage?.url as string}
+                src={(study.coverImage?.sizes?.hero?.url || study.coverImage?.url) as string}
                 alt={study.coverImage?.alt || study.title}
                 fill
                 priority

@@ -30,11 +30,26 @@ export type OutcomeMetric = {
   value: string
 }
 
+export type MediaSize = {
+  url?: string | null
+  width?: number | null
+  height?: number | null
+  mimeType?: string | null
+  filesize?: number | null
+  filename?: string | null
+}
+
 export type MediaAsset = {
   id: string
   alt: string
   url?: string | null
   caption?: string | null
+  sizes?: {
+    thumbnail?: MediaSize | null
+    card?: MediaSize | null
+    hero?: MediaSize | null
+    [key: string]: MediaSize | null | undefined
+  } | null
 }
 
 export type Category = {

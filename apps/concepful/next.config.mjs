@@ -30,6 +30,33 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 2678400, // 31 days
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
+  },
+  async headers() {
+    return [
+      {
+        source: '/api/media/file/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withPayload(nextConfig);

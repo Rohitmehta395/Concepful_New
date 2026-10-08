@@ -199,7 +199,7 @@ export function WorkHero({
                 >
                   <div className="relative w-full h-full overflow-hidden rounded-2xl">
                     <Image
-                      src={currentStudy.coverImage?.url || "/placeholder.svg"}
+                      src={currentStudy.coverImage?.sizes?.hero?.url || currentStudy.coverImage?.url || "/placeholder.svg"}
                       alt={currentStudy.coverImage?.alt || currentStudy.title}
                       fill
                       priority
@@ -211,6 +211,25 @@ export function WorkHero({
               </motion.div>
             </AnimatePresence>
           )}
+
+          {/* Background preloading for remaining hero carousel slides */}
+          <div className="hidden" aria-hidden="true">
+            {featuredList.map((study, idx) => {
+              if (idx === safeIndex) return null;
+              const preloadUrl = study.coverImage?.sizes?.hero?.url || study.coverImage?.url;
+              if (!preloadUrl) return null;
+              return (
+                <Image
+                  key={study.id}
+                  src={preloadUrl}
+                  alt=""
+                  width={1400}
+                  height={900}
+                  priority
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

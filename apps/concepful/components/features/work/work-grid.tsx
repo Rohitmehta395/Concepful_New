@@ -55,9 +55,11 @@ export function WorkGrid({ caseStudies }: WorkGridProps) {
                   className="relative w-full aspect-[4/3] rounded-md overflow-hidden bg-muted mb-5 shadow-sm transition-all duration-500 ease-out group-hover:-translate-y-1 group-hover:shadow-md"
                 >
                   <Image 
-                    src={cs.coverImage?.url || "/placeholder.svg"} 
+                    src={cs.coverImage?.sizes?.card?.url || cs.coverImage?.url || "/placeholder.svg"} 
                     alt={cs.coverImage?.alt || cs.title} 
                     fill
+                    priority={i < 3}
+                    loading={i < 3 ? "eager" : "lazy"}
                     className="object-cover transition-transform duration-[1.2s] ease-[0.16,1,0.3,1] group-hover:scale-[1.05]"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />

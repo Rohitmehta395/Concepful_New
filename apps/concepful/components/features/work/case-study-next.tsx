@@ -61,7 +61,7 @@ export function CaseStudyNext({ nextStudy }: CaseStudyNextProps) {
           <div className="md:col-span-4 relative aspect-[16/10] md:aspect-auto overflow-hidden bg-muted">
             {hasCover ? (
               <Image
-                src={nextStudy.coverImage?.url as string}
+                src={(nextStudy.coverImage?.sizes?.card?.url || nextStudy.coverImage?.url) as string}
                 alt={nextStudy.coverImage?.alt || nextStudy.title}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"

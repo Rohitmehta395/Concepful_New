@@ -45,6 +45,13 @@ function mapMedia(doc: any): MediaAsset | null {
     alt: doc.alt ?? '',
     url: doc.url ?? null,
     caption: doc.caption ?? null,
+    sizes: doc.sizes
+      ? {
+          thumbnail: doc.sizes.thumbnail ? { url: doc.sizes.thumbnail.url ?? null, width: doc.sizes.thumbnail.width, height: doc.sizes.thumbnail.height } : null,
+          card: doc.sizes.card ? { url: doc.sizes.card.url ?? null, width: doc.sizes.card.width, height: doc.sizes.card.height } : null,
+          hero: doc.sizes.hero ? { url: doc.sizes.hero.url ?? null, width: doc.sizes.hero.width, height: doc.sizes.hero.height } : null,
+        }
+      : null,
   }
 }
 

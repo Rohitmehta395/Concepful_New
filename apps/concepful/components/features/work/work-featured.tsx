@@ -57,7 +57,7 @@ function LeadCard({ study }: { study: CaseStudy }) {
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-muted md:aspect-auto">
         <Image
-          src={study.coverImage?.url || "/placeholder.svg"}
+          src={study.coverImage?.sizes?.hero?.url || study.coverImage?.sizes?.card?.url || study.coverImage?.url || "/placeholder.svg"}
           alt={study.coverImage?.alt || study.title}
           fill
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
@@ -118,7 +118,7 @@ function SecondaryCard({ study, index }: { study: CaseStudy; index: number }) {
     >
       <div className="relative aspect-square w-24 shrink-0 overflow-hidden rounded-md bg-muted sm:w-28">
         <Image
-          src={study.coverImage?.url || "/placeholder.svg"}
+          src={study.coverImage?.sizes?.thumbnail?.url || study.coverImage?.sizes?.card?.url || study.coverImage?.url || "/placeholder.svg"}
           alt={study.coverImage?.alt || study.title}
           fill
           className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
